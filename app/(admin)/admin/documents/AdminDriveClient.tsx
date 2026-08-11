@@ -468,7 +468,15 @@ function AdminDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename }:
   useEffect(() => {
     async function fetchUrl() {
       const { data: pData } = await supabase.storage.from('documents').createSignedUrl(doc.file_path, 3600)
-      if (pData?.signedUrl) setPreviewUrl(pData.signedUrl)
+      if (pData?.signedUrl) {
+        const ext = doc.file_path.split('.').pop()?.toLowerCase()
+        const officeExts = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx']
+        if (officeExts.includes(ext || '')) {
+          setPreviewUrl(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.signedUrl)}`)
+        } else {
+          setPreviewUrl(pData.signedUrl)
+        }
+      }
       
       const { data: dData } = await supabase.storage.from('documents').createSignedUrl(doc.file_path, 3600, { download: true })
       if (dData?.signedUrl) setDownloadUrl(dData.signedUrl)

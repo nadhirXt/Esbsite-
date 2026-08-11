@@ -22,8 +22,9 @@ if (!email || !password) {
   process.exit(1)
 }
 
-const IMPORT_DIR = path.join(__dirname, 'drive-import')
-const CYCLE = 'dseb' // Déduit du nom du dossier "2 ème année DSEB"
+const CYCLE = process.argv[4] || 'dseb'
+const IMPORT_DIR = process.argv[5] ? path.resolve(process.argv[5]) : path.join(__dirname, 'drive-import')
+const ROOT_PREFIX = process.argv[6] || '' // e.g. "1ère Année"
 
 async function walkDir(dir) {
   let results = []
@@ -52,14 +53,14 @@ async function uploadFiles() {
     process.exit(1)
   }
 
-  console.log("Connexion réussie ! Scan des fichiers...")
+  console.log(`Connexion réussie ! Scan des fichiers dans : ${IMPORT_DIR}`)
+  console.log(`Cycle: ${CYCLE} | Préfixe racine: "${ROOT_PREFIX}"`)
 
   const allFiles = await walkDir(IMPORT_DIR)
   console.log(`${allFiles.length} fichiers trouvés. Début de l'importation...\n`)
 
   let successCount = 0
   let errorCount = 0
-
   let skippedCount = 0
 
   for (const filePath of allFiles) {
@@ -68,21 +69,23 @@ async function uploadFiles() {
     // Ignorer les fichiers cachés comme .DS_Store
     if (fileName.startsWith('.')) continue;
 
-    // Calculer le chemin relatif par rapport au dossier racine des cours
-    // drive-import/2 ème année DSEB/Module annuel/... -> "Module annuel/..."
+    // Calculer le chemin relatif
     let relativePath = path.relative(IMPORT_DIR, filePath)
-    
-    // On enlève le premier dossier s'il s'agit de "2 ème année DSEB" pour avoir une catégorie propre
     const pathParts = relativePath.split(path.sep)
-
-    // Optionnel : On peut nettoyer un peu le nom de la première année pour l'affichage
-    if (pathParts[0] === '2 ème année DSEB') {
-      pathParts[0] = '2ème Année'
+    
+    pathParts.pop() // Retire le nom du fichier pour garder la catégorie
+    
+    let category = pathParts.join('/')
+    
+    // Ajouter le préfixe s'il est spécifié (ex: "1ère Année")
+    if (ROOT_PREFIX) {
+      category = category ? `${ROOT_PREFIX}/${category}` : ROOT_PREFIX
     }
     
-    // Le nom du fichier est le dernier élément, le reste c'est la catégorie
-    pathParts.pop() // Retire le nom du fichier pour garder la catégorie
-    const category = pathParts.join('/')
+    // Nettoyage spécifique hérité de l'ancien code si ROOT_PREFIX n'est pas utilisé
+    if (!ROOT_PREFIX && category.startsWith('2 ème année DSEB')) {
+      category = category.replace('2 ème année DSEB', '2ème Année')
+    }
 
     const fileTitle = fileName.replace(/\.[^.]+$/, '')
     
