@@ -17,6 +17,7 @@ export default async function AdminDashboard() {
 
   const actions = [
     { href: '/admin/upload', label: 'Uploader des documents', desc: 'Ajouter des PDF et documents pour les étudiants', icon: Upload },
+    { href: '/admin/documents', label: 'Gérer les documents', desc: 'Rechercher, visualiser et supprimer les documents', icon: FileText },
     { href: '/admin/liens',  label: 'Gérer les liens utiles',  desc: 'Ajouter ou supprimer des liens de ressources',   icon: Link2 },
   ]
 

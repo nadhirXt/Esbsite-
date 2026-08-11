@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight } from 'lucide-react'
+import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye } from 'lucide-react'
 import { formatDate, CYCLES } from '@/lib/utils'
 import { createClient } from '@supabase/supabase-js'
 
@@ -18,31 +18,39 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
   
   const supabase = createClient(supabaseUrl || '', supabaseKey || '')
 
+  const [searchQuery, setSearchQuery] = useState('')
   const currentPathString = currentPath.join('/')
 
   // Extract folders and files for the current path
   const subFolders = new Set<string>()
-  const filesHere: any[] = []
+  let filesHere: any[] = []
 
-  documents.forEach(doc => {
-    const cat = doc.category || 'Général'
-    
-    // Si on est à la racine, 'Général' est considéré comme la racine
-    if (currentPath.length === 0 && cat === 'Général') {
-      filesHere.push(doc)
-      return
-    }
+  if (searchQuery.trim() !== '') {
+    // If searching, ignore folders and just filter all documents
+    const query = searchQuery.toLowerCase()
+    filesHere = documents.filter(doc => doc.title.toLowerCase().includes(query))
+  } else {
+    // Normal folder navigation
+    documents.forEach(doc => {
+      const cat = doc.category || 'Général'
+      
+      // Si on est à la racine, 'Général' est considéré comme la racine
+      if (currentPath.length === 0 && cat === 'Général') {
+        filesHere.push(doc)
+        return
+      }
 
-    if (cat === currentPathString) {
-      // Fichier appartenant exactement à ce dossier
-      filesHere.push(doc)
-    } else if (cat.startsWith(currentPathString ? currentPathString + '/' : '')) {
-      // Fichier dans un sous-dossier
-      const remainingPath = cat.slice(currentPathString ? currentPathString.length + 1 : 0)
-      const nextFolder = remainingPath.split('/')[0]
-      if (nextFolder) subFolders.add(nextFolder)
-    }
-  })
+      if (cat === currentPathString) {
+        // Fichier appartenant exactement à ce dossier
+        filesHere.push(doc)
+      } else if (cat.startsWith(currentPathString ? currentPathString + '/' : '')) {
+        // Fichier dans un sous-dossier
+        const remainingPath = cat.slice(currentPathString ? currentPathString.length + 1 : 0)
+        const nextFolder = remainingPath.split('/')[0]
+        if (nextFolder) subFolders.add(nextFolder)
+      }
+    })
+  }
 
   const foldersList = Array.from(subFolders).sort()
   const cycleBadge = CYCLES[cycle as keyof typeof CYCLES]
@@ -103,8 +111,21 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
           )}
         </h1>
         <p className="text-[#64748B] text-sm mt-1">
-          {foldersList.length} dossier(s), {filesHere.length} fichier(s)
+          {searchQuery ? `${filesHere.length} résultat(s) pour "${searchQuery}"` : `${foldersList.length} dossier(s), ${filesHere.length} fichier(s)`}
         </p>
+      </div>
+
+      <div className="relative mb-8">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search className="h-5 w-5 text-[#94A3B8]" />
+        </div>
+        <input
+          type="text"
+          placeholder="Rechercher un document par nom..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="block w-full pl-10 pr-3 py-3 border border-[#E2E8F0] rounded-xl leading-5 bg-white placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all sm:text-sm shadow-sm"
+        />
       </div>
 
       {foldersList.length === 0 && filesHere.length === 0 ? (
@@ -169,44 +190,53 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
 }
 
 function DocumentCard({ doc, supabase }: { doc: any; supabase: any }) {
-  const [signedUrl, setSignedUrl] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchUrl() {
-      const { data } = await supabase.storage.from('documents').createSignedUrl(doc.file_path, 3600)
-      if (data?.signedUrl) setSignedUrl(data.signedUrl)
+      // Pour l'aperçu
+      const { data: pData } = await supabase.storage.from('documents').createSignedUrl(doc.file_path, 3600)
+      if (pData?.signedUrl) setPreviewUrl(pData.signedUrl)
+      
+      // Pour le téléchargement direct
+      const { data: dData } = await supabase.storage.from('documents').createSignedUrl(doc.file_path, 3600, { download: true })
+      if (dData?.signedUrl) setDownloadUrl(dData.signedUrl)
     }
     fetchUrl()
   }, [doc.file_path, supabase.storage])
 
-  const CardContent = (
-    <>
-      <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-        <FileText className="w-5 h-5 text-red-500" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-[#0F172A] truncate group-hover:text-[#1E3A8A] transition-colors">{doc.title}</p>
-        <p className="text-xs text-[#64748B] mt-0.5">{formatDate(doc.created_at)}</p>
-      </div>
-      <div className="shrink-0 p-2 rounded-lg text-[#94A3B8] group-hover:text-[#1E3A8A] group-hover:bg-[#EFF6FF] transition-all duration-150">
-        <Download className="w-4 h-4" />
-      </div>
-    </>
-  )
-
-  const containerClasses = "group flex items-start gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all duration-200 cursor-pointer text-left w-full"
-
-  if (signedUrl) {
-    return (
-      <a href={signedUrl} target="_blank" rel="noopener noreferrer" className={containerClasses} title={`Ouvrir ${doc.title}`}>
-        {CardContent}
-      </a>
-    )
-  }
-
   return (
-    <div className={containerClasses}>
-      {CardContent}
+    <div className="group flex flex-col justify-between gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all duration-200">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+          <FileText className="w-5 h-5 text-red-500" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-[#0F172A] truncate" title={doc.title}>{doc.title}</p>
+          <p className="text-xs text-[#64748B] mt-0.5">{formatDate(doc.created_at)}</p>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-2 mt-2 pt-3 border-t border-[#F1F5F9]">
+        {previewUrl ? (
+          <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-[#EFF6FF] text-[#1E3A8A] hover:bg-[#DBEAFE] transition-colors text-xs font-medium">
+            <Eye className="w-3.5 h-3.5" />
+            Voir
+          </a>
+        ) : (
+          <div className="flex-1 h-7 bg-gray-100 animate-pulse rounded-lg" />
+        )}
+        
+        {downloadUrl ? (
+          <a href={downloadUrl} className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors text-xs font-medium">
+            <Download className="w-3.5 h-3.5" />
+            Télécharger
+          </a>
+        ) : (
+          <div className="flex-1 h-7 bg-gray-100 animate-pulse rounded-lg" />
+        )}
+      </div>
     </div>
   )
 }
