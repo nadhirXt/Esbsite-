@@ -5,23 +5,27 @@
 
 -- 1. Profiles table (extends auth.users)
 create table if not exists public.profiles (
-  id         uuid references auth.users on delete cascade primary key,
-  full_name  text,
-  role       text not null default 'student', -- 'student' | 'admin'
-  cycle      text,                             -- 'licence' | 'dseb' | 'master'
-  created_at timestamptz default now()
+  id               uuid references auth.users on delete cascade primary key,
+  full_name        text,
+  role             text not null default 'student', -- 'student' | 'admin'
+  user_type        text,                            -- 'etudiant_esb' | 'autre_etudiant' | 'professeur' | 'ancien' | 'metier'
+  institution_name text,                            -- Only for 'autre_etudiant'
+  cycle            text,                            -- 'licence' | 'dseb' | 'master'
+  created_at       timestamptz default now()
 );
 
 -- Auto-create profile on signup
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.profiles (id, full_name, role, cycle)
+  insert into public.profiles (id, full_name, role, cycle, user_type, institution_name)
   values (
     new.id,
     new.raw_user_meta_data->>'full_name',
     coalesce(new.raw_user_meta_data->>'role', 'student'),
-    new.raw_user_meta_data->>'cycle'
+    new.raw_user_meta_data->>'cycle',
+    new.raw_user_meta_data->>'user_type',
+    new.raw_user_meta_data->>'institution_name'
   );
   return new;
 end;

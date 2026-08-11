@@ -15,10 +15,20 @@ const CYCLES = [
   { value: 'master',  label: 'Master',            desc: '2 ans' },
 ]
 
+const USER_TYPES = [
+  { value: 'etudiant_esb',   label: 'Étudiant à l\'ESB' },
+  { value: 'autre_etudiant', label: 'Autre étudiant' },
+  { value: 'professeur',     label: 'Professeur' },
+  { value: 'ancien',         label: 'Ancien ESBiste' },
+  { value: 'metier',         label: 'Professionnel' },
+]
+
 export default function RegisterPage() {
   const [fullName, setFullName]   = useState('')
   const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
+  const [userType, setUserType]   = useState('etudiant_esb')
+  const [institutionName, setInstitutionName] = useState('')
   const [cycle, setCycle]         = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading]     = useState(false)
@@ -29,8 +39,17 @@ export default function RegisterPage() {
     e.preventDefault()
     setError('')
 
-    if (!cycle) { setError('Veuillez sélectionner votre cycle de formation.'); return }
     if (password.length < 8) { setError('Le mot de passe doit contenir au moins 8 caractères.'); return }
+    
+    if (userType === 'autre_etudiant' && !institutionName.trim()) {
+      setError('Veuillez renseigner votre université ou école supérieure.')
+      return
+    }
+
+    if ((userType === 'etudiant_esb' || userType === 'ancien') && !cycle) {
+      setError('Veuillez sélectionner votre cycle de formation à l\'ESB.')
+      return
+    }
 
     setLoading(true)
     const supabase = createClient()
@@ -39,7 +58,12 @@ export default function RegisterPage() {
       email,
       password,
       options: {
-        data: { full_name: fullName, cycle },
+        data: { 
+          full_name: fullName, 
+          user_type: userType,
+          institution_name: userType === 'autre_etudiant' ? institutionName : null,
+          cycle: (userType === 'etudiant_esb' || userType === 'ancien') ? cycle : null 
+        },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
       },
     })
@@ -153,30 +177,71 @@ export default function RegisterPage() {
               </button>
             </div>
 
-            {/* Cycle selection */}
+            {/* User Type selection */}
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-2">
-                Cycle de formation
+                Je suis...
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                {CYCLES.map((c) => (
+              <div className="flex flex-wrap gap-2">
+                {USER_TYPES.map((u) => (
                   <button
-                    key={c.value}
+                    key={u.value}
                     type="button"
-                    onClick={() => setCycle(c.value)}
+                    onClick={() => setUserType(u.value)}
                     className={cn(
-                      'flex flex-col items-center gap-0.5 rounded-lg border p-3 text-center transition-all duration-200 cursor-pointer',
-                      cycle === c.value
+                      'px-3 py-2 text-sm font-medium rounded-lg border transition-all duration-200 cursor-pointer flex-grow',
+                      userType === u.value
                         ? 'border-[#1E3A8A] bg-[#EFF6FF] text-[#1E3A8A] shadow-sm'
                         : 'border-[#E2E8F0] hover:border-[#CBD5E1] text-[#64748B]'
                     )}
                   >
-                    <span className="text-sm font-semibold">{c.label}</span>
-                    <span className="text-xs">{c.desc}</span>
+                    {u.label}
                   </button>
                 ))}
               </div>
             </div>
+
+            {/* Institution Name for other students */}
+            {userType === 'autre_etudiant' && (
+              <div className="relative animate-fade-in-up">
+                <Input
+                  label="Université ou École Supérieure"
+                  id="institution_name"
+                  type="text"
+                  placeholder="Ex: HEC Alger, ESC, Université d'Oran..."
+                  value={institutionName}
+                  onChange={(e) => setInstitutionName(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+
+            {/* Cycle selection for ESB students / Alumni */}
+            {(userType === 'etudiant_esb' || userType === 'ancien') && (
+              <div className="animate-fade-in-up">
+                <label className="block text-sm font-medium text-[#0F172A] mb-2">
+                  Cycle de formation (ESB)
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {CYCLES.map((c) => (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setCycle(c.value)}
+                      className={cn(
+                        'flex flex-col items-center gap-0.5 rounded-lg border p-3 text-center transition-all duration-200 cursor-pointer',
+                        cycle === c.value
+                          ? 'border-[#1E3A8A] bg-[#EFF6FF] text-[#1E3A8A] shadow-sm'
+                          : 'border-[#E2E8F0] hover:border-[#CBD5E1] text-[#64748B]'
+                      )}
+                    >
+                      <span className="text-sm font-semibold">{c.label}</span>
+                      <span className="text-xs">{c.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <Button
               type="submit"
