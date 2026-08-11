@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { GraduationCap, Menu, X } from 'lucide-react'
+import { GraduationCap, Menu, X, User as UserIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Button from '@/components/ui/Button'
+import { createClient } from '@/lib/supabase/client'
 
 const NAV_LINKS = [
   { href: '#presentation', label: 'L\'ESB' },
@@ -17,11 +18,26 @@ const NAV_LINKS = [
 export default function PublicHeader() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    
+    // Check Auth State
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+    })
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null)
+    })
+
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      subscription.unsubscribe()
+    }
   }, [])
 
   return (
@@ -67,20 +83,31 @@ export default function PublicHeader() {
 
         {/* Actions */}
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/login"
-            className={cn(
-              'text-sm font-medium transition-colors',
-              scrolled ? 'text-[#0F172A] hover:text-[#1E3A8A]' : 'text-white hover:text-blue-200'
-            )}
-          >
-            Connexion
-          </Link>
-          <Link href="/register">
-            <Button variant="secondary" size="sm" className="bg-[#A16207] hover:bg-[#854d0e]">
-              Espace Étudiant
-            </Button>
-          </Link>
+          {user ? (
+            <Link href="/dashboard">
+              <Button variant="secondary" size="sm" className="bg-[#A16207] hover:bg-[#854d0e] flex items-center gap-2">
+                <UserIcon className="w-4 h-4" />
+                Mon Espace
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className={cn(
+                  'text-sm font-medium transition-colors',
+                  scrolled ? 'text-[#0F172A] hover:text-[#1E3A8A]' : 'text-white hover:text-blue-200'
+                )}
+              >
+                Connexion
+              </Link>
+              <Link href="/register">
+                <Button variant="secondary" size="sm" className="bg-[#A16207] hover:bg-[#854d0e]">
+                  Espace Étudiant
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -110,14 +137,25 @@ export default function PublicHeader() {
             </a>
           ))}
           <div className="pt-3 border-t border-[#E2E8F0] flex flex-col gap-2">
-            <Link href="/login" className="block text-sm font-medium text-[#0F172A]">
-              Connexion
-            </Link>
-            <Link href="/register">
-              <Button size="sm" className="w-full bg-[#A16207] hover:bg-[#854d0e]">
-                Espace Étudiant
-              </Button>
-            </Link>
+            {user ? (
+              <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
+                <Button size="sm" className="w-full bg-[#A16207] hover:bg-[#854d0e] flex items-center justify-center gap-2">
+                  <UserIcon className="w-4 h-4" />
+                  Mon Espace
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-[#0F172A]">
+                  Connexion
+                </Link>
+                <Link href="/register" onClick={() => setMenuOpen(false)}>
+                  <Button size="sm" className="w-full bg-[#A16207] hover:bg-[#854d0e]">
+                    Espace Étudiant
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
