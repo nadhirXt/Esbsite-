@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
@@ -24,6 +25,7 @@ const USER_TYPES = [
 ]
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [fullName, setFullName]   = useState('')
   const [email, setEmail]         = useState('')
   const [password, setPassword]   = useState('')
@@ -33,7 +35,6 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState('')
-  const [success, setSuccess]     = useState(false)
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
@@ -87,33 +88,8 @@ export default function RegisterPage() {
       return
     }
 
-    setSuccess(true)
-    setLoading(false)
-  }
-
-  if (success) {
-    return (
-      <div className="animate-fade-in text-center">
-        <div className="bg-white/95 rounded-2xl p-10 shadow-2xl">
-          <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-5">
-            <CheckCircle className="w-8 h-8 text-green-600" />
-          </div>
-          <h2 className="text-xl font-bold text-[#0F172A] mb-3">
-            Vérifiez votre boite mail !
-          </h2>
-          <p className="text-[#64748B] text-sm leading-relaxed mb-6">
-            Un email de confirmation a été envoyé à <strong className="text-[#0F172A]">{email}</strong>.
-            Cliquez sur le lien dans l&apos;email pour activer votre compte.
-          </p>
-          <Link
-            href="/login"
-            className="text-sm font-semibold text-[#1E3A8A] hover:underline"
-          >
-            Retour à la connexion
-          </Link>
-        </div>
-      </div>
-    )
+    router.push('/dashboard')
+    router.refresh()
   }
 
   return (
