@@ -78,6 +78,9 @@ export default function HomePage() {
               </h1>
               <div className="text-base md:text-lg text-blue-200 mb-10 leading-relaxed max-w-xl space-y-4">
                 <p>
+                  L&apos;École Supérieure de Banque propose des formations d&apos;excellence en Licence, DSEB et Master pour préparer les cadres du secteur financier algérien.
+                </p>
+                <p>
                   L&apos;École Supérieure de Banque est une Direction Générale de la Banque d&apos;Algérie, créée en janvier 1995 en vue de former des cadres dans les domaines de la banque.
                 </p>
                 <p>
