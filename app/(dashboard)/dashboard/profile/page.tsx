@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { User, Mail, Shield, Building2, BookOpen, Settings } from 'lucide-react'
 import { CYCLES } from '@/lib/utils'
+import { ensureProfile } from '@/lib/ensure-profile'
 
 export const metadata = {
   title: 'Mon Profil | ESB Hub',
@@ -28,14 +29,10 @@ export default async function ProfilePage() {
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  const profile = await ensureProfile(supabase, user)
 
   if (!profile) {
-    return <div>Profil introuvable.</div>
+    return <div>Profil introuvable. Veuillez vous reconnecter ou contacter l&apos;administration.</div>
   }
 
   const cycleBadge = profile.cycle ? CYCLES[profile.cycle as keyof typeof CYCLES] : null

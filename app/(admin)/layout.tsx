@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { GraduationCap, Upload, Link2, LayoutDashboard, Shield, LogOut } from 'lucide-react'
+import { ensureProfile } from '@/lib/ensure-profile'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -9,11 +10,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, full_name')
-    .eq('id', user.id)
-    .single()
+  const profile = await ensureProfile(supabase, user)
 
   if (profile?.role !== 'admin') redirect('/dashboard')
 

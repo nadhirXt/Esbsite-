@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar'
+import { ensureProfile } from '@/lib/ensure-profile'
 
 export default async function DashboardLayout({
   children,
@@ -12,11 +13,7 @@ export default async function DashboardLayout({
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, cycle, role')
-    .eq('id', user.id)
-    .single()
+  const profile = await ensureProfile(supabase, user)
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col md:flex-row">

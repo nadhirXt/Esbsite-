@@ -65,6 +65,9 @@ create policy "Users can view own profile"
   on public.profiles for select using (auth.uid() = id);
 create policy "Users can update own profile"
   on public.profiles for update using (auth.uid() = id);
+create policy "Users can insert own profile"
+  on public.profiles for insert
+  with check (auth.uid() = id);
 create policy "Admin can view all profiles"
   on public.profiles for select
   using (exists (select 1 from public.profiles where id = auth.uid() and role = 'admin'));
@@ -93,9 +96,31 @@ create policy "Admin can delete useful links"
 
 -- ============================================================
 -- Storage Bucket
--- Run separately via Supabase Dashboard > Storage, or:
 -- ============================================================
--- insert into storage.buckets (id, name, public) values ('documents', 'documents', false);
+insert into storage.buckets (id, name, public)
+values ('documents', 'documents', false)
+on conflict (id) do nothing;
+
+-- Enable RLS for storage.objects if not already enabled (usually is by default)
+-- alter table storage.objects enable row level security;
+
+create policy "Admins can upload files"
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'documents' and 
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+create policy "Authenticated users can view files"
+  on storage.objects for select to authenticated
+  using (bucket_id = 'documents');
+
+create policy "Admins can delete files"
+  on storage.objects for delete to authenticated
+  using (
+    bucket_id = 'documents' and 
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
 
 -- ============================================================
 -- Functions for Stats (Public)

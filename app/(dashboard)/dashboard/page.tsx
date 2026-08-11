@@ -2,16 +2,13 @@ import { createClient } from '@/lib/supabase/server'
 import { BookOpen, Link2, FileText, GraduationCap, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { CYCLES } from '@/lib/utils'
+import { ensureProfile } from '@/lib/ensure-profile'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, cycle')
-    .eq('id', user!.id)
-    .single()
+  const profile = await ensureProfile(supabase, user!)
 
   const { data: recentDocs } = await supabase
     .from('documents')
