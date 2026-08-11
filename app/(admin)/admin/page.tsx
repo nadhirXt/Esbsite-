@@ -24,7 +24,7 @@ export default async function AdminDashboard() {
     <div className="animate-fade-in max-w-3xl">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#0F172A]">Tableau de bord Admin</h1>
-        <p className="text-[#64748B] text-sm mt-1">Gérez le contenu de la plateforme ESB antigravité.</p>
+        <p className="text-[#64748B] text-sm mt-1">Gérez le contenu de la plateforme ESB Hub.</p>
       </div>
 
       {/* Stats */}

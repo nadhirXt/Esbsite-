@@ -10,8 +10,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "ESB Antigravité — École Supérieure de Banque",
-    template: "%s | ESB Antigravité",
+    default: "ESB Hub — École Supérieure de Banque",
+    template: "%s | ESB Hub",
   },
   description:
     "Portail officiel de l'École Supérieure de Banque. Formations Licence, DSEB et Master en banque et finance.",

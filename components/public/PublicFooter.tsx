@@ -11,7 +11,7 @@ export default function PublicFooter() {
             <div className="flex items-center gap-2 font-bold text-lg mb-4">
               <GraduationCap className="w-6 h-6 text-[#A16207]" />
               <span>ESB</span>
-              <span className="font-light text-blue-300">antigravité</span>
+              <span className="font-light text-blue-300">Hub</span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
               L&apos;École Supérieure de Banque forme les experts financiers

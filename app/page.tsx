@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'ESB Antigravité — École Supérieure de Banque',
+  title: 'ESB Hub — École Supérieure de Banque',
   description: 'Découvrez l\'École Supérieure de Banque (ESB). Formations Licence, DSEB et Master en banque et finance en Algérie.',
 }
 
@@ -100,7 +100,7 @@ export default function HomePage() {
                     <Building2 className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-bold text-white">ESB antigravité</p>
+                    <p className="font-bold text-white">ESB Hub</p>
                     <p className="text-xs text-blue-300">Portail étudiant</p>
                   </div>
                 </div>

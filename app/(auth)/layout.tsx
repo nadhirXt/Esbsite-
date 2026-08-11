@@ -16,7 +16,7 @@ export default function AuthLayout({
         >
           <GraduationCap className="w-6 h-6 text-[#FCD34D]" />
           <span>ESB</span>
-          <span className="text-[#FCD34D] font-light">antigravité</span>
+          <span className="text-[#FCD34D] font-light">Hub</span>
         </Link>
         <p className="text-sm text-blue-200 hidden sm:block">
           École Supérieure de Banque

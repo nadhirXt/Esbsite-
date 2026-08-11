@@ -44,7 +44,7 @@ export default function PublicHeader() {
           <GraduationCap className="w-6 h-6 text-[#A16207]" />
           <span>ESB</span>
           <span className={cn('font-light', scrolled ? 'text-[#1E3A8A]' : 'text-blue-200')}>
-            antigravité
+            Hub
           </span>
         </Link>
 

@@ -45,7 +45,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
       <div className="px-6 py-5 border-b border-white/10">
         <Link href="/" className="flex items-center gap-2 font-bold">
           <GraduationCap className="w-5 h-5 text-[#A16207]" />
-          <span className="text-sm">ESB <span className="text-blue-300 font-light">antigravité</span></span>
+          <span className="text-sm">ESB <span className="text-blue-300 font-light">Hub</span></span>
         </Link>
       </div>
 
