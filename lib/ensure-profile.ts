@@ -44,7 +44,12 @@ export async function ensureProfile(
       console.error('[ensureProfile] Failed to create profile in DB:', upsertError.message)
       console.warn('[ensureProfile] Returning fallback profile to prevent UI block.')
       // Return the fallback profile if DB insert fails (e.g., due to missing RLS policy in production)
-      return { ...fallbackProfile, created_at: user.created_at }
+      return { 
+        ...fallbackProfile, 
+        created_at: user.created_at,
+        debug_error_select: error?.message || 'No select error',
+        debug_error_upsert: upsertError?.message || 'No upsert error'
+      }
     }
 
     return newProfile

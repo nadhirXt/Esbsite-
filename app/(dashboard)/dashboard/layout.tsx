@@ -21,7 +21,14 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col md:flex-row">
       <DashboardSidebar
-        user={{ email: user.email!, fullName: profile?.full_name, cycle: profile?.cycle, role: profile?.role }}
+        user={{ 
+          email: user.email!, 
+          fullName: profile?.full_name, 
+          cycle: profile?.cycle, 
+          role: profile?.role,
+          debugSelect: (profile as any)?.debug_error_select,
+          debugUpsert: (profile as any)?.debug_error_upsert
+        }}
       />
       <main className="flex-1 min-w-0 p-6 md:p-8 lg:p-10">
         {children}

@@ -25,6 +25,8 @@ interface SidebarProps {
     fullName?: string
     cycle?: string
     role?: string
+    debugSelect?: string
+    debugUpsert?: string
   }
 }
 
@@ -90,6 +92,8 @@ export default function DashboardSidebar({ user }: SidebarProps) {
             </p>
             <p className="text-xs text-slate-400 truncate">{user.email}</p>
             <p className="text-[10px] text-red-400 font-mono mt-1">ROLE: {user.role || 'undefined'}</p>
+            {user.debugSelect && <p className="text-[9px] text-yellow-300 mt-0.5 leading-tight">SEL: {user.debugSelect}</p>}
+            {user.debugUpsert && <p className="text-[9px] text-yellow-300 mt-0.5 leading-tight">UPS: {user.debugUpsert}</p>}
           </div>
         </div>
         {cycleBadge && (
