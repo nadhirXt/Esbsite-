@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Link2, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, X } from 'lucide-react'
+import { Link2, Plus, Trash2, ExternalLink, AlertCircle, CheckCircle, X, Edit2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -28,6 +28,7 @@ export default function LiensPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   const fetchLinks = useCallback(async () => {
     const supabase = createClient()
@@ -41,7 +42,7 @@ export default function LiensPage() {
 
   useEffect(() => { fetchLinks() }, [fetchLinks])
 
-  async function handleAdd(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(''); setSuccess('')
     if (!title || !url) { setError('Titre et URL sont obligatoires.'); return }
@@ -58,13 +59,40 @@ export default function LiensPage() {
       finalCategory = customCategory.trim()
     }
 
-    const { error } = await supabase.from('useful_links').insert({ title, url, category: finalCategory })
-    if (error) { setError(error.message); setLoading(false); return }
+    if (editingId) {
+      const { error } = await supabase.from('useful_links').update({ title, url, category: finalCategory }).eq('id', editingId)
+      if (error) { setError(error.message); setLoading(false); return }
+      setSuccess('Lien modifié avec succès !')
+    } else {
+      const { error } = await supabase.from('useful_links').insert({ title, url, category: finalCategory })
+      if (error) { setError(error.message); setLoading(false); return }
+      setSuccess('Lien ajouté avec succès !')
+    }
 
-    setSuccess('Lien ajouté avec succès !')
+    setEditingId(null)
     setTitle(''); setUrl(''); setCustomCategory(''); setCategory('Général')
     await fetchLinks()
     setLoading(false)
+  }
+
+  function handleEdit(link: Link) {
+    setEditingId(link.id)
+    setTitle(link.title)
+    setUrl(link.url)
+    if (LINK_CATEGORIES.includes(link.category) && link.category !== 'Autre') {
+      setCategory(link.category)
+      setCustomCategory('')
+    } else {
+      setCategory('Autre')
+      setCustomCategory(link.category)
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setTitle(''); setUrl(''); setCustomCategory(''); setCategory('Général')
+    setError(''); setSuccess('')
   }
 
   async function handleDelete(id: string) {
@@ -82,11 +110,23 @@ export default function LiensPage() {
         <p className="text-[#64748B] text-sm mt-1">Gérez les ressources visibles par les étudiants.</p>
       </div>
 
-      {/* Add form */}
-      <form onSubmit={handleAdd} className="bg-white border border-[#E2E8F0] rounded-2xl p-6 mb-8 space-y-4">
-        <h2 className="font-semibold text-[#0F172A] flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Ajouter un lien
-        </h2>
+      {/* Add/Edit form */}
+      <form onSubmit={handleSubmit} className="bg-white border border-[#E2E8F0] rounded-2xl p-6 mb-8 space-y-4">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-semibold text-[#0F172A] flex items-center gap-2">
+            {editingId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {editingId ? 'Modifier le lien' : 'Ajouter un lien'}
+          </h2>
+          {editingId && (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="text-sm text-[#64748B] hover:text-[#0F172A] transition-colors"
+            >
+              Annuler
+            </button>
+          )}
+        </div>
 
         {error && (
           <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -155,8 +195,8 @@ export default function LiensPage() {
         </div>
 
         <Button type="submit" loading={loading}>
-          <Plus className="w-4 h-4" />
-          Ajouter le lien
+          {editingId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          {editingId ? 'Enregistrer les modifications' : 'Ajouter le lien'}
         </Button>
       </form>
 
@@ -196,6 +236,13 @@ export default function LiensPage() {
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
+                <button
+                  onClick={() => handleEdit(link)}
+                  className="p-1.5 text-[#94A3B8] hover:text-[#1E3A8A] transition-colors cursor-pointer"
+                  aria-label="Modifier"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
                 <button
                   onClick={() => handleDelete(link.id)}
                   disabled={deletingId === link.id}
