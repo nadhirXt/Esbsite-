@@ -22,6 +22,7 @@ export default function LiensPage() {
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
   const [category, setCategory] = useState('Général')
+  const [customCategory, setCustomCategory] = useState('')
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
   const [error, setError] = useState('')
@@ -47,11 +48,21 @@ export default function LiensPage() {
 
     setLoading(true)
     const supabase = createClient()
-    const { error } = await supabase.from('useful_links').insert({ title, url, category })
+    let finalCategory = category
+    if (category === 'Autre') {
+      if (!customCategory.trim()) {
+        setError('Veuillez préciser la catégorie.')
+        setLoading(false)
+        return
+      }
+      finalCategory = customCategory.trim()
+    }
+
+    const { error } = await supabase.from('useful_links').insert({ title, url, category: finalCategory })
     if (error) { setError(error.message); setLoading(false); return }
 
     setSuccess('Lien ajouté avec succès !')
-    setTitle(''); setUrl('')
+    setTitle(''); setUrl(''); setCustomCategory(''); setCategory('Général')
     await fetchLinks()
     setLoading(false)
   }
@@ -128,6 +139,19 @@ export default function LiensPage() {
               </button>
             ))}
           </div>
+          {category === 'Autre' && (
+            <div className="mt-3">
+              <Input
+                label="Précisez la catégorie *"
+                id="custom-category"
+                type="text"
+                placeholder="Ex: Statistiques"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                required
+              />
+            </div>
+          )}
         </div>
 
         <Button type="submit" loading={loading}>
