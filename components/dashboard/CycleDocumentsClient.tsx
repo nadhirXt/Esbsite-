@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye } from 'lucide-react'
 import { formatDate, CYCLES } from '@/lib/utils'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/client'
 
 interface CycleDocumentsClientProps {
   cycle: string
@@ -16,7 +16,7 @@ interface CycleDocumentsClientProps {
 export default function CycleDocumentsClient({ cycle, cycleLabel, documents, supabaseUrl, supabaseKey }: CycleDocumentsClientProps) {
   const [currentPath, setCurrentPath] = useState<string[]>([])
   
-  const supabase = createClient(supabaseUrl || '', supabaseKey || '')
+  const supabase = createClient()
 
   const [searchQuery, setSearchQuery] = useState('')
   const currentPathString = currentPath.join('/')
