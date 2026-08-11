@@ -61,7 +61,9 @@ export default function RegisterPage() {
         data: { 
           full_name: fullName, 
           user_type: userType,
-          institution_name: userType === 'autre_etudiant' ? institutionName : null,
+           institution_name: userType === 'etudiant_esb' || userType === 'ancien'
+             ? 'École Supérieure de Banque'
+             : userType === 'autre_etudiant' ? institutionName : null,
           cycle: (userType === 'etudiant_esb' || userType === 'ancien') ? cycle : null 
         },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,

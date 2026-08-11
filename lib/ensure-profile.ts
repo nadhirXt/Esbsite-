@@ -30,7 +30,8 @@ export async function ensureProfile(
       role: meta.role || 'student',
       user_type: meta.user_type || null,
       cycle: meta.cycle || null,
-      institution_name: meta.institution_name || null,
+      institution_name: meta.institution_name
+        || (meta.user_type === 'etudiant_esb' || meta.user_type === 'ancien' ? 'École Supérieure de Banque' : null),
     }, { onConflict: 'id' })
     .select('*')
     .single()
