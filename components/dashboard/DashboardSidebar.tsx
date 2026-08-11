@@ -77,14 +77,14 @@ export default function DashboardSidebar({ user }: SidebarProps) {
       </div>
 
       {/* User info */}
-      <div className="px-5 py-5 border-b border-white/10">
+      <Link href="/dashboard/profile" onClick={() => setIsOpen(false)} className="block px-5 py-5 border-b border-white/10 hover:bg-white/5 transition-colors duration-200 cursor-pointer">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#1E3A8A] flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-[#1E3A8A] flex items-center justify-center shrink-0 shadow-inner">
             <span className="text-sm font-bold text-white">
               {(user.fullName || user.email).charAt(0).toUpperCase()}
             </span>
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-white truncate">
               {user.fullName || 'Étudiant'}
             </p>
@@ -99,7 +99,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
             {cycleBadge.label}
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
