@@ -25,8 +25,6 @@ interface SidebarProps {
     fullName?: string
     cycle?: string
     role?: string
-    debugSelect?: string
-    debugUpsert?: string
   }
 }
 
@@ -91,9 +89,6 @@ export default function DashboardSidebar({ user }: SidebarProps) {
               {user.fullName || 'Étudiant'}
             </p>
             <p className="text-xs text-slate-400 truncate">{user.email}</p>
-            <p className="text-[10px] text-red-400 font-mono mt-1">ROLE: {user.role || 'undefined'}</p>
-            {user.debugSelect && <p className="text-[9px] text-yellow-300 mt-0.5 leading-tight">SEL: {user.debugSelect}</p>}
-            {user.debugUpsert && <p className="text-[9px] text-yellow-300 mt-0.5 leading-tight">UPS: {user.debugUpsert}</p>}
           </div>
         </div>
         {cycleBadge && (
@@ -131,22 +126,22 @@ export default function DashboardSidebar({ user }: SidebarProps) {
           )
         })}
 
-        {/* Admin link - Always visible for debugging */}
-        <Link
-          href={user.role === 'admin' ? '/admin' : '#'}
-          onClick={() => { if (user.role === 'admin') setIsOpen(false) }}
-          className={cn(
-            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
-            user.role !== 'admin' 
-              ? 'opacity-50 cursor-not-allowed text-slate-500' 
-              : pathname.startsWith('/admin')
+        {/* Admin link */}
+        {user.role === 'admin' && (
+          <Link
+            href="/admin"
+            onClick={() => setIsOpen(false)}
+            className={cn(
+              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
+              pathname.startsWith('/admin')
                 ? 'bg-amber-900/30 text-[#FCD34D] font-medium'
                 : 'text-slate-500 hover:text-[#FCD34D] hover:bg-amber-900/20'
-          )}
-        >
-          <Shield className="w-4 h-4 shrink-0" />
-          {user.role === 'admin' ? 'Administration' : 'Administration (Bloqué)'}
-        </Link>
+            )}
+          >
+            <Shield className="w-4 h-4 shrink-0" />
+            Administration
+          </Link>
+        )}
       </nav>
 
       {/* Return Home & Logout */}

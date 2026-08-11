@@ -46,9 +46,7 @@ export async function ensureProfile(
       // Return the fallback profile if DB insert fails (e.g., due to missing RLS policy in production)
       return { 
         ...fallbackProfile, 
-        created_at: user.created_at,
-        debug_error_select: error?.message || 'No select error',
-        debug_error_upsert: upsertError?.message || 'No upsert error'
+        created_at: user.created_at
       }
     }
 

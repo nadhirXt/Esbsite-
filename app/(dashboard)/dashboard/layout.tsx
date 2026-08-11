@@ -25,9 +25,7 @@ export default async function DashboardLayout({
           email: user.email!, 
           fullName: profile?.full_name, 
           cycle: profile?.cycle, 
-          role: profile?.role,
-          debugSelect: (profile as any)?.debug_error_select,
-          debugUpsert: (profile as any)?.debug_error_upsert
+          role: profile?.role
         }}
       />
       <main className="flex-1 min-w-0 p-6 md:p-8 lg:p-10">
