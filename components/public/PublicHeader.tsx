@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: '#presentation', label: 'L\'ESB' },
   { href: '#formations',   label: 'Formations' },
   { href: '#chiffres',     label: 'Chiffres clés' },
+  { href: '#apropos',      label: 'À propos' },
   { href: '#contact',      label: 'Contact' },
 ]
 

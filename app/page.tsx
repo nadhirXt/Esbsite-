@@ -199,6 +199,96 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── A PROPOS ────────────────────────────────── */}
+        <section id="apropos" className="bg-white py-24">
+          <div className="max-w-4xl mx-auto px-6">
+            <div className="mb-12 text-center">
+              <p className="text-sm font-semibold text-[#A16207] uppercase tracking-wider mb-3">L&apos;histoire derrière le projet</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A]">À propos</h2>
+            </div>
+            
+            <div className="bg-slate-50 rounded-3xl p-8 md:p-12 border border-slate-100 shadow-sm relative overflow-hidden">
+              <div className="absolute -top-12 -right-12 p-8 opacity-[0.03] rotate-12">
+                <GraduationCap className="w-64 h-64 text-[#1E3A8A]" />
+              </div>
+              
+              <div className="relative z-10 space-y-10 text-slate-600 leading-relaxed">
+                <div>
+                  <p className="text-lg text-slate-800 font-medium mb-4">
+                    Bonjour et bienvenue ! Je suis Mohamed Nadhir Benelhadj, étudiant en 2ème année DSEB (Diplôme Supérieur d&apos;Études Bancaires) et créateur de cet espace.
+                  </p>
+                  <p>
+                    Si ce site existe aujourd&apos;hui, c&apos;est avant tout à cause de mon propre parcours et des obstacles que j&apos;ai dû surmonter.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="flex items-center gap-3 text-xl font-bold text-slate-800 mb-4">
+                    <span className="text-2xl">🔄</span> De l&apos;ingénierie à l&apos;économie : Un grand saut
+                  </h3>
+                  <p className="mb-4">
+                    Avant d&apos;intégrer l&apos;École Supérieure de Banque (ESB), j&apos;étais étudiant à l&apos;École Nationale Polytechnique d&apos;Oran (ENPO). J&apos;ai fait le choix de changer de voie, passant d&apos;un domaine purement technique à l&apos;univers complexe de l&apos;économie et de la finance.
+                  </p>
+                  <p>
+                    Cette transition n&apos;a pas été facile. À mes débuts, j&apos;ai rencontré beaucoup de difficultés pour m&apos;adapter : le vocabulaire était différent, la logique académique changeait, et surtout, il était très difficile de trouver les bons cours et les bonnes ressources pour rattraper mon retard. C&apos;est cette période de doute et d&apos;adaptation intense qui a fait germer l&apos;idée de ce projet.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="flex items-center gap-3 text-xl font-bold text-slate-800 mb-4">
+                    <span className="text-2xl">🎯</span> Pourquoi cette plateforme ?
+                  </h3>
+                  <p className="mb-6">
+                    Ayant déjà pris l&apos;habitude de structurer et centraliser les dossiers numériques et les ressources académiques pour notre promotion afin de nous entraider, j&apos;ai ressenti le besoin de créer un outil plus grand et plus pérenne. J&apos;ai conçu ce site avec trois objectifs précis en tête :
+                  </p>
+                  <ul className="space-y-6">
+                    <li className="flex items-start gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                        <CheckCircle className="w-5 h-5 text-[#A16207]" />
+                      </div>
+                      <div>
+                        <strong className="text-slate-800 block mb-1">Faciliter le quotidien étudiant</strong>
+                        <span className="text-sm">Centraliser les cours, les ressources et les outils pour que les étudiants de l&apos;ESB ne perdent plus de temps à chercher l&apos;information.</span>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                        <CheckCircle className="w-5 h-5 text-[#A16207]" />
+                      </div>
+                      <div>
+                        <strong className="text-slate-800 block mb-1">Créer un pont</strong>
+                        <span className="text-sm">Aider les étudiants d&apos;autres écoles ou universités équivalentes qui suivent des formations similaires en économie et en banque.</span>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                      <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                        <CheckCircle className="w-5 h-5 text-[#A16207]" />
+                      </div>
+                      <div>
+                        <strong className="text-slate-800 block mb-1">Offrir de la visibilité</strong>
+                        <span className="text-sm">Donner un coup d&apos;œil concret et transparent sur notre formation à tous ceux qui sont curieux, aux futurs bacheliers, ou à ceux qui, comme moi, envisagent une reconversion.</span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="flex items-center gap-3 text-xl font-bold text-slate-800 mb-4">
+                    <span className="text-2xl">🤝</span> Avancer ensemble
+                  </h3>
+                  <p className="mb-6">
+                    Je sais ce que c&apos;est que de se sentir perdu face à de nouvelles matières. Ce site est ma façon de m&apos;assurer que les futurs étudiants auront un point de repère solide dès leur premier jour. J&apos;espère que cette plateforme vous fera gagner un temps précieux et facilitera votre réussite.
+                  </p>
+                  <div className="pt-6 border-t border-slate-200">
+                    <p className="font-medium text-slate-800 mb-2">Excellente navigation à toutes et à tous !</p>
+                    <p className="text-[#A16207] font-bold signature">— Mohamed Nadhir Benelhadj</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── CTA ────────────────────────────────── */}
         <section id="contact" className="bg-gradient-to-r from-[#1E3A8A] to-[#0F172A] py-20 text-white text-center">
           <div className="max-w-2xl mx-auto px-6">
