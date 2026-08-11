@@ -21,26 +21,61 @@ const STATS = [
 
 const FORMATIONS = [
   {
-    cycle: 'Licence', duration: '3 ans',
+    id: 'licence',
+    title: 'Licence en Management et Banque',
+    cycle: 'Licence',
+    duration: '3 ans (6 semestres) — 2340 heures',
     badge: 'bg-blue-50 text-blue-700 border-blue-200',
     accent: 'bg-[#1E3A8A]',
-    description: 'Formation fondamentale en sciences bancaires et financières. Développez des compétences solides en comptabilité, droit bancaire et gestion financière.',
-    modules: ['Comptabilité générale', 'Droit bancaire', 'Techniques de crédit', 'Monnaie & Finance'],
+    objectives: [
+      "Qualifications techniques et professionnelles requises pour répondre aux attentes du marché du travail.",
+      "Capacité d'analyse et de synthèse pour mieux appréhender diverses situations professionnelles.",
+      "Possibilité d'accéder au cycle de Master « Monnaie et Banque » au sein de l'école."
+    ],
+    programDesc: "Le programme combine une forte orientation professionnelle et une base académique solide, incluant cours théoriques, techniques, professionnels et séminaires.",
+    outcomes: [
+      "Compréhension théorique des différents métiers de la banque.",
+      "Connaissance approfondie des marchés financiers, monétaires et de change.",
+      "Expertise dans l'identification et la réduction des risques bancaires.",
+      "Maîtrise des outils d'analyse, d'audit et de contrôle des activités bancaires."
+    ]
   },
   {
-    cycle: 'DSEB', duration: '4 ans',
-    badge: 'bg-amber-50 text-amber-700 border-amber-200',
-    accent: 'bg-[#A16207]',
-    description: 'Le Diplôme Supérieur d\'Études Bancaires offre une formation approfondie pour former des cadres spécialisés dans tous les métiers de la banque.',
-    modules: ['Analyse financière', 'Risques bancaires', 'Ingénierie financière', 'Management bancaire'],
-  },
-  {
-    cycle: 'Master', duration: '2 ans',
+    id: 'master',
+    title: 'Master en Monnaie et Banque',
+    cycle: 'Master',
+    duration: '2 ans (M1, M2) — Régime mixte',
     badge: 'bg-purple-50 text-purple-700 border-purple-200',
     accent: 'bg-[#581C87]',
-    description: 'Formation de haut niveau orientée recherche et expertise. Accédez aux postes de direction et à la recherche appliquée en finance et banque.',
-    modules: ['Finance quantitative', 'Recherche appliquée', 'Stratégie bancaire', 'Mémoire de fin d\'études'],
+    objectives: [
+      "Former les candidats à l'exercice des métiers de la banque.",
+      "Apprendre les fondements essentiels de la finance.",
+      "Maîtriser la microéconomie et la macroéconomie."
+    ],
+    programDesc: "La formation est organisée selon un régime d'études mixte associant cours théoriques, travaux pratiques et stages immersifs en milieu professionnel.",
+    outcomes: []
   },
+  {
+    id: 'dseb',
+    title: 'Diplôme Supérieur des Études Bancaires',
+    cycle: 'DSEB',
+    duration: '4 ans (enseignements et stages)',
+    badge: 'bg-amber-50 text-amber-700 border-amber-200',
+    accent: 'bg-[#A16207]',
+    objectives: [
+      "Développer un fort potentiel technique et managérial pour devenir un acteur du changement.",
+      "Acquérir une haute qualification technique et professionnelle.",
+      "Renforcer les capacités d'analyse et de synthèse des candidats."
+    ],
+    programDesc: "Le programme combine harmonieusement une forte orientation professionnelle et un ancrage académique solide, réalisé avec les services opérationnels du secteur.",
+    outcomes: [
+      "Approche stratégique des métiers de la banque.",
+      "Compétences techniques dans les principales activités bancaires.",
+      "Connaissance des rôles des marchés (financier, monétaire, change).",
+      "Expertise dans l'identification des risques et les techniques de couverture.",
+      "Maîtrise des outils d'analyse, d'audit et de contrôle."
+    ]
+  }
 ]
 
 const WHY_ESB = [
@@ -156,31 +191,68 @@ export default function HomePage() {
         </section>
 
         {/* ── FORMATIONS ─────────────────────────── */}
-        <section id="formations" className="bg-white py-24">
+        <section id="formations" className="bg-slate-50 py-24">
           <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-16">
+            <div className="text-center mb-20">
               <p className="text-sm font-semibold text-[#A16207] uppercase tracking-wider mb-3">Nos cycles de formation</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] mb-4">Choisissez votre parcours d&apos;excellence</h2>
-              <p className="text-[#64748B] max-w-xl mx-auto">Des formations adaptées à chaque niveau, conçues pour répondre aux exigences du secteur bancaire algérien et international.</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] mb-4">Découvrez nos programmes d&apos;excellence</h2>
+              <p className="text-[#64748B] max-w-2xl mx-auto">Des formations structurées et adaptées pour répondre aux plus hautes exigences du secteur bancaire et financier.</p>
             </div>
-            <div className="grid md:grid-cols-3 gap-8">
+            
+            <div className="space-y-12">
               {FORMATIONS.map((f) => (
-                <div key={f.cycle} className="group border border-[#E2E8F0] rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                  <div className={`h-1.5 ${f.accent}`} />
-                  <div className="p-7">
-                    <div className="flex items-center justify-between mb-5">
-                      <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${f.badge}`}>{f.cycle}</span>
-                      <span className="text-xs text-[#64748B] font-medium">{f.duration}</span>
+                <div key={f.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300">
+                  <div className={`h-2 w-full ${f.accent}`} />
+                  <div className="p-8 md:p-10">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 pb-8 border-b border-slate-100">
+                      <div>
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className={`inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-bold ${f.badge}`}>
+                            {f.cycle}
+                          </span>
+                          <span className="text-sm font-medium text-slate-500 flex items-center gap-1.5">
+                            <BookOpen className="w-4 h-4" /> {f.duration}
+                          </span>
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-800">{f.title}</h3>
+                      </div>
                     </div>
-                    <p className="text-sm text-[#64748B] leading-relaxed mb-6">{f.description}</p>
-                    <h3 className="text-xs font-semibold text-[#0F172A] uppercase tracking-wider mb-3">Modules clés</h3>
-                    <ul className="space-y-2">
-                      {f.modules.map((m) => (
-                        <li key={m} className="flex items-center gap-2 text-sm text-[#374151]">
-                          <CheckCircle className="w-3.5 h-3.5 text-[#A16207] shrink-0" /> {m}
-                        </li>
-                      ))}
-                    </ul>
+
+                    <div className="grid md:grid-cols-2 gap-12">
+                      {/* Objectifs */}
+                      <div>
+                        <h4 className="flex items-center gap-2 text-lg font-bold text-slate-800 mb-4">
+                          <TrendingUp className="w-5 h-5 text-[#A16207]" /> Objectifs de la formation
+                        </h4>
+                        <ul className="space-y-3">
+                          {f.objectives.map((obj, idx) => (
+                            <li key={idx} className="flex items-start gap-3">
+                              <div className="w-1.5 h-1.5 rounded-full bg-[#A16207] mt-2.5 shrink-0" />
+                              <span className="text-slate-600 leading-relaxed">{obj}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Programme / Compétences */}
+                      <div>
+                        <h4 className="flex items-center gap-2 text-lg font-bold text-slate-800 mb-4">
+                          <Award className="w-5 h-5 text-[#1E3A8A]" /> Programme et Compétences
+                        </h4>
+                        <p className="text-slate-600 mb-5 leading-relaxed">{f.programDesc}</p>
+                        
+                        {f.outcomes.length > 0 && (
+                          <ul className="space-y-3">
+                            {f.outcomes.map((out, idx) => (
+                              <li key={idx} className="flex items-start gap-3">
+                                <CheckCircle className="w-4 h-4 text-[#1E3A8A] mt-1 shrink-0" />
+                                <span className="text-slate-600 text-sm">{out}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
