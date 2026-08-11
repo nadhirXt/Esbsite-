@@ -82,7 +82,8 @@ export default function UploadPage() {
       let path = oldFilePath
       const file = files[0]
       if (file) {
-        path = `${cycle}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`
+        const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')
+        path = `${cycle}/${Date.now()}_${safeFileName}`
         const { error: uploadError } = await supabase.storage.from('documents').upload(path, file, { cacheControl: '3600', upsert: false })
         if (uploadError) { setError(uploadError.message); setLoading(false); return }
       }
@@ -94,7 +95,8 @@ export default function UploadPage() {
     } else {
       let uploadedCount = 0
       for (const file of files) {
-        const path = `${cycle}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`
+        const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')
+        const path = `${cycle}/${Date.now()}_${safeFileName}`
         const fileTitle = files.length === 1 ? title : file.name.replace(/\.[^.]+$/, '')
         
         const { error: uploadError } = await supabase.storage.from('documents').upload(path, file, { cacheControl: '3600', upsert: false })

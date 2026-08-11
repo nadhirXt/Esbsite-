@@ -179,26 +179,34 @@ function DocumentCard({ doc, supabase }: { doc: any; supabase: any }) {
     fetchUrl()
   }, [doc.file_path, supabase.storage])
 
-  return (
-    <div className="group flex items-start gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all duration-200">
-      <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+  const CardContent = (
+    <>
+      <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
         <FileText className="w-5 h-5 text-red-500" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-[#0F172A] truncate">{doc.title}</p>
+        <p className="text-sm font-semibold text-[#0F172A] truncate group-hover:text-[#1E3A8A] transition-colors">{doc.title}</p>
         <p className="text-xs text-[#64748B] mt-0.5">{formatDate(doc.created_at)}</p>
       </div>
-      {signedUrl && (
-        <a
-          href={signedUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 p-2 rounded-lg text-[#94A3B8] hover:text-[#1E3A8A] hover:bg-[#EFF6FF] transition-all duration-150"
-          aria-label={`Télécharger ${doc.title}`}
-        >
-          <Download className="w-4 h-4" />
-        </a>
-      )}
+      <div className="shrink-0 p-2 rounded-lg text-[#94A3B8] group-hover:text-[#1E3A8A] group-hover:bg-[#EFF6FF] transition-all duration-150">
+        <Download className="w-4 h-4" />
+      </div>
+    </>
+  )
+
+  const containerClasses = "group flex items-start gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all duration-200 cursor-pointer text-left w-full"
+
+  if (signedUrl) {
+    return (
+      <a href={signedUrl} target="_blank" rel="noopener noreferrer" className={containerClasses} title={`Ouvrir ${doc.title}`}>
+        {CardContent}
+      </a>
+    )
+  }
+
+  return (
+    <div className={containerClasses}>
+      {CardContent}
     </div>
   )
 }
