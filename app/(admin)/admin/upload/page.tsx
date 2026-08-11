@@ -28,6 +28,7 @@ export default function UploadPage() {
   const [title, setTitle]       = useState('')
   const [cycle, setCycle]       = useState('')
   const [category, setCategory] = useState('')
+  const [subCategory, setSubCategory] = useState('')
   const [dragging, setDragging] = useState(false)
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
@@ -51,7 +52,7 @@ export default function UploadPage() {
 
   useEffect(() => { fetchDocuments() }, [fetchDocuments])
 
-  const existingFolders = Array.from(new Set(documents.map(d => d.category).filter(Boolean))) as string[]
+  const existingFolders = Array.from(new Set(documents.map(d => d.category?.split('/')[0]).filter(Boolean))) as string[]
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
@@ -73,6 +74,8 @@ export default function UploadPage() {
     if (editingId && files.length > 1) { setError('Vous ne pouvez uploader qu\'un seul fichier lors de la modification.'); return }
     if (files.length === 1 && !title) { setError('Veuillez donner un titre au document.'); return }
 
+    const fullCategory = subCategory.trim() ? `${category.trim()}/${subCategory.trim()}` : category.trim()
+
     setLoading(true)
     const supabase = createClient()
     
@@ -85,7 +88,7 @@ export default function UploadPage() {
         if (uploadError) { setError(uploadError.message); setLoading(false); return }
       }
       const { error: dbError } = await supabase.from('documents').update({
-        title, file_path: path, cycle, category: category.trim()
+        title, file_path: path, cycle, category: fullCategory
       }).eq('id', editingId)
       if (dbError) { setError(dbError.message); setLoading(false); return }
       setSuccess(`"${title}" modifié avec succès !`)
@@ -99,21 +102,21 @@ export default function UploadPage() {
         if (uploadError) { setError(uploadError.message); break; }
         
         const { error: dbError } = await supabase.from('documents').insert({
-          title: fileTitle, file_path: path, cycle, category: category.trim()
+          title: fileTitle, file_path: path, cycle, category: fullCategory
         })
         if (dbError) { setError(dbError.message); break; }
         uploadedCount++
       }
       
       if (uploadedCount === files.length) {
-        setSuccess(`${uploadedCount} document(s) uploadé(s) avec succès dans le dossier "${category.trim()}" !`)
+        setSuccess(`${uploadedCount} document(s) uploadé(s) avec succès dans le dossier "${fullCategory}" !`)
       } else {
         setError(`Erreur partielle : seulement ${uploadedCount} sur ${files.length} fichiers ont été uploadés.`)
       }
     }
 
     setEditingId(null)
-    setFiles([]); setTitle(''); setOldFilePath('')
+    setFiles([]); setTitle(''); setSubCategory(''); setOldFilePath('')
     await fetchDocuments()
     setLoading(false)
   }
@@ -122,7 +125,9 @@ export default function UploadPage() {
     setEditingId(doc.id)
     setTitle(doc.title)
     setCycle(doc.cycle)
-    setCategory(doc.category || '')
+    const parts = (doc.category || '').split('/')
+    setCategory(parts[0] || '')
+    setSubCategory(parts.slice(1).join('/'))
     setOldFilePath(doc.file_path)
     setFiles([])
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -130,7 +135,7 @@ export default function UploadPage() {
 
   function cancelEdit() {
     setEditingId(null)
-    setFiles([]); setTitle(''); setCycle(''); setCategory(''); setOldFilePath('')
+    setFiles([]); setTitle(''); setCycle(''); setCategory(''); setSubCategory(''); setOldFilePath('')
     setError(''); setSuccess('')
   }
 
@@ -286,33 +291,49 @@ export default function UploadPage() {
         </div>
 
         {/* Category / Folder */}
-        <div>
-          <label className="block text-sm font-medium text-[#0F172A] mb-2">Dossier de destination *</label>
-          <div className="flex flex-wrap gap-2 mb-3">
-            {existingFolders.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setCategory(cat)}
-                className={cn(
-                  'px-3 py-1.5 rounded-full border text-xs font-medium transition-all duration-150 cursor-pointer',
-                  category === cat
-                    ? 'border-[#1E3A8A] bg-[#1E3A8A] text-white'
-                    : 'border-[#E2E8F0] text-[#64748B] hover:border-[#CBD5E1]'
-                )}
-              >
-                {cat}
-              </button>
-            ))}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-[#0F172A] mb-2">Dossier Principal *</label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {existingFolders.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategory(cat)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-full border text-xs font-medium transition-all duration-150 cursor-pointer',
+                    category === cat
+                      ? 'border-[#1E3A8A] bg-[#1E3A8A] text-white'
+                      : 'border-[#E2E8F0] text-[#64748B] hover:border-[#CBD5E1]'
+                  )}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+            <Input
+              id="doc-category"
+              type="text"
+              placeholder="Ex: Mathématiques"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+            />
           </div>
-          <Input
-            id="doc-category"
-            type="text"
-            placeholder="Nouveau dossier (ex: Mathématiques S1)"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            required
-          />
+
+          <div>
+            <label className="block text-sm font-medium text-[#0F172A] mb-2">Sous-dossier (Optionnel)</label>
+            <div className="flex flex-wrap gap-2 mb-3 h-8">
+              {/* Espacement pour s'aligner avec le dossier principal */}
+            </div>
+            <Input
+              id="doc-subcategory"
+              type="text"
+              placeholder="Ex: Chapitre 1"
+              value={subCategory}
+              onChange={(e) => setSubCategory(e.target.value)}
+            />
+          </div>
         </div>
 
         <Button type="submit" size="lg" loading={loading} className="w-full">
