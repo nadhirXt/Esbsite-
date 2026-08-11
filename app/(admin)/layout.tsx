@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { GraduationCap, Upload, Link2, LayoutDashboard, Shield, LogOut } from 'lucide-react'
 import { ensureProfile } from '@/lib/ensure-profile'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
