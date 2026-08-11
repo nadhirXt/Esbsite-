@@ -1,10 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   GraduationCap, LayoutDashboard, BookOpen, FileText, Link2,
-  LogOut, ChevronRight, Settings, Shield,
+  LogOut, ChevronRight, Settings, Shield, Menu, X, ArrowLeft
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn, CYCLES } from '@/lib/utils'
@@ -29,6 +30,7 @@ interface SidebarProps {
 export default function DashboardSidebar({ user }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const [isOpen, setIsOpen] = useState(false)
 
   async function handleLogout() {
     const supabase = createClient()
@@ -40,9 +42,33 @@ export default function DashboardSidebar({ user }: SidebarProps) {
   const cycleBadge = user.cycle ? CYCLES[user.cycle as keyof typeof CYCLES] : null
 
   return (
-    <aside className="hidden md:flex flex-col w-64 min-h-screen bg-[#0F172A] text-white shrink-0">
-      {/* Logo */}
-      <div className="px-6 py-5 border-b border-white/10">
+    <>
+      {/* Mobile Top Bar */}
+      <div className="md:hidden flex items-center justify-between px-5 py-4 bg-[#0F172A] text-white shrink-0 shadow-md">
+        <Link href="/" className="flex items-center gap-2 font-bold">
+          <GraduationCap className="w-5 h-5 text-[#A16207]" />
+          <span className="text-base">ESB <span className="text-blue-300 font-light">Hub</span></span>
+        </Link>
+        <button onClick={() => setIsOpen(!isOpen)} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="md:hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={cn(
+        "fixed md:static inset-y-0 left-0 z-50 flex flex-col w-72 md:w-64 min-h-screen bg-[#0F172A] text-white shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        {/* Logo (Desktop) */}
+        <div className="hidden md:flex px-6 py-5 border-b border-white/10">
         <Link href="/" className="flex items-center gap-2 font-bold">
           <GraduationCap className="w-5 h-5 text-[#A16207]" />
           <span className="text-sm">ESB <span className="text-blue-300 font-light">Hub</span></span>
@@ -82,6 +108,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setIsOpen(false)}
               className={cn(
                 'flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
                 active
@@ -102,6 +129,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
         {user.role === 'admin' && (
           <Link
             href="/admin"
+            onClick={() => setIsOpen(false)}
             className={cn(
               'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
               pathname.startsWith('/admin')
@@ -115,8 +143,15 @@ export default function DashboardSidebar({ user }: SidebarProps) {
         )}
       </nav>
 
-      {/* Logout */}
-      <div className="px-3 py-4 border-t border-white/10">
+      {/* Return Home & Logout */}
+      <div className="px-3 py-4 border-t border-white/10 space-y-2">
+        <Link
+          href="/"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-150"
+        >
+          <ArrowLeft className="w-4 h-4 shrink-0" />
+          Retour à l'accueil
+        </Link>
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:text-red-400 hover:bg-red-900/10 transition-all duration-150 cursor-pointer"
@@ -126,5 +161,6 @@ export default function DashboardSidebar({ user }: SidebarProps) {
         </button>
       </div>
     </aside>
+    </>
   )
 }

@@ -19,7 +19,7 @@ export default async function DashboardLayout({
     .single()
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col md:flex-row">
       <DashboardSidebar
         user={{ email: user.email!, fullName: profile?.full_name, cycle: profile?.cycle, role: profile?.role }}
       />
