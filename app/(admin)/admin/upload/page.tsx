@@ -13,8 +13,6 @@ const CYCLES = [
   { value: 'master',  label: 'Master' },
 ]
 
-const CATEGORIES = ['Comptabilité', 'Droit bancaire', 'Finance', 'Mathématiques', 'Informatique', 'Anglais', 'Management', 'Autre']
-
 interface Document {
   id: string
   title: string
@@ -26,7 +24,7 @@ interface Document {
 
 export default function UploadPage() {
   const fileRef = useRef<HTMLInputElement>(null)
-  const [file, setFile]         = useState<File | null>(null)
+  const [files, setFiles]       = useState<File[]>([])
   const [title, setTitle]       = useState('')
   const [cycle, setCycle]       = useState('')
   const [category, setCategory] = useState('')
@@ -53,48 +51,69 @@ export default function UploadPage() {
 
   useEffect(() => { fetchDocuments() }, [fetchDocuments])
 
+  const existingFolders = Array.from(new Set(documents.map(d => d.category).filter(Boolean))) as string[]
+
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
     setDragging(false)
-    const dropped = e.dataTransfer.files[0]
-    if (dropped) { setFile(dropped); if (!title) setTitle(dropped.name.replace(/\.[^.]+$/, '')) }
+    if (e.dataTransfer.files?.length > 0) {
+      setFiles((prev) => [...prev, ...Array.from(e.dataTransfer.files)])
+      if (!title && e.dataTransfer.files.length === 1 && files.length === 0) {
+        setTitle(e.dataTransfer.files[0].name.replace(/\.[^.]+$/, ''))
+      }
+    }
   }
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault()
     setError(''); setSuccess('')
-    if (!title || !cycle) { setError('Veuillez remplir tous les champs obligatoires.'); return }
-    if (!editingId && !file) { setError('Veuillez sélectionner un fichier.'); return }
+    if (!cycle) { setError('Veuillez sélectionner un cycle.'); return }
+    if (!category.trim()) { setError('Veuillez spécifier un dossier.'); return }
+    if (!editingId && files.length === 0) { setError('Veuillez sélectionner au moins un fichier.'); return }
+    if (editingId && files.length > 1) { setError('Vous ne pouvez uploader qu\'un seul fichier lors de la modification.'); return }
+    if (files.length === 1 && !title) { setError('Veuillez donner un titre au document.'); return }
 
     setLoading(true)
     const supabase = createClient()
-    let path = oldFilePath
-
-    if (file) {
-      path = `${cycle}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(path, file, { cacheControl: '3600', upsert: false })
-
-      if (uploadError) { setError(uploadError.message); setLoading(false); return }
-    }
-
+    
     if (editingId) {
+      let path = oldFilePath
+      const file = files[0]
+      if (file) {
+        path = `${cycle}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`
+        const { error: uploadError } = await supabase.storage.from('documents').upload(path, file, { cacheControl: '3600', upsert: false })
+        if (uploadError) { setError(uploadError.message); setLoading(false); return }
+      }
       const { error: dbError } = await supabase.from('documents').update({
-        title, file_path: path, cycle, category: category || null,
+        title, file_path: path, cycle, category: category.trim()
       }).eq('id', editingId)
       if (dbError) { setError(dbError.message); setLoading(false); return }
       setSuccess(`"${title}" modifié avec succès !`)
     } else {
-      const { error: dbError } = await supabase.from('documents').insert({
-        title, file_path: path, cycle, category: category || null,
-      })
-      if (dbError) { setError(dbError.message); setLoading(false); return }
-      setSuccess(`"${title}" uploadé avec succès !`)
+      let uploadedCount = 0
+      for (const file of files) {
+        const path = `${cycle}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`
+        const fileTitle = files.length === 1 ? title : file.name.replace(/\.[^.]+$/, '')
+        
+        const { error: uploadError } = await supabase.storage.from('documents').upload(path, file, { cacheControl: '3600', upsert: false })
+        if (uploadError) { setError(uploadError.message); break; }
+        
+        const { error: dbError } = await supabase.from('documents').insert({
+          title: fileTitle, file_path: path, cycle, category: category.trim()
+        })
+        if (dbError) { setError(dbError.message); break; }
+        uploadedCount++
+      }
+      
+      if (uploadedCount === files.length) {
+        setSuccess(`${uploadedCount} document(s) uploadé(s) avec succès dans le dossier "${category.trim()}" !`)
+      } else {
+        setError(`Erreur partielle : seulement ${uploadedCount} sur ${files.length} fichiers ont été uploadés.`)
+      }
     }
 
     setEditingId(null)
-    setFile(null); setTitle(''); setCycle(''); setCategory(''); setOldFilePath('')
+    setFiles([]); setTitle(''); setOldFilePath('')
     await fetchDocuments()
     setLoading(false)
   }
@@ -105,13 +124,13 @@ export default function UploadPage() {
     setCycle(doc.cycle)
     setCategory(doc.category || '')
     setOldFilePath(doc.file_path)
-    setFile(null)
+    setFiles([])
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function cancelEdit() {
     setEditingId(null)
-    setFile(null); setTitle(''); setCycle(''); setCategory(''); setOldFilePath('')
+    setFiles([]); setTitle(''); setCycle(''); setCategory(''); setOldFilePath('')
     setError(''); setSuccess('')
   }
 
@@ -171,7 +190,7 @@ export default function UploadPage() {
             'cursor-pointer border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200',
             dragging
               ? 'border-[#1E3A8A] bg-[#EFF6FF]'
-              : file
+              : files.length > 0
               ? 'border-green-400 bg-green-50'
               : 'border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
           )}
@@ -180,49 +199,69 @@ export default function UploadPage() {
             ref={fileRef}
             type="file"
             accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+            multiple
             onChange={(e) => {
-              const f = e.target.files?.[0]
-              if (f) { setFile(f); if (!title) setTitle(f.name.replace(/\.[^.]+$/, '')) }
+              const selected = Array.from(e.target.files || [])
+              if (selected.length > 0) {
+                setFiles(prev => [...prev, ...selected])
+                if (!title && selected.length === 1 && files.length === 0) {
+                  setTitle(selected[0].name.replace(/\.[^.]+$/, ''))
+                }
+              }
             }}
             className="hidden"
           />
-          {file ? (
-            <div className="flex items-center justify-center gap-3">
-              <File className="w-6 h-6 text-green-600" />
-              <div className="text-left">
-                <p className="text-sm font-medium text-[#0F172A]">{file.name}</p>
-                <p className="text-xs text-[#64748B]">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setFile(null) }}
-                className="ml-2 text-[#94A3B8] hover:text-red-500 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+          {files.length > 0 ? (
+            <div className="space-y-3">
+              {files.map((f, i) => (
+                <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3 border border-green-200 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <File className="w-6 h-6 text-green-600" />
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-[#0F172A]">{f.name}</p>
+                      <p className="text-xs text-[#64748B]">{(f.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setFiles(prev => prev.filter((_, index) => index !== i));
+                    }}
+                    className="ml-2 text-[#94A3B8] hover:text-red-500 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              {!editingId && (
+                <p className="text-sm text-[#1E3A8A] font-medium pt-2">Cliquez pour ajouter d'autres fichiers</p>
+              )}
             </div>
           ) : (
             <>
               <Upload className="w-8 h-8 text-[#94A3B8] mx-auto mb-2" />
               <p className="text-sm font-medium text-[#0F172A]">
-                {editingId ? "Glissez un nouveau fichier pour remplacer l'existant" : "Glissez-déposez votre fichier ici"}
+                {editingId ? "Glissez un nouveau fichier pour remplacer l'existant" : "Glissez-déposez vos fichiers ici"}
               </p>
               <p className="text-xs text-[#64748B] mt-1">ou cliquez pour parcourir</p>
               {editingId && <p className="text-xs text-[#1E3A8A] mt-2 font-medium">Laissez vide pour conserver le fichier actuel</p>}
-              <p className="text-xs text-[#94A3B8] mt-3">PDF, Word, PowerPoint, Excel · Max 50 MB</p>
+              <p className="text-xs text-[#94A3B8] mt-3">PDF, Word, PowerPoint, Excel · Max 50 MB par fichier</p>
             </>
           )}
         </div>
 
-        <Input
-          label="Titre du document *"
-          id="doc-title"
-          type="text"
-          placeholder="ex: Comptabilité générale — Chapitre 3"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
+        {files.length <= 1 && (
+          <Input
+            label="Titre du document"
+            id="doc-title"
+            type="text"
+            placeholder="ex: Comptabilité générale — Chapitre 3"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required={files.length === 1}
+          />
+        )}
 
         {/* Cycle selector */}
         <div>
@@ -246,15 +285,15 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {/* Category */}
+        {/* Category / Folder */}
         <div>
-          <label className="block text-sm font-medium text-[#0F172A] mb-2">Catégorie</label>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((cat) => (
+          <label className="block text-sm font-medium text-[#0F172A] mb-2">Dossier de destination *</label>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {existingFolders.map((cat) => (
               <button
                 key={cat}
                 type="button"
-                onClick={() => setCategory(cat === category ? '' : cat)}
+                onClick={() => setCategory(cat)}
                 className={cn(
                   'px-3 py-1.5 rounded-full border text-xs font-medium transition-all duration-150 cursor-pointer',
                   category === cat
@@ -266,6 +305,14 @@ export default function UploadPage() {
               </button>
             ))}
           </div>
+          <Input
+            id="doc-category"
+            type="text"
+            placeholder="Nouveau dossier (ex: Mathématiques S1)"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            required
+          />
         </div>
 
         <Button type="submit" size="lg" loading={loading} className="w-full">
