@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 const STATS = [
   { value: '30+',   label: 'Années d\'excellence', icon: Award },
-  { value: '5 000+', label: 'Diplômés',            icon: Users },
+  { value: '900+',  label: 'Diplômés',            icon: Users },
   { value: '3',     label: 'Cycles de formation',  icon: BookOpen },
   { value: '95%',   label: 'Taux d\'insertion',    icon: TrendingUp },
 ]
@@ -87,7 +87,15 @@ const WHY_ESB = [
   'Réseau alumni actif à travers tout le territoire',
 ]
 
-export default function HomePage() {
+import { createClient } from '@/lib/supabase/server'
+
+export default async function HomePage() {
+  const supabase = await createClient()
+  const { data: stats } = await supabase.rpc('get_platform_stats')
+  
+  const totalUsers = stats?.[0]?.total_users || 0
+  const totalDocs = stats?.[0]?.total_documents || 0
+
   return (
     <>
       <PublicHeader />
@@ -149,8 +157,8 @@ export default function HomePage() {
                 </div>
                 <div className="space-y-3">
                   {[
-                    { label: 'Cours disponibles', val: '240+', color: 'bg-blue-500' },
-                    { label: 'Étudiants actifs',  val: '1 200', color: 'bg-amber-500' },
+                    { label: 'Cours disponibles', val: totalDocs > 0 ? `${totalDocs}` : '0', color: 'bg-blue-500' },
+                    { label: 'Étudiants actifs',  val: totalUsers > 0 ? `${totalUsers}` : '0', color: 'bg-amber-500' },
                     { label: 'Taux de réussite',  val: '92%',  color: 'bg-green-500' },
                   ].map((s) => (
                     <div key={s.label} className="flex items-center justify-between bg-white/5 rounded-xl px-4 py-3">

@@ -96,3 +96,17 @@ create policy "Admin can delete useful links"
 -- Run separately via Supabase Dashboard > Storage, or:
 -- ============================================================
 -- insert into storage.buckets (id, name, public) values ('documents', 'documents', false);
+
+-- ============================================================
+-- Functions for Stats (Public)
+-- ============================================================
+create or replace function public.get_platform_stats()
+returns table(total_users bigint, total_documents bigint)
+language plpgsql security definer set search_path = public as $$
+begin
+  return query
+  select
+    (select count(*) from public.profiles)::bigint as total_users,
+    (select count(*) from public.documents)::bigint as total_documents;
+end;
+$$;
