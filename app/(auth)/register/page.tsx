@@ -1,0 +1,207 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { Eye, EyeOff, User, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import Button from '@/components/ui/Button'
+import Input from '@/components/ui/Input'
+import { Card, CardBody } from '@/components/ui/Card'
+import { cn } from '@/lib/utils'
+
+const CYCLES = [
+  { value: 'licence', label: 'Licence Bancaire', desc: '3 ans' },
+  { value: 'dseb',    label: 'DSEB',             desc: '4 ans' },
+  { value: 'master',  label: 'Master',            desc: '2 ans' },
+]
+
+export default function RegisterPage() {
+  const [fullName, setFullName]   = useState('')
+  const [email, setEmail]         = useState('')
+  const [password, setPassword]   = useState('')
+  const [cycle, setCycle]         = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState('')
+  const [success, setSuccess]     = useState(false)
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+
+    if (!cycle) { setError('Veuillez sélectionner votre cycle de formation.'); return }
+    if (password.length < 8) { setError('Le mot de passe doit contenir au moins 8 caractères.'); return }
+
+    setLoading(true)
+    const supabase = createClient()
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName, cycle },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      },
+    })
+
+    if (error) {
+      setError(
+        error.message.includes('already registered')
+          ? 'Un compte existe déjà avec cet email.'
+          : error.message
+      )
+      setLoading(false)
+      return
+    }
+
+    setSuccess(true)
+    setLoading(false)
+  }
+
+  if (success) {
+    return (
+      <div className="animate-fade-in text-center">
+        <div className="bg-white/95 rounded-2xl p-10 shadow-2xl">
+          <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-5">
+            <CheckCircle className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-xl font-bold text-[#0F172A] mb-3">
+            Vérifiez votre boite mail !
+          </h2>
+          <p className="text-[#64748B] text-sm leading-relaxed mb-6">
+            Un email de confirmation a été envoyé à <strong className="text-[#0F172A]">{email}</strong>.
+            Cliquez sur le lien dans l&apos;email pour activer votre compte.
+          </p>
+          <Link
+            href="/login"
+            className="text-sm font-semibold text-[#1E3A8A] hover:underline"
+          >
+            Retour à la connexion
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="animate-fade-in">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-white mb-2">Créer un compte</h1>
+        <p className="text-blue-200 text-sm">Rejoignez le portail ESB</p>
+      </div>
+
+      <Card className="shadow-2xl border-white/10 bg-white/95 backdrop-blur">
+        <CardBody className="p-8">
+          <form onSubmit={handleRegister} className="space-y-5" noValidate>
+            {error && (
+              <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Full name */}
+            <div className="relative">
+              <Input
+                label="Nom complet"
+                id="full_name"
+                type="text"
+                placeholder="Prénom Nom"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                autoFocus
+              />
+              <User className="absolute right-3 top-8 w-4 h-4 text-[#94A3B8] pointer-events-none" />
+            </div>
+
+            {/* Email */}
+            <div className="relative">
+              <Input
+                label="Adresse email"
+                id="email"
+                type="email"
+                placeholder="prenom.nom@esb.dz"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+              <Mail className="absolute right-3 top-8 w-4 h-4 text-[#94A3B8] pointer-events-none" />
+            </div>
+
+            {/* Password */}
+            <div className="relative">
+              <Input
+                label="Mot de passe"
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Minimum 8 caractères"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+                hint="Au moins 8 caractères"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-8 text-[#94A3B8] hover:text-[#64748B] transition-colors"
+                aria-label="Afficher/masquer le mot de passe"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+
+            {/* Cycle selection */}
+            <div>
+              <label className="block text-sm font-medium text-[#0F172A] mb-2">
+                Cycle de formation
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {CYCLES.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setCycle(c.value)}
+                    className={cn(
+                      'flex flex-col items-center gap-0.5 rounded-lg border p-3 text-center transition-all duration-200 cursor-pointer',
+                      cycle === c.value
+                        ? 'border-[#1E3A8A] bg-[#EFF6FF] text-[#1E3A8A] shadow-sm'
+                        : 'border-[#E2E8F0] hover:border-[#CBD5E1] text-[#64748B]'
+                    )}
+                  >
+                    <span className="text-sm font-semibold">{c.label}</span>
+                    <span className="text-xs">{c.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              loading={loading}
+              className="w-full"
+            >
+              {loading ? 'Création du compte...' : 'Créer mon compte'}
+            </Button>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-[#E2E8F0] text-center">
+            <p className="text-sm text-[#64748B]">
+              Déjà un compte ?{' '}
+              <Link
+                href="/login"
+                className="font-semibold text-[#1E3A8A] hover:text-[#0F172A] transition-colors"
+              >
+                Se connecter
+              </Link>
+            </p>
+          </div>
+        </CardBody>
+      </Card>
+    </div>
+  )
+}
