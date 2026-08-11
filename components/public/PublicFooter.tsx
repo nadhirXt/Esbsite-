@@ -17,18 +17,18 @@ export default function PublicFooter() {
               L&apos;École Supérieure de Banque forme les experts financiers
               de demain grâce à des programmes de haut niveau.
             </p>
-            <div className="mt-6 space-y-2">
-              <p className="flex items-center gap-2 text-sm text-slate-400">
-                <MapPin className="w-4 h-4 text-[#A16207] shrink-0" />
-                Alger, Algérie
+            <div className="mt-6 space-y-3">
+              <p className="flex items-start gap-2 text-sm text-slate-400">
+                <MapPin className="w-4 h-4 text-[#A16207] shrink-0 mt-0.5" />
+                <span>BP 156, Route de Baïnem,<br />Bouzaréah (Alger)</span>
               </p>
               <p className="flex items-center gap-2 text-sm text-slate-400">
                 <Phone className="w-4 h-4 text-[#A16207] shrink-0" />
-                +213 (0) 21 XX XX XX
+                +213 23 23 67 62 / +213 23 23 67 59
               </p>
               <p className="flex items-center gap-2 text-sm text-slate-400">
                 <Mail className="w-4 h-4 text-[#A16207] shrink-0" />
-                contact@esb.dz
+                defesb@bank-of-algeria.dz
               </p>
             </div>
           </div>

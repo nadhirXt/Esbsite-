@@ -76,9 +76,14 @@ export default function HomePage() {
                 <span className="text-[#FCD34D]">experts bancaires</span>{' '}
                 de demain.
               </h1>
-              <p className="text-lg text-blue-200 mb-10 leading-relaxed max-w-md">
-                L&apos;École Supérieure de Banque propose des formations d&apos;excellence en Licence, DSEB et Master pour préparer les cadres du secteur financier algérien.
-              </p>
+              <div className="text-base md:text-lg text-blue-200 mb-10 leading-relaxed max-w-xl space-y-4">
+                <p>
+                  L&apos;École Supérieure de Banque est une Direction Générale de la Banque d&apos;Algérie, créée en janvier 1995 en vue de former des cadres dans les domaines de la banque.
+                </p>
+                <p>
+                  Le siège de l&apos;École se trouve sur les hauteurs d&apos;Alger, à Bouzaréah, à proximité de la forêt de Baïnem. L&apos;École est dotée d&apos;infrastructures modernes situées dans un site verdoyant et calme, propice aux études et à la réflexion.
+                </p>
+              </div>
               <div className="flex flex-wrap gap-4">
                 <a href="#formations">
                   <button className="inline-flex items-center gap-2 h-12 px-7 rounded-xl bg-[#A16207] hover:bg-[#854d0e] text-white font-semibold transition-all duration-200 shadow-lg shadow-amber-900/30 hover:-translate-y-0.5 cursor-pointer">
