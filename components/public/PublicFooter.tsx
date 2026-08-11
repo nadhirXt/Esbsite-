@@ -78,9 +78,7 @@ export default function PublicFooter() {
           <p className="text-xs text-slate-500">
             © {new Date().getFullYear()} École Supérieure de Banque · Tous droits réservés
           </p>
-          <p className="text-xs text-slate-600 italic">
-            Plateforme antigravité
-          </p>
+
         </div>
       </div>
     </footer>
