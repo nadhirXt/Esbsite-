@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import DocumentsClient from './DocumentsClient'
+import AdminDriveClient from './AdminDriveClient'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,5 +12,5 @@ export default async function AdminDocumentsPage() {
     .select('*')
     .order('created_at', { ascending: false })
 
-  return <DocumentsClient documents={documents || []} />
+  return <AdminDriveClient documents={documents || []} />
 }

@@ -28,7 +28,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
   if (searchQuery.trim() !== '') {
     // If searching, ignore folders and just filter all documents
     const query = searchQuery.toLowerCase()
-    filesHere = documents.filter(doc => doc.title.toLowerCase().includes(query))
+    filesHere = documents.filter(doc => doc.title.toLowerCase().includes(query) && doc.title !== '.keep')
   } else {
     // Normal folder navigation
     documents.forEach(doc => {
@@ -36,13 +36,13 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
       
       // Si on est à la racine, 'Général' est considéré comme la racine
       if (currentPath.length === 0 && cat === 'Général') {
-        filesHere.push(doc)
+        if (doc.title !== '.keep') filesHere.push(doc)
         return
       }
 
       if (cat === currentPathString) {
         // Fichier appartenant exactement à ce dossier
-        filesHere.push(doc)
+        if (doc.title !== '.keep') filesHere.push(doc)
       } else if (cat.startsWith(currentPathString ? currentPathString + '/' : '')) {
         // Fichier dans un sous-dossier
         const remainingPath = cat.slice(currentPathString ? currentPathString.length + 1 : 0)
