@@ -69,11 +69,18 @@ export default function RegisterPage() {
     })
 
     if (error) {
-      setError(
-        error.message.includes('already registered')
-          ? 'Un compte existe déjà avec cet email.'
-          : error.message
-      )
+      const msg = error.message.toLowerCase()
+      if (msg.includes('rate limit')) {
+        setError('Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.')
+      } else if (msg.includes('already registered')) {
+        setError('Un compte existe déjà avec cet email.')
+      } else if (msg.includes('invalid email')) {
+        setError('Adresse email invalide.')
+      } else if (msg.includes('weak password') || msg.includes('password')) {
+        setError('Le mot de passe est trop faible. Utilisez au moins 8 caractères.')
+      } else {
+        setError(error.message)
+      }
       setLoading(false)
       return
     }
