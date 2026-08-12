@@ -139,7 +139,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
           {foldersList.length > 0 && (
             <div>
               {currentPath.length === 0 && <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Dossiers</h2>}
-              <div className="grid sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {foldersList.map((folderName) => {
                   // Compter le nombre total de fichiers à l'intérieur de ce dossier (récursivement)
                   const folderPrefix = currentPathString ? `${currentPathString}/${folderName}` : folderName;
@@ -176,7 +176,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
               {(currentPath.length > 0 || foldersList.length > 0) && (
                 <h2 className="text-sm font-semibold text-[#0F172A] mb-3 mt-4 pt-4 border-t border-[#E2E8F0]">Fichiers</h2>
               )}
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {filesHere.map((doc: any) => (
                   <DocumentCard key={doc.id} doc={doc} supabase={supabase} />
                 ))}

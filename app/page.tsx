@@ -101,25 +101,25 @@ export default async function HomePage() {
       <PublicHeader />
       <main className="overflow-x-hidden">
         {/* ── HERO ─────────────────────────────────── */}
-        <section className="relative min-h-screen flex items-center bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#0F172A]">
+        <section className="relative min-h-[100dvh] flex items-center bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#0F172A]">
           <div
             className="absolute inset-0 opacity-5"
             style={{ backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`, backgroundSize: '32px 32px' }}
           />
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#A16207] to-transparent" />
 
-          <div className="relative max-w-6xl mx-auto px-6 py-32 grid md:grid-cols-2 gap-12 items-center">
+          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 md:py-32 grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div className="animate-fade-in-up">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-blue-200 mb-8">
                 <Star className="w-3.5 h-3.5 text-[#FCD34D]" />
                 <span>École d&apos;excellence en Algérie</span>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 sm:mb-6">
                 Formez les{' '}
                 <span className="text-[#FCD34D]">experts bancaires</span>{' '}
                 de demain.
               </h1>
-              <div className="text-base md:text-lg text-blue-200 mb-10 leading-relaxed max-w-xl space-y-4">
+              <div className="text-sm sm:text-base md:text-lg text-blue-200 mb-6 sm:mb-10 leading-relaxed max-w-xl space-y-3 sm:space-y-4">
                 <p>
                   L&apos;École Supérieure de Banque propose des formations d&apos;excellence en Licence, DSEB et Master pour préparer les cadres du secteur financier algérien.
                 </p>
@@ -182,9 +182,9 @@ export default async function HomePage() {
         </section>
 
         {/* ── STATS ──────────────────────────────── */}
-        <section id="chiffres" className="bg-[#F8FAFC] py-16">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <section id="chiffres" className="bg-[#F8FAFC] py-10 sm:py-16">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               {STATS.map((stat) => (
                 <div key={stat.label} className="text-center group">
                   <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#EFF6FF] text-[#1E3A8A] mb-3 group-hover:bg-[#1E3A8A] group-hover:text-white transition-all duration-300">
@@ -199,9 +199,9 @@ export default async function HomePage() {
         </section>
 
         {/* ── FORMATIONS ─────────────────────────── */}
-        <section id="formations" className="bg-slate-50 py-24">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-20">
+        <section id="formations" className="bg-slate-50 py-14 sm:py-20 md:py-24">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-10 sm:mb-16 md:mb-20">
               <p className="text-sm font-semibold text-[#A16207] uppercase tracking-wider mb-3">Nos cycles de formation</p>
               <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] mb-4">Découvrez nos programmes d&apos;excellence</h2>
               <p className="text-[#64748B] max-w-2xl mx-auto">Des formations structurées et adaptées pour répondre aux plus hautes exigences du secteur bancaire et financier.</p>
@@ -210,8 +210,8 @@ export default async function HomePage() {
             <div className="space-y-12">
               {FORMATIONS.map((f) => (
                 <div key={f.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300">
-                  <div className={`h-2 w-full ${f.accent}`} />
-                  <div className="p-8 md:p-10">
+                  <div className={`h-1.5 sm:h-2 w-full ${f.accent}`} />
+                  <div className="p-4 sm:p-6 md:p-8 lg:p-10">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 pb-8 border-b border-slate-100">
                       <div>
                         <div className="flex items-center gap-3 mb-4">
@@ -269,8 +269,8 @@ export default async function HomePage() {
         </section>
 
         {/* ── WHY ESB ────────────────────────────── */}
-        <section id="presentation" className="bg-[#0F172A] py-24 text-white">
-          <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-14 items-center">
+        <section id="presentation" className="bg-[#0F172A] py-14 sm:py-20 md:py-24 text-white">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 grid md:grid-cols-2 gap-8 md:gap-14 items-center">
             <div>
               <p className="text-sm font-semibold text-[#FCD34D] uppercase tracking-wider mb-3">Pourquoi choisir l&apos;ESB ?</p>
               <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">Une institution au service de l&apos;excellence financière</h2>
@@ -288,87 +288,115 @@ export default async function HomePage() {
         </section>
 
         {/* ── A PROPOS ────────────────────────────────── */}
-        <section id="apropos" className="bg-white py-24">
-          <div className="max-w-4xl mx-auto px-6">
-            <div className="mb-12 text-center">
+        <section id="apropos" className="bg-white py-16 md:py-24">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6">
+            <div className="mb-8 md:mb-12 text-center">
               <p className="text-sm font-semibold text-[#A16207] uppercase tracking-wider mb-3">L&apos;histoire derrière le projet</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A]">À propos</h2>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#0F172A]">À propos</h2>
             </div>
             
-            <div className="bg-slate-50 rounded-3xl p-8 md:p-12 border border-slate-100 shadow-sm relative overflow-hidden">
-              <div className="absolute -top-12 -right-12 p-8 opacity-[0.03] rotate-12">
+            <div className="bg-slate-50 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 border border-slate-100 shadow-sm relative overflow-hidden">
+              <div className="absolute -top-12 -right-12 p-8 opacity-[0.03] rotate-12 hidden sm:block">
                 <GraduationCap className="w-64 h-64 text-[#1E3A8A]" />
               </div>
               
-              <div className="relative z-10 space-y-10 text-slate-600 leading-relaxed">
+              <div className="relative z-10 space-y-8 md:space-y-10 text-slate-600 leading-relaxed">
+                {/* Profile Card */}
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 bg-white rounded-2xl p-5 sm:p-6 border border-slate-100 shadow-sm">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#0F172A] flex items-center justify-center shrink-0 shadow-lg">
+                    <span className="text-2xl sm:text-3xl font-bold text-white">MN</span>
+                  </div>
+                  <div className="text-center sm:text-left flex-1 min-w-0">
+                    <h3 className="text-xl sm:text-2xl font-bold text-[#0F172A]">Mohamed Nadhir Benelhadj</h3>
+                    <p className="text-[#A16207] font-medium mt-1 text-sm sm:text-base">Étudiant DSEB 2ème année · École Supérieure de Banque</p>
+                    <p className="text-slate-500 text-xs sm:text-sm mt-1">Alger, Algérie · Ex-ENPO (École Nationale Polytechnique d&apos;Oran)</p>
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100">Finance & Banque</span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">Développement Web</span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-medium border border-purple-100">Data & Analyse</span>
+                    </div>
+                    <div className="mt-4">
+                      <a
+                        href="https://www.linkedin.com/in/mohamed-nadhir-benelhadj-833a32349/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="linkedin-btn inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                        Voir mon profil LinkedIn
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
-                  <p className="text-lg text-slate-800 font-medium mb-4">
+                  <p className="text-base sm:text-lg text-slate-800 font-medium mb-3 sm:mb-4">
                     Bonjour et bienvenue ! Je suis Mohamed Nadhir Benelhadj, étudiant en 2ème année DSEB (Diplôme Supérieur d&apos;Études Bancaires) et créateur de cet espace.
                   </p>
-                  <p>
+                  <p className="text-sm sm:text-base">
                     Si ce site existe aujourd&apos;hui, c&apos;est avant tout à cause de mon propre parcours et des obstacles que j&apos;ai dû surmonter.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="flex items-center gap-3 text-xl font-bold text-slate-800 mb-4">
-                    <span className="text-2xl">🔄</span> De l&apos;ingénierie à l&apos;économie : Un grand saut
+                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">
+                    <span className="text-xl sm:text-2xl">🔄</span> De l&apos;ingénierie à l&apos;économie : Un grand saut
                   </h3>
-                  <p className="mb-4">
+                  <p className="mb-3 sm:mb-4 text-sm sm:text-base">
                     Avant d&apos;intégrer l&apos;École Supérieure de Banque (ESB), j&apos;étais étudiant à l&apos;École Nationale Polytechnique d&apos;Oran (ENPO). J&apos;ai fait le choix de changer de voie, passant d&apos;un domaine purement technique à l&apos;univers complexe de l&apos;économie et de la finance.
                   </p>
-                  <p>
+                  <p className="text-sm sm:text-base">
                     Cette transition n&apos;a pas été facile. À mes débuts, j&apos;ai rencontré beaucoup de difficultés pour m&apos;adapter : le vocabulaire était différent, la logique académique changeait, et surtout, il était très difficile de trouver les bons cours et les bonnes ressources pour rattraper mon retard. C&apos;est cette période de doute et d&apos;adaptation intense qui a fait germer l&apos;idée de ce projet.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="flex items-center gap-3 text-xl font-bold text-slate-800 mb-4">
-                    <span className="text-2xl">🎯</span> Pourquoi cette plateforme ?
+                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">
+                    <span className="text-xl sm:text-2xl">🎯</span> Pourquoi cette plateforme ?
                   </h3>
-                  <p className="mb-6">
+                  <p className="mb-4 sm:mb-6 text-sm sm:text-base">
                     Ayant déjà pris l&apos;habitude de structurer et centraliser les dossiers numériques et les ressources académiques pour notre promotion afin de nous entraider, j&apos;ai ressenti le besoin de créer un outil plus grand et plus pérenne. J&apos;ai conçu ce site avec trois objectifs précis en tête :
                   </p>
-                  <ul className="space-y-6">
-                    <li className="flex items-start gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                      <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                        <CheckCircle className="w-5 h-5 text-[#A16207]" />
+                  <ul className="space-y-4 sm:space-y-6">
+                    <li className="flex items-start gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#A16207]" />
                       </div>
                       <div>
-                        <strong className="text-slate-800 block mb-1">Faciliter le quotidien étudiant</strong>
-                        <span className="text-sm">Centraliser les cours, les ressources et les outils pour que les étudiants de l&apos;ESB ne perdent plus de temps à chercher l&apos;information.</span>
+                        <strong className="text-slate-800 block mb-1 text-sm sm:text-base">Faciliter le quotidien étudiant</strong>
+                        <span className="text-xs sm:text-sm">Centraliser les cours, les ressources et les outils pour que les étudiants de l&apos;ESB ne perdent plus de temps à chercher l&apos;information.</span>
                       </div>
                     </li>
-                    <li className="flex items-start gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                      <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                        <CheckCircle className="w-5 h-5 text-[#A16207]" />
+                    <li className="flex items-start gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#A16207]" />
                       </div>
                       <div>
-                        <strong className="text-slate-800 block mb-1">Créer un pont</strong>
-                        <span className="text-sm">Aider les étudiants d&apos;autres écoles ou universités équivalentes qui suivent des formations similaires en économie et en banque.</span>
+                        <strong className="text-slate-800 block mb-1 text-sm sm:text-base">Créer un pont</strong>
+                        <span className="text-xs sm:text-sm">Aider les étudiants d&apos;autres écoles ou universités équivalentes qui suivent des formations similaires en économie et en banque.</span>
                       </div>
                     </li>
-                    <li className="flex items-start gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                      <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                        <CheckCircle className="w-5 h-5 text-[#A16207]" />
+                    <li className="flex items-start gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#A16207]" />
                       </div>
                       <div>
-                        <strong className="text-slate-800 block mb-1">Offrir de la visibilité</strong>
-                        <span className="text-sm">Donner un coup d&apos;œil concret et transparent sur notre formation à tous ceux qui sont curieux, aux futurs bacheliers, ou à ceux qui, comme moi, envisagent une reconversion.</span>
+                        <strong className="text-slate-800 block mb-1 text-sm sm:text-base">Offrir de la visibilité</strong>
+                        <span className="text-xs sm:text-sm">Donner un coup d&apos;œil concret et transparent sur notre formation à tous ceux qui sont curieux, aux futurs bacheliers, ou à ceux qui, comme moi, envisagent une reconversion.</span>
                       </div>
                     </li>
                   </ul>
                 </div>
 
                 <div>
-                  <h3 className="flex items-center gap-3 text-xl font-bold text-slate-800 mb-4">
-                    <span className="text-2xl">🤝</span> Avancer ensemble
+                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">
+                    <span className="text-xl sm:text-2xl">🤝</span> Avancer ensemble
                   </h3>
-                  <p className="mb-6">
+                  <p className="mb-4 sm:mb-6 text-sm sm:text-base">
                     Je sais ce que c&apos;est que de se sentir perdu face à de nouvelles matières. Ce site est ma façon de m&apos;assurer que les futurs étudiants auront un point de repère solide dès leur premier jour. J&apos;espère que cette plateforme vous fera gagner un temps précieux et facilitera votre réussite.
                   </p>
-                  <div className="pt-6 border-t border-slate-200">
-                    <p className="font-medium text-slate-800 mb-2">Excellente navigation à toutes et à tous !</p>
+                  <div className="pt-4 sm:pt-6 border-t border-slate-200">
+                    <p className="font-medium text-slate-800 mb-2 text-sm sm:text-base">Excellente navigation à toutes et à tous !</p>
                     <p className="text-[#A16207] font-bold signature">— Mohamed Nadhir Benelhadj</p>
                   </div>
                 </div>
@@ -378,9 +406,9 @@ export default async function HomePage() {
         </section>
 
         {/* ── CTA ────────────────────────────────── */}
-        <section id="contact" className="bg-gradient-to-r from-[#1E3A8A] to-[#0F172A] py-20 text-white text-center">
-          <div className="max-w-2xl mx-auto px-6">
-            <GraduationCap className="w-12 h-12 text-[#FCD34D] mx-auto mb-6" />
+        <section id="contact" className="bg-gradient-to-r from-[#1E3A8A] to-[#0F172A] py-14 sm:py-20 text-white text-center">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6">
+            <GraduationCap className="w-10 h-10 sm:w-12 sm:h-12 text-[#FCD34D] mx-auto mb-4 sm:mb-6" />
             <h2 className="text-3xl font-bold mb-4">Prêt à rejoindre l&apos;ESB ?</h2>
             <p className="text-blue-200 mb-8">Accédez à votre espace étudiant et consultez vos cours, ressources et documents pédagogiques.</p>
             <div className="flex flex-wrap justify-center gap-4">
