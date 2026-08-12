@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/licence',  label: 'Licence',         icon: BookOpen },
   { href: '/dashboard/dseb',     label: 'DSEB',            icon: BookOpen },
   { href: '/dashboard/master',   label: 'Master',          icon: BookOpen },
+  { href: '/dashboard/bibliotheque', label: 'Bibliothèque', icon: FileText },
   { href: '/dashboard/ressources', label: 'Ressources',    icon: Link2 },
   { href: '/dashboard/profile',    label: 'Mon Profil',      icon: Settings },
 ]

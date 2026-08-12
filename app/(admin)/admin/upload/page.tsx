@@ -11,6 +11,7 @@ const CYCLES = [
   { value: 'licence', label: 'Licence' },
   { value: 'dseb',    label: 'DSEB' },
   { value: 'master',  label: 'Master' },
+  { value: 'bibliotheque', label: 'Bibliothèque' },
 ]
 
 interface Document {
