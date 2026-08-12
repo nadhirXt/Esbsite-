@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Users, User, GraduationCap, Building2, Calendar } from 'lucide-react'
+import { Search, Users, User, GraduationCap, Building2, Calendar, Filter } from 'lucide-react'
 
 const LinkedinIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
@@ -10,12 +10,21 @@ import { formatDate, CYCLES } from '@/lib/utils'
 
 export default function AdminStudentsClient({ initialStudents }: { initialStudents: any[] }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [filterType, setFilterType] = useState('all') // 'all', 'licence', 'dseb', 'master', 'ancien'
   const [students, setStudents] = useState(initialStudents)
 
-  const filteredStudents = students.filter(student => 
-    (student.full_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-    (student.institution_name?.toLowerCase() || '').includes(searchQuery.toLowerCase())
-  )
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = (student.full_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+                          (student.institution_name?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+    
+    let matchesFilter = true
+    if (filterType === 'licence') matchesFilter = student.cycle === 'licence'
+    else if (filterType === 'dseb') matchesFilter = student.cycle === 'dseb'
+    else if (filterType === 'master') matchesFilter = student.cycle === 'master'
+    else if (filterType === 'ancien') matchesFilter = student.user_type === 'ancien'
+
+    return matchesSearch && matchesFilter
+  })
 
   return (
     <div className="animate-fade-in max-w-6xl">
@@ -31,8 +40,8 @@ export default function AdminStudentsClient({ initialStudents }: { initialStuden
         </p>
       </div>
 
-      <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl mb-8 shadow-sm">
-        <div className="relative w-full max-w-md">
+      <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl mb-8 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div className="relative w-full md:max-w-md">
           <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -41,6 +50,23 @@ export default function AdminStudentsClient({ initialStudents }: { initialStuden
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 transition-all"
           />
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+          <Filter className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
+          {['all', 'dseb', 'master', 'licence', 'ancien'].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                filterType === type 
+                  ? 'bg-[#1E3A8A] text-white' 
+                  : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              {type === 'all' ? 'Tous' : type === 'ancien' ? 'Anciens' : type.toUpperCase()}
+            </button>
+          ))}
         </div>
       </div>
 

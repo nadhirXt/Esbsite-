@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Users, User, GraduationCap, Building2 } from 'lucide-react'
+import { Search, Users, User, GraduationCap, Building2, Filter } from 'lucide-react'
 import { CYCLES } from '@/lib/utils'
 
 // Utilisation du même SVG LinkedIn que précédemment car les icônes de marque ont été retirées de lucide-react
@@ -11,11 +11,20 @@ const LinkedinIcon = ({ className }: { className?: string }) => (
 
 export default function PublicStudentsClient({ initialStudents }: { initialStudents: any[] }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [filterType, setFilterType] = useState('all') // 'all', 'licence', 'dseb', 'master', 'ancien'
   const [students] = useState(initialStudents)
 
-  const filteredStudents = students.filter(student => 
-    (student.full_name?.toLowerCase() || '').includes(searchQuery.toLowerCase())
-  )
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = (student.full_name?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+    
+    let matchesFilter = true
+    if (filterType === 'licence') matchesFilter = student.cycle === 'licence'
+    else if (filterType === 'dseb') matchesFilter = student.cycle === 'dseb'
+    else if (filterType === 'master') matchesFilter = student.cycle === 'master'
+    else if (filterType === 'ancien') matchesFilter = student.user_type === 'ancien'
+
+    return matchesSearch && matchesFilter
+  })
 
   return (
     <div className="animate-fade-in max-w-5xl mx-auto">
@@ -31,8 +40,8 @@ export default function PublicStudentsClient({ initialStudents }: { initialStude
         </p>
       </div>
 
-      <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl mb-8 shadow-sm">
-        <div className="relative w-full max-w-md">
+      <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl mb-8 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+        <div className="relative w-full md:max-w-md">
           <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -41,6 +50,23 @@ export default function PublicStudentsClient({ initialStudents }: { initialStude
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 transition-all"
           />
+        </div>
+        
+        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+          <Filter className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
+          {['all', 'dseb', 'master', 'licence', 'ancien'].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                filterType === type 
+                  ? 'bg-[#1E3A8A] text-white' 
+                  : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              {type === 'all' ? 'Tous' : type === 'ancien' ? 'Anciens' : type.toUpperCase()}
+            </button>
+          ))}
         </div>
       </div>
 
