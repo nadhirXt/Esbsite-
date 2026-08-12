@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import { getPresignedUploadUrl, getPresignedDownloadUrl, deleteStorageFile, deleteStorageFiles } from '@/app/actions/storage'
 
 export default function AdminDriveClient({ documents: initialDocuments }: { documents: any[] }) {
   const [documents, setDocuments] = useState(initialDocuments)
@@ -119,7 +120,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     
     const filePathsToDelete = docsToDelete.filter(d => d.file_path !== '.keep').map(d => d.file_path)
     if (filePathsToDelete.length > 0) {
-      await supabase.storage.from('documents').remove(filePathsToDelete)
+      await deleteStorageFiles(filePathsToDelete)
     }
 
     const idsToDelete = docsToDelete.map(d => d.id)
@@ -155,7 +156,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
   async function deleteFile(id: string, filePath: string) {
     if (!confirm('Supprimer ce fichier ?')) return
     if (filePath !== '.keep') {
-      await supabase.storage.from('documents').remove([filePath])
+      await deleteStorageFile(filePath)
     }
     await supabase.from('documents').delete().eq('id', id)
     setDocuments(prev => prev.filter(d => d.id !== id))
@@ -179,13 +180,31 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
       const path = `${cycle}/${Date.now()}_${safeFileName}`
       const fileTitle = file.name.replace(/\.[^.]+$/, '')
       
-      const { error: uploadError } = await supabase.storage.from('documents').upload(path, file, { cacheControl: '3600' })
-      if (!uploadError) {
-        const { data, error: dbError } = await supabase.from('documents').insert({
-          title: fileTitle, file_path: path, cycle, category
-        }).select().single()
-        
-        if (data) newDocs.push(data)
+      const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
+      
+      if (!urlError && url) {
+        try {
+          const res = await fetch(url, {
+            method: 'PUT',
+            body: file,
+            headers: { 'Content-Type': file.type || 'application/octet-stream' }
+          })
+          if (res.ok) {
+            const { data, error: dbError } = await supabase.from('documents').insert({
+              title: fileTitle, file_path: path, cycle, category
+            }).select().single()
+            
+            if (data) newDocs.push(data)
+          } else {
+            console.error("Upload error text:", await res.text())
+            alert(`Erreur d'upload (HTTP ${res.status}). Vérifiez vos CORS.`)
+          }
+        } catch (err: any) {
+          console.error("Upload fetch error", err)
+          if (err.message === "Failed to fetch") {
+            alert("Erreur de connexion (CORS). Avez-vous bien fait l'étape 3 du guide ?")
+          }
+        }
       }
     }
     setDocuments(prev => [...newDocs, ...prev])
@@ -467,22 +486,22 @@ function AdminDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename }:
 
   useEffect(() => {
     async function fetchUrl() {
-      const { data: pData } = await supabase.storage.from('documents').createSignedUrl(doc.file_path, 3600)
-      if (pData?.signedUrl) {
+      const pData = await getPresignedDownloadUrl(doc.file_path, false)
+      if (pData?.url) {
         const ext = doc.file_path.split('.').pop()?.toLowerCase()
         const officeExts = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx']
         if (officeExts.includes(ext || '')) {
-          setPreviewUrl(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.signedUrl)}`)
+          setPreviewUrl(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.url)}`)
         } else {
-          setPreviewUrl(pData.signedUrl)
+          setPreviewUrl(pData.url)
         }
       }
       
-      const { data: dData } = await supabase.storage.from('documents').createSignedUrl(doc.file_path, 3600, { download: true })
-      if (dData?.signedUrl) setDownloadUrl(dData.signedUrl)
+      const dData = await getPresignedDownloadUrl(doc.file_path, true)
+      if (dData?.url) setDownloadUrl(dData.url)
     }
     fetchUrl()
-  }, [doc.file_path, supabase.storage])
+  }, [doc.file_path])
 
   return (
     <div onContextMenu={onContextMenu} className="group flex flex-col justify-between gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all duration-200">

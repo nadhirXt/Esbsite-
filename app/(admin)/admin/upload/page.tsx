@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { cn } from '@/lib/utils'
+import { getPresignedUploadUrl, deleteStorageFile } from '@/app/actions/storage'
 
 const CYCLES = [
   { value: 'licence', label: 'Licence' },
@@ -85,8 +86,19 @@ export default function UploadPage() {
       if (file) {
         const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')
         path = `${cycle}/${Date.now()}_${safeFileName}`
-        const { error: uploadError } = await supabase.storage.from('documents').upload(path, file, { cacheControl: '3600', upsert: false })
-        if (uploadError) { setError(uploadError.message); setLoading(false); return }
+        const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
+        if (urlError || !url) { setError(urlError || 'Erreur R2'); setLoading(false); return }
+        
+        try {
+          const res = await fetch(url, {
+            method: 'PUT',
+            body: file,
+            headers: { 'Content-Type': file.type || 'application/octet-stream' }
+          })
+          if (!res.ok) throw new Error("Erreur lors de l'upload R2")
+        } catch (err: any) {
+          setError(err.message); setLoading(false); return
+        }
       }
       const { error: dbError } = await supabase.from('documents').update({
         title, file_path: path, cycle, category: fullCategory
@@ -100,8 +112,25 @@ export default function UploadPage() {
         const path = `${cycle}/${Date.now()}_${safeFileName}`
         const fileTitle = files.length === 1 ? title : file.name.replace(/\.[^.]+$/, '')
         
-        const { error: uploadError } = await supabase.storage.from('documents').upload(path, file, { cacheControl: '3600', upsert: false })
-        if (uploadError) { setError(uploadError.message); break; }
+        const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
+        if (urlError || !url) { setError(urlError || 'Erreur R2'); break; }
+        
+        try {
+          const res = await fetch(url, {
+            method: 'PUT',
+            body: file,
+            headers: { 'Content-Type': file.type || 'application/octet-stream' }
+          })
+          if (!res.ok) {
+            const errText = await res.text();
+            console.error("Upload error text:", errText);
+            throw new Error(`Erreur HTTP ${res.status}: L'upload a échoué.`)
+          }
+        } catch (err: any) {
+          console.error("Fetch error:", err)
+          setError(err.message === "Failed to fetch" ? "Erreur CORS : Veuillez configurer les règles CORS sur Backblaze (Étape 3 du guide)." : err.message); 
+          break;
+        }
         
         const { error: dbError } = await supabase.from('documents').insert({
           title: fileTitle, file_path: path, cycle, category: fullCategory
@@ -113,7 +142,7 @@ export default function UploadPage() {
       if (uploadedCount === files.length) {
         setSuccess(`${uploadedCount} document(s) uploadé(s) avec succès dans le dossier "${fullCategory}" !`)
       } else {
-        setError(`Erreur partielle : seulement ${uploadedCount} sur ${files.length} fichiers ont été uploadés.`)
+        setError(prev => prev ? `${prev} (Seulement ${uploadedCount}/${files.length} fichiers uploadés)` : `Erreur partielle : seulement ${uploadedCount} sur ${files.length} fichiers ont été uploadés.`)
       }
     }
 
@@ -142,7 +171,7 @@ export default function UploadPage() {
   async function handleDelete(id: string, path: string) {
     setDeletingId(id)
     const supabase = createClient()
-    await supabase.storage.from('documents').remove([path])
+    await deleteStorageFile(path)
     await supabase.from('documents').delete().eq('id', id)
     setDocuments((prev) => prev.filter((d) => d.id !== id))
     setDeletingId(null)

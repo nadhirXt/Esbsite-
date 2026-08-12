@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye } from 'lucide-react'
 import { formatDate, CYCLES } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
+import { getPresignedDownloadUrl } from '@/app/actions/storage'
 
 interface CycleDocumentsClientProps {
   cycle: string
@@ -196,23 +197,23 @@ function DocumentCard({ doc, supabase }: { doc: any; supabase: any }) {
   useEffect(() => {
     async function fetchUrl() {
       // Pour l'aperçu
-      const { data: pData } = await supabase.storage.from('documents').createSignedUrl(doc.file_path, 3600)
-      if (pData?.signedUrl) {
+      const pData = await getPresignedDownloadUrl(doc.file_path, false)
+      if (pData?.url) {
         const ext = doc.file_path.split('.').pop()?.toLowerCase()
         const officeExts = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx']
         if (officeExts.includes(ext || '')) {
-          setPreviewUrl(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.signedUrl)}`)
+          setPreviewUrl(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.url)}`)
         } else {
-          setPreviewUrl(pData.signedUrl)
+          setPreviewUrl(pData.url)
         }
       }
       
       // Pour le téléchargement direct
-      const { data: dData } = await supabase.storage.from('documents').createSignedUrl(doc.file_path, 3600, { download: true })
-      if (dData?.signedUrl) setDownloadUrl(dData.signedUrl)
+      const dData = await getPresignedDownloadUrl(doc.file_path, true)
+      if (dData?.url) setDownloadUrl(dData.url)
     }
     fetchUrl()
-  }, [doc.file_path, supabase.storage])
+  }, [doc.file_path])
 
   return (
     <div className="group flex flex-col justify-between gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all duration-200">
