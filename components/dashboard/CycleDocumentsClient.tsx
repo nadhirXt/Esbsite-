@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye } from 'lucide-react'
+import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Loader2 } from 'lucide-react'
 import { formatDate, CYCLES } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { getPresignedDownloadUrl } from '@/app/actions/storage'
@@ -191,29 +191,45 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
 }
 
 function DocumentCard({ doc, supabase }: { doc: any; supabase: any }) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
+  const [isLoadingView, setIsLoadingView] = useState(false)
+  const [isLoadingDownload, setIsLoadingDownload] = useState(false)
 
-  useEffect(() => {
-    async function fetchUrl() {
-      // Pour l'aperçu
+  const handleView = async () => {
+    if (isLoadingView) return
+    setIsLoadingView(true)
+    try {
       const pData = await getPresignedDownloadUrl(doc.file_path, false)
       if (pData?.url) {
         const ext = doc.file_path.split('.').pop()?.toLowerCase()
         const officeExts = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx']
         if (officeExts.includes(ext || '')) {
-          setPreviewUrl(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.url)}`)
+          window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.url)}`, '_blank')
         } else {
-          setPreviewUrl(pData.url)
+          window.open(pData.url, '_blank')
         }
       }
-      
-      // Pour le téléchargement direct
-      const dData = await getPresignedDownloadUrl(doc.file_path, true)
-      if (dData?.url) setDownloadUrl(dData.url)
+    } finally {
+      setIsLoadingView(false)
     }
-    fetchUrl()
-  }, [doc.file_path])
+  }
+
+  const handleDownload = async () => {
+    if (isLoadingDownload) return
+    setIsLoadingDownload(true)
+    try {
+      const dData = await getPresignedDownloadUrl(doc.file_path, true)
+      if (dData?.url) {
+        const a = document.createElement('a')
+        a.href = dData.url
+        a.style.display = 'none'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      }
+    } finally {
+      setIsLoadingDownload(false)
+    }
+  }
 
   return (
     <div className="group flex flex-col justify-between gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all duration-200">
@@ -228,23 +244,23 @@ function DocumentCard({ doc, supabase }: { doc: any; supabase: any }) {
       </div>
       
       <div className="flex items-center gap-2 mt-2 pt-3 border-t border-[#F1F5F9]">
-        {previewUrl ? (
-          <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-[#EFF6FF] text-[#1E3A8A] hover:bg-[#DBEAFE] transition-colors text-xs font-medium">
-            <Eye className="w-3.5 h-3.5" />
-            Voir
-          </a>
-        ) : (
-          <div className="flex-1 h-7 bg-gray-100 animate-pulse rounded-lg" />
-        )}
+        <button 
+          onClick={handleView}
+          disabled={isLoadingView}
+          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-[#EFF6FF] text-[#1E3A8A] hover:bg-[#DBEAFE] transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoadingView ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+          Voir
+        </button>
         
-        {downloadUrl ? (
-          <a href={downloadUrl} className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors text-xs font-medium">
-            <Download className="w-3.5 h-3.5" />
-            Télécharger
-          </a>
-        ) : (
-          <div className="flex-1 h-7 bg-gray-100 animate-pulse rounded-lg" />
-        )}
+        <button
+          onClick={handleDownload}
+          disabled={isLoadingDownload}
+          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoadingDownload ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+          Télécharger
+        </button>
       </div>
     </div>
   )

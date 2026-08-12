@@ -5,20 +5,23 @@ import { Upload, Link2, FileText, Users, ArrowRight } from 'lucide-react'
 export default async function AdminDashboard() {
   const supabase = await createClient()
 
-  const [{ count: docCount }, { count: linkCount }] = await Promise.all([
+  const [{ count: docCount }, { count: linkCount }, { count: studentCount }] = await Promise.all([
     supabase.from('documents').select('*', { count: 'exact', head: true }),
     supabase.from('useful_links').select('*', { count: 'exact', head: true }),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).neq('role', 'admin'),
   ])
 
   const stats = [
     { label: 'Documents uploadés', value: docCount ?? 0, icon: FileText, color: 'bg-blue-50 text-blue-600' },
     { label: 'Liens utiles', value: linkCount ?? 0, icon: Link2, color: 'bg-amber-50 text-amber-600' },
+    { label: 'Étudiants inscrits', value: studentCount ?? 0, icon: Users, color: 'bg-green-50 text-green-600' },
   ]
 
   const actions = [
     { href: '/admin/upload', label: 'Uploader des documents', desc: 'Ajouter des PDF et documents pour les étudiants', icon: Upload },
     { href: '/admin/documents', label: 'Gérer les documents', desc: 'Rechercher, visualiser et supprimer les documents', icon: FileText },
     { href: '/admin/liens',  label: 'Gérer les liens utiles',  desc: 'Ajouter ou supprimer des liens de ressources',   icon: Link2 },
+    { href: '/admin/etudiants', label: 'Voir les étudiants', desc: 'Consulter la liste de tous les étudiants inscrits', icon: Users },
   ]
 
   return (

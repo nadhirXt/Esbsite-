@@ -1,8 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { User, Mail, Shield, Building2, BookOpen, Settings, Calendar, Hash, Clock, CheckCircle2 } from 'lucide-react'
+
+const LinkedinIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+)
 import { CYCLES, formatDate } from '@/lib/utils'
 import { ensureProfile } from '@/lib/ensure-profile'
+import ProfileEditButton from './ProfileEditButton'
 
 export const metadata = {
   title: 'Mon Profil | ESB Hub',
@@ -102,6 +107,13 @@ export default async function ProfilePage() {
               )}
             </div>
           </div>
+          
+          <div className="ml-auto mt-4 sm:mt-0 flex-shrink-0">
+            <ProfileEditButton 
+              initialName={profile.full_name || ''} 
+              initialLinkedin={profile.linkedin_url || ''} 
+            />
+          </div>
         </div>
       </div>
 
@@ -113,6 +125,13 @@ export default async function ProfilePage() {
           <ul className="space-y-5">
             <InfoItem icon={User} label="Nom complet" value={profile.full_name} />
             <InfoItem icon={Mail} label="Adresse e-mail" value={user.email} />
+            <InfoItem icon={LinkedinIcon} label="Profil LinkedIn" value={
+              profile.linkedin_url ? (
+                <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] hover:underline flex items-center gap-1">
+                  Voir le profil LinkedIn
+                </a>
+              ) : null
+            } />
             <InfoItem icon={Shield} label="Rôle système" value={
               <span className={profile.role === 'admin' ? 'text-amber-700 font-semibold' : ''}>
                 {roleLabel}
