@@ -150,7 +150,7 @@ function ResetPasswordContent() {
                 label="Adresse email"
                 id="email"
                 type="email"
-                placeholder="prenom.nom@esb.dz"
+                placeholder="exemple@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

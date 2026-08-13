@@ -35,6 +35,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState('')
+  const [isRegistered, setIsRegistered] = useState(false)
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
@@ -88,8 +89,28 @@ export default function RegisterPage() {
       return
     }
 
-    router.push('/dashboard')
-    router.refresh()
+    setIsRegistered(true)
+    setLoading(false)
+  }
+
+  if (isRegistered) {
+    return (
+      <div className="animate-fade-in text-center">
+        <div className="bg-white/95 rounded-2xl p-10 shadow-2xl">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-5">
+            <CheckCircle className="w-8 h-8 text-[#1E3A8A]" />
+          </div>
+          <h2 className="text-xl font-bold text-[#0F172A] mb-3">Vérifiez votre email</h2>
+          <p className="text-[#64748B] text-sm leading-relaxed mb-6">
+            Un email de vérification a été envoyé à <strong className="text-[#0F172A]">{email}</strong>.
+            Veuillez cliquer sur le lien qu'il contient pour activer votre compte.
+          </p>
+          <Link href="/login" className="text-sm font-semibold text-[#1E3A8A] hover:underline">
+            Retour à la connexion
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -130,7 +151,7 @@ export default function RegisterPage() {
                 label="Adresse email"
                 id="email"
                 type="email"
-                placeholder="prenom.nom@esb.dz"
+                placeholder="exemple@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
