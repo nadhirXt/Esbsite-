@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Upload, File, X, CheckCircle, AlertCircle, Edit2, Trash2, FileText } from 'lucide-react'
+import { Upload, File, X, CheckCircle, AlertCircle, Edit2, Trash2, FileText, GraduationCap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -40,13 +40,33 @@ export default function UploadPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [oldFilePath, setOldFilePath] = useState<string>('')
+  
+  // RBAC states
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [year, setYear] = useState('1')
 
   const fetchDocuments = useCallback(async () => {
     const supabase = createClient()
-    const { data } = await supabase
-      .from('documents')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+    setUserProfile(profile)
+    
+    // Si l'utilisateur est un délégué, définir automatiquement son cycle et son année
+    if (profile?.is_delegate && profile?.role !== 'admin') {
+      setCycle(profile.delegate_cycle)
+      setYear(profile.delegate_year?.toString() || '1')
+    }
+
+    let query = supabase.from('documents').select('*').order('created_at', { ascending: false })
+    
+    // Le délégué ne voit que les documents de son cycle et année
+    if (profile?.is_delegate && profile?.role !== 'admin') {
+      query = query.eq('cycle', profile.delegate_cycle).eq('year', profile.delegate_year)
+    }
+
+    const { data } = await query
     setDocuments(data || [])
     setFetching(false)
   }, [])
@@ -69,7 +89,11 @@ export default function UploadPage() {
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault()
     setError(''); setSuccess('')
-    if (!cycle) { setError('Veuillez sélectionner un cycle.'); return }
+
+    const finalCycle = userProfile?.is_delegate && userProfile?.role !== 'admin' ? userProfile.delegate_cycle : cycle
+    const finalYear = userProfile?.is_delegate && userProfile?.role !== 'admin' ? userProfile.delegate_year : parseInt(year)
+
+    if (!finalCycle) { setError('Veuillez sélectionner un cycle.'); return }
     if (!category.trim()) { setError('Veuillez spécifier un dossier.'); return }
     if (!editingId && files.length === 0) { setError('Veuillez sélectionner au moins un fichier.'); return }
     if (editingId && files.length > 1) { setError('Vous ne pouvez uploader qu\'un seul fichier lors de la modification.'); return }
@@ -85,7 +109,7 @@ export default function UploadPage() {
       const file = files[0]
       if (file) {
         const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')
-        path = `${cycle}/${Date.now()}_${safeFileName}`
+        path = `${finalCycle}/A${finalYear}/${Date.now()}_${safeFileName}`
         const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
         if (urlError || !url) { setError(urlError || 'Erreur R2'); setLoading(false); return }
         
@@ -101,7 +125,7 @@ export default function UploadPage() {
         }
       }
       const { error: dbError } = await supabase.from('documents').update({
-        title, file_path: path, cycle, category: fullCategory
+        title, file_path: path, cycle: finalCycle, year: finalYear, category: fullCategory
       }).eq('id', editingId)
       if (dbError) { setError(dbError.message); setLoading(false); return }
       setSuccess(`"${title}" modifié avec succès !`)
@@ -109,7 +133,7 @@ export default function UploadPage() {
       let uploadedCount = 0
       for (const file of files) {
         const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')
-        const path = `${cycle}/${Date.now()}_${safeFileName}`
+        const path = `${finalCycle}/A${finalYear}/${Date.now()}_${safeFileName}`
         const fileTitle = files.length === 1 ? title : file.name.replace(/\.[^.]+$/, '')
         
         const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
@@ -133,7 +157,7 @@ export default function UploadPage() {
         }
         
         const { error: dbError } = await supabase.from('documents').insert({
-          title: fileTitle, file_path: path, cycle, category: fullCategory
+          title: fileTitle, file_path: path, cycle: finalCycle, year: finalYear, category: fullCategory, uploader_id: userProfile?.id
         })
         if (dbError) { setError(dbError.message); break; }
         uploadedCount++
@@ -152,10 +176,11 @@ export default function UploadPage() {
     setLoading(false)
   }
 
-  function handleEdit(doc: Document) {
+  function handleEdit(doc: Document | any) {
     setEditingId(doc.id)
     setTitle(doc.title)
     setCycle(doc.cycle)
+    setYear(doc.year?.toString() || '1')
     setCategory(doc.category || '')
     setOldFilePath(doc.file_path)
     setFiles([])
@@ -297,27 +322,59 @@ export default function UploadPage() {
           />
         )}
 
-        {/* Cycle selector */}
-        <div>
-          <label className="block text-sm font-medium text-[#0F172A] mb-2">Cycle de formation *</label>
-          <div className="flex gap-2">
-            {CYCLES.map((c) => (
-              <button
-                key={c.value}
-                type="button"
-                onClick={() => setCycle(c.value)}
-                className={cn(
-                  'flex-1 py-2 rounded-lg border text-sm font-medium transition-all duration-150 cursor-pointer',
-                  cycle === c.value
-                    ? 'border-[#1E3A8A] bg-[#EFF6FF] text-[#1E3A8A]'
-                    : 'border-[#E2E8F0] text-[#64748B] hover:border-[#CBD5E1]'
-                )}
-              >
-                {c.label}
-              </button>
-            ))}
+        {/* Cycle & Year selector */}
+        {userProfile?.is_delegate && userProfile?.role !== 'admin' ? (
+          <div className="bg-[#EFF6FF] border border-[#1E3A8A] rounded-xl p-4 text-[#1E3A8A] flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold">Mode Délégué Actif</p>
+              <p className="text-xs mt-0.5">Vous uploadez dans : <span className="font-bold uppercase">{userProfile.delegate_cycle}</span> - Année <span className="font-bold">{userProfile.delegate_year}</span></p>
+            </div>
+            <GraduationCap className="w-6 h-6 opacity-50" />
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-[#0F172A] mb-2">Cycle de formation *</label>
+              <div className="flex flex-wrap gap-2">
+                {CYCLES.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setCycle(c.value)}
+                    className={cn(
+                      'flex-1 py-2 rounded-lg border text-sm font-medium transition-all duration-150 cursor-pointer min-w-[100px]',
+                      cycle === c.value
+                        ? 'border-[#1E3A8A] bg-[#EFF6FF] text-[#1E3A8A]'
+                        : 'border-[#E2E8F0] text-[#64748B] hover:border-[#CBD5E1]'
+                    )}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#0F172A] mb-2">Année *</label>
+              <div className="flex gap-2">
+                {['1', '2', '3', '4'].map((y) => (
+                  <button
+                    key={y}
+                    type="button"
+                    onClick={() => setYear(y)}
+                    className={cn(
+                      'flex-1 py-2 rounded-lg border text-sm font-medium transition-all duration-150 cursor-pointer',
+                      year === y
+                        ? 'border-[#1E3A8A] bg-[#EFF6FF] text-[#1E3A8A]'
+                        : 'border-[#E2E8F0] text-[#64748B] hover:border-[#CBD5E1]'
+                    )}
+                  >
+                    {y}A
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Category / Folder */}
         <div>
@@ -382,7 +439,9 @@ export default function UploadPage() {
                 <FileText className="w-5 h-5 text-[#1E3A8A] shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#0F172A] truncate">{doc.title}</p>
-                  <p className="text-xs text-[#94A3B8] truncate">Cycle : <span className="uppercase">{doc.cycle}</span> {doc.category && `• ${doc.category}`}</p>
+                  <p className="text-xs text-[#94A3B8] truncate">
+                    <span className="uppercase">{doc.cycle}</span> {doc.year ? `- Année ${doc.year}` : ''} {doc.category && `• ${doc.category}`}
+                  </p>
                 </div>
                 <button
                   onClick={() => handleEdit(doc)}
