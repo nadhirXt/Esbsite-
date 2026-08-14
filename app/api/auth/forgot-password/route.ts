@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 import crypto from 'crypto'
 
 export async function POST(req: NextRequest) {
-  // Initialisation ici (runtime) et non au niveau module (build time)
+  // Initialisation du client Supabase
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
-  const resend = new Resend(process.env.RESEND_API_KEY)
+
+  // Configuration de Nodemailer avec Gmail
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_EMAIL,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  })
 
   try {
     const { email } = await req.json()
@@ -55,12 +63,13 @@ export async function POST(req: NextRequest) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     const resetLink = `${siteUrl}/reset-password?token=${token}`
 
-    // 6. Envoyer l'email via Resend
-    const { error: emailError } = await resend.emails.send({
-      from: 'ESB Hub <onboarding@resend.dev>', // Domaine de test Resend (gratuit, pas besoin de vérification)
-      to: email,
-      subject: '🔐 Réinitialisation de votre mot de passe — ESB Hub',
-      html: `
+    // 6. Envoyer l'email via Nodemailer (Gmail)
+    try {
+      await transporter.sendMail({
+        from: `"ESB Hub" <${process.env.GMAIL_EMAIL}>`,
+        to: email,
+        subject: '🔐 Réinitialisation de votre mot de passe — ESB Hub',
+        html: `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -124,11 +133,10 @@ export async function POST(req: NextRequest) {
   </table>
 </body>
 </html>
-      `,
-    })
-
-    if (emailError) {
-      console.error('Resend error:', emailError)
+        `,
+      })
+    } catch (emailError) {
+      console.error('Nodemailer error:', emailError)
       throw emailError
     }
 
