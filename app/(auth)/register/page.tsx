@@ -54,43 +54,46 @@ export default function RegisterPage() {
     }
 
     setLoading(true)
-    const supabase = createClient()
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { 
-          full_name: fullName, 
-          user_type: userType,
-           institution_name: userType === 'etudiant_esb' || userType === 'ancien'
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          userType,
+          institutionName: userType === 'etudiant_esb' || userType === 'ancien'
              ? 'École Supérieure de Banque'
              : userType === 'autre_etudiant' ? institutionName : null,
           cycle: (userType === 'etudiant_esb' || userType === 'ancien') ? cycle : null 
-        },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-      },
-    })
+        })
+      })
 
-    if (error) {
-      const msg = error.message.toLowerCase()
-      if (msg.includes('rate limit')) {
-        setError('Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.')
-      } else if (msg.includes('already registered')) {
-        setError('Un compte existe déjà avec cet email.')
-      } else if (msg.includes('invalid email')) {
-        setError('Adresse email invalide.')
-      } else if (msg.includes('weak password') || msg.includes('password')) {
-        setError('Le mot de passe est trop faible. Utilisez au moins 8 caractères.')
-      } else {
-        setError(error.message)
+      const data = await res.json()
+
+      if (!res.ok) {
+        const msg = (data.error || '').toLowerCase()
+        if (msg.includes('already registered')) {
+          setError('Un compte existe déjà avec cet email.')
+        } else if (msg.includes('invalid email')) {
+          setError('Adresse email invalide.')
+        } else if (msg.includes('password')) {
+          setError('Le mot de passe est trop faible. Utilisez au moins 8 caractères.')
+        } else {
+          setError(data.error || 'Une erreur est survenue.')
+        }
+        setLoading(false)
+        return
       }
-      setLoading(false)
-      return
-    }
 
-    setIsRegistered(true)
-    setLoading(false)
+      setIsRegistered(true)
+    } catch (err) {
+      setError('Erreur de connexion. Veuillez réessayer.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (isRegistered) {
