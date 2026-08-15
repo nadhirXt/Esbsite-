@@ -21,6 +21,7 @@ interface Document {
   title: string
   file_path: string
   cycle: string
+  year?: number
   category: string | null
   created_at: string
 }
