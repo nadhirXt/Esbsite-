@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 const NAV = [
   { href: '/admin',           label: 'Vue d\'ensemble', icon: LayoutDashboard },
-  { href: '/admin/upload',    label: 'Upload documents', icon: Upload },
+  { href: '/admin/documents', label: 'Gérer les documents', icon: Upload },
   { href: '/admin/users',     label: 'Gestion des Membres', icon: Shield },
   { href: '/admin/etudiants', label: 'Annuaire Étudiants', icon: Users },
   { href: '/admin/memoires',  label: 'Mémoires',          icon: BookOpen },
