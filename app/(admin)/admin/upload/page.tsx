@@ -13,6 +13,7 @@ const CYCLES = [
   { value: 'dseb',    label: 'DSEB' },
   { value: 'master',  label: 'Master' },
   { value: 'bibliotheque', label: 'Bibliothèque' },
+  { value: 'memoires', label: 'Mémoires' },
 ]
 
 interface Document {
@@ -356,7 +357,12 @@ export default function UploadPage() {
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-2">Année *</label>
               <div className="flex gap-2">
-                {['1', '2', '3', '4'].map((y) => (
+                {['1', '2', '3', '4'].filter(y => {
+                  if (cycle === 'master' && (y === '3' || y === '4')) return false;
+                  if (cycle === 'licence' && y === '4') return false;
+                  if ((cycle === 'bibliotheque' || cycle === 'memoires') && y !== '1') return false; // Hide years for bibliotheque and memoires
+                  return true;
+                }).map((y) => (
                   <button
                     key={y}
                     type="button"

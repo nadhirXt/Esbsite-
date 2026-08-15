@@ -60,11 +60,14 @@ export default function AdminUsersPage() {
     if (!confirm("Voulez-vous vraiment supprimer cet utilisateur ? Cette action est irréversible.")) return
 
     try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error("Session expirée")
+
       const res = await fetch('/api/admin/users/delete', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionToken}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ targetUserId: userId })
       })
@@ -84,11 +87,14 @@ export default function AdminUsersPage() {
     try {
       const isDelegate = !selectedUser.is_delegate
       
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error("Session expirée")
+
       const res = await fetch('/api/admin/users/toggle-delegate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionToken}`
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ 
           targetUserId: selectedUser.id,
@@ -98,7 +104,10 @@ export default function AdminUsersPage() {
         })
       })
 
-      if (!res.ok) throw new Error('Erreur lors de la modification du rôle')
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Erreur lors de la modification du rôle')
+      }
       
       // Mettre à jour l'affichage
       setUsers(users.map(u => {
@@ -288,8 +297,8 @@ export default function AdminUsersPage() {
                     >
                       <option value="1">1ère Année</option>
                       <option value="2">2ème Année</option>
-                      <option value="3">3ème Année</option>
-                      <option value="4">4ème Année</option>
+                      {(delegateCycle === 'licence' || delegateCycle === 'dseb') && <option value="3">3ème Année</option>}
+                      {delegateCycle === 'dseb' && <option value="4">4ème Année</option>}
                     </select>
                   </div>
                   <button type="submit" className="w-full py-3 bg-[#2563EB] text-white font-semibold rounded-xl hover:bg-[#1D4ED8] transition-colors mt-6">

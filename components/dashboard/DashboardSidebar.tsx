@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   GraduationCap, LayoutDashboard, BookOpen, FileText, Link2,
-  LogOut, ChevronRight, Settings, Shield, Menu, X, ArrowLeft, Users
+  LogOut, ChevronRight, Settings, Shield, Menu, X, ArrowLeft, Users, Lock
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn, CYCLES } from '@/lib/utils'
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/licence',  label: 'Licence',         icon: BookOpen },
   { href: '/dashboard/dseb',     label: 'DSEB',            icon: BookOpen },
   { href: '/dashboard/master',   label: 'Master',          icon: BookOpen },
+  { href: '/dashboard/memoires', label: 'Mémoires (Confidentiel)', icon: Lock },
   { href: '/dashboard/bibliotheque', label: 'Bibliothèque', icon: FileText },
   { href: '/dashboard/ressources', label: 'Ressources',    icon: Link2 },
   { href: '/dashboard/annuaire',   label: 'Réseau / Annuaire', icon: Users },
@@ -27,6 +28,7 @@ interface SidebarProps {
     fullName?: string
     cycle?: string
     role?: string
+    is_delegate?: boolean
   }
 }
 
@@ -142,6 +144,23 @@ export default function DashboardSidebar({ user }: SidebarProps) {
           >
             <Shield className="w-4 h-4 shrink-0" />
             Administration
+          </Link>
+        )}
+
+        {/* Delegate link */}
+        {user.role !== 'admin' && user.is_delegate && (
+          <Link
+            href="/dashboard/delegate"
+            onClick={() => setIsOpen(false)}
+            className={cn(
+              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
+              pathname.startsWith('/dashboard/delegate')
+                ? 'bg-emerald-900/30 text-emerald-400 font-medium'
+                : 'text-slate-500 hover:text-emerald-400 hover:bg-emerald-900/20'
+            )}
+          >
+            <Shield className="w-4 h-4 shrink-0" />
+            Espace Délégué
           </Link>
         )}
       </nav>

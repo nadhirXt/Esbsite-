@@ -4,15 +4,17 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  GraduationCap, Upload, Link2, LayoutDashboard, Shield, Menu, X, Users
+  GraduationCap, Upload, Link2, LayoutDashboard, Shield, Menu, X, Users, BookOpen
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV = [
   { href: '/admin',           label: 'Vue d\'ensemble', icon: LayoutDashboard },
   { href: '/admin/upload',    label: 'Upload documents', icon: Upload },
+  { href: '/admin/users',     label: 'Gestion des Membres', icon: Shield },
   { href: '/admin/etudiants', label: 'Annuaire Étudiants', icon: Users },
-  { href: '/admin/liens',     label: 'Liens utiles',    icon: Link2 },
+  { href: '/admin/memoires',  label: 'Mémoires',          icon: BookOpen },
+  { href: '/admin/liens',     label: 'Liens utiles',      icon: Link2 },
 ]
 
 interface AdminSidebarProps {

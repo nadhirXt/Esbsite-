@@ -20,7 +20,14 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
   const supabase = createClient()
 
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedYear, setSelectedYear] = useState<number | null>(null)
+  
   const currentPathString = currentPath.join('/')
+
+  // Filtrer d'abord par année si une année est sélectionnée
+  const yearDocuments = selectedYear !== null 
+    ? documents.filter(doc => doc.year === selectedYear)
+    : documents
 
   // Extract folders and files for the current path
   const subFolders = new Set<string>()
@@ -29,10 +36,10 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
   if (searchQuery.trim() !== '') {
     // If searching, ignore folders and just filter all documents
     const query = searchQuery.toLowerCase()
-    filesHere = documents.filter(doc => doc.title.toLowerCase().includes(query) && doc.title !== '.keep')
-  } else {
-    // Normal folder navigation
-    documents.forEach(doc => {
+    filesHere = (selectedYear !== null ? yearDocuments : documents).filter(doc => doc.title.toLowerCase().includes(query) && doc.title !== '.keep')
+  } else if (selectedYear !== null) {
+    // Normal folder navigation INSIDE a specific year
+    yearDocuments.forEach(doc => {
       const cat = doc.category || 'Général'
       
       // Si on est à la racine, 'Général' est considéré comme la racine
@@ -56,6 +63,9 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
   const foldersList = Array.from(subFolders).sort()
   const cycleBadge = CYCLES[cycle as keyof typeof CYCLES]
 
+  // Déterminer les années disponibles pour le cycle
+  const availableYears = cycle === 'dseb' ? [1, 2, 3, 4] : cycle === 'master' ? [1, 2] : [1, 2, 3]
+
   function navigateTo(folder: string) {
     setCurrentPath(prev => [...prev, folder])
   }
@@ -71,15 +81,27 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
   return (
     <div className="animate-fade-in max-w-5xl">
       <div className="mb-8">
-        {currentPath.length > 0 ? (
+        {selectedYear !== null ? (
           <div className="mb-4 flex items-center flex-wrap gap-2 text-sm">
             <button 
-              onClick={() => setCurrentPath([])}
+              onClick={() => { setSelectedYear(null); setCurrentPath([]) }}
               className="text-[#64748B] hover:text-[#1E3A8A] transition-colors flex items-center gap-1 font-medium"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
-              Racine
+              Racine du Cycle
             </button>
+            <div className="flex items-center gap-2">
+              <ChevronRight className="w-4 h-4 text-[#CBD5E1]" />
+              <button
+                onClick={() => setCurrentPath([])}
+                className={cn(
+                  "transition-colors font-medium",
+                  currentPath.length === 0 ? "text-[#0F172A]" : "text-[#64748B] hover:text-[#1E3A8A]"
+                )}
+              >
+                Année {selectedYear}
+              </button>
+            </div>
             {currentPath.map((crumb, index) => (
               <div key={index} className="flex items-center gap-2">
                 <ChevronRight className="w-4 h-4 text-[#CBD5E1]" />
@@ -102,17 +124,25 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
         )}
         
         <h1 className="text-2xl font-bold text-[#0F172A] flex items-center gap-2">
-          {currentPath.length > 0 ? (
-            <>
-              <FolderOpen className="w-6 h-6 text-[#1E3A8A]" />
-              {currentPath[currentPath.length - 1]}
-            </>
+          {selectedYear !== null ? (
+            currentPath.length > 0 ? (
+              <>
+                <FolderOpen className="w-6 h-6 text-[#1E3A8A]" />
+                {currentPath[currentPath.length - 1]}
+              </>
+            ) : (
+              <>Année {selectedYear} — {cycleLabel}</>
+            )
           ) : (
             <>Cours — {cycleLabel}</>
           )}
         </h1>
         <p className="text-[#64748B] text-sm mt-1">
-          {searchQuery ? `${filesHere.length} résultat(s) pour "${searchQuery}"` : `${foldersList.length} dossier(s), ${filesHere.length} fichier(s)`}
+          {searchQuery 
+            ? `${filesHere.length} résultat(s) pour "${searchQuery}"` 
+            : selectedYear === null 
+              ? `${availableYears.length} années d'études`
+              : `${foldersList.length} dossier(s), ${filesHere.length} fichier(s)`}
         </p>
       </div>
 
@@ -129,7 +159,27 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
         />
       </div>
 
-      {foldersList.length === 0 && filesHere.length === 0 ? (
+      {selectedYear === null && searchQuery === '' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          {availableYears.map(year => (
+            <button
+              key={year}
+              onClick={() => setSelectedYear(year)}
+              className="group flex items-center gap-4 rounded-2xl border border-[#E2E8F0] bg-white p-5 hover:shadow-md hover:border-[#1E3A8A]/30 hover:-translate-y-0.5 transition-all duration-200 text-left"
+            >
+              <div className="w-14 h-14 rounded-xl bg-[#EFF6FF] text-[#1E3A8A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <Folder className="w-7 h-7 fill-current opacity-80" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-[#0F172A] group-hover:text-[#1E3A8A] transition-colors truncate">
+                  {year}{year === 1 ? 'ère' : 'ème'} Année
+                </h3>
+                <p className="text-sm text-[#64748B] mt-0.5">Cliquez pour ouvrir</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      ) : foldersList.length === 0 && filesHere.length === 0 ? (
         <div className="text-center py-20 rounded-2xl border border-dashed border-[#E2E8F0] bg-white">
           <FolderOpen className="w-10 h-10 text-[#CBD5E1] mx-auto mb-3" />
           <p className="text-[#64748B] font-medium">Ce dossier est vide.</p>
@@ -179,7 +229,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {filesHere.map((doc: any) => (
-                  <DocumentCard key={doc.id} doc={doc} supabase={supabase} />
+                  <DocumentCard key={doc.id} doc={doc} supabase={supabase} isMemoire={cycle === 'memoires'} />
                 ))}
               </div>
             </div>
@@ -190,7 +240,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
   )
 }
 
-function DocumentCard({ doc, supabase }: { doc: any; supabase: any }) {
+function DocumentCard({ doc, supabase, isMemoire }: { doc: any; supabase: any; isMemoire?: boolean }) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
 
@@ -253,14 +303,16 @@ function DocumentCard({ doc, supabase }: { doc: any; supabase: any }) {
           Voir
         </button>
         
-        <button
-          onClick={handleDownload}
-          disabled={isLoadingDownload}
-          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoadingDownload ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-          Télécharger
-        </button>
+        {!isMemoire && (
+          <button
+            onClick={handleDownload}
+            disabled={isLoadingDownload}
+            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoadingDownload ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+            Télécharger
+          </button>
+        )}
       </div>
     </div>
   )
