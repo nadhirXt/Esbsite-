@@ -19,8 +19,9 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
   
   const supabase = createClient()
 
+  const isNoYearCycle = cycle === 'memoires' || cycle === 'bibliotheque'
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedYear, setSelectedYear] = useState<number | null>(null)
+  const [selectedYear, setSelectedYear] = useState<number | null>(isNoYearCycle ? 1 : null)
   
   const currentPathString = currentPath.join('/')
 
@@ -83,25 +84,38 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
       <div className="mb-8">
         {selectedYear !== null ? (
           <div className="mb-4 flex items-center flex-wrap gap-2 text-sm">
-            <button 
-              onClick={() => { setSelectedYear(null); setCurrentPath([]) }}
-              className="text-[#64748B] hover:text-[#1E3A8A] transition-colors flex items-center gap-1 font-medium"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Racine du Cycle
-            </button>
-            <div className="flex items-center gap-2">
-              <ChevronRight className="w-4 h-4 text-[#CBD5E1]" />
-              <button
+            {!isNoYearCycle && (
+              <>
+                <button 
+                  onClick={() => { setSelectedYear(null); setCurrentPath([]) }}
+                  className="text-[#64748B] hover:text-[#1E3A8A] transition-colors flex items-center gap-1 font-medium"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  Racine du Cycle
+                </button>
+                <div className="flex items-center gap-2">
+                  <ChevronRight className="w-4 h-4 text-[#CBD5E1]" />
+                  <button
+                    onClick={() => setCurrentPath([])}
+                    className={cn(
+                      "transition-colors font-medium",
+                      currentPath.length === 0 ? "text-[#0F172A]" : "text-[#64748B] hover:text-[#1E3A8A]"
+                    )}
+                  >
+                    Année {selectedYear}
+                  </button>
+                </div>
+              </>
+            )}
+            {isNoYearCycle && currentPath.length > 0 && (
+              <button 
                 onClick={() => setCurrentPath([])}
-                className={cn(
-                  "transition-colors font-medium",
-                  currentPath.length === 0 ? "text-[#0F172A]" : "text-[#64748B] hover:text-[#1E3A8A]"
-                )}
+                className="text-[#64748B] hover:text-[#1E3A8A] transition-colors flex items-center gap-1 font-medium"
               >
-                Année {selectedYear}
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Dossier Principal
               </button>
-            </div>
+            )}
             {currentPath.map((crumb, index) => (
               <div key={index} className="flex items-center gap-2">
                 <ChevronRight className="w-4 h-4 text-[#CBD5E1]" />
@@ -131,7 +145,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
                 {currentPath[currentPath.length - 1]}
               </>
             ) : (
-              <>Année {selectedYear} — {cycleLabel}</>
+              isNoYearCycle ? <>{cycleLabel}</> : <>Année {selectedYear} — {cycleLabel}</>
             )
           ) : (
             <>Cours — {cycleLabel}</>
@@ -140,7 +154,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
         <p className="text-[#64748B] text-sm mt-1">
           {searchQuery 
             ? `${filesHere.length} résultat(s) pour "${searchQuery}"` 
-            : selectedYear === null 
+            : selectedYear === null && !isNoYearCycle
               ? `${availableYears.length} années d'études`
               : `${foldersList.length} dossier(s), ${filesHere.length} fichier(s)`}
         </p>
@@ -159,7 +173,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
         />
       </div>
 
-      {selectedYear === null && searchQuery === '' ? (
+      {selectedYear === null && searchQuery === '' && !isNoYearCycle ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {availableYears.map(year => (
             <button
