@@ -21,7 +21,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
 
   const isNoYearCycle = cycle === 'memoires' || cycle === 'bibliotheque'
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedYear, setSelectedYear] = useState<number | null>(isNoYearCycle ? 1 : null)
+  const [selectedYear, setSelectedYear] = useState<number | null>(null)
   
   const currentPathString = currentPath.join('/')
 
@@ -38,9 +38,10 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
     // If searching, ignore folders and just filter all documents
     const query = searchQuery.toLowerCase()
     filesHere = (selectedYear !== null ? yearDocuments : documents).filter(doc => doc.title.toLowerCase().includes(query) && doc.title !== '.keep')
-  } else if (selectedYear !== null) {
-    // Normal folder navigation INSIDE a specific year
-    yearDocuments.forEach(doc => {
+  } else if (selectedYear !== null || isNoYearCycle) {
+    // Normal folder navigation INSIDE a specific year or for cycles without years
+    const baseDocs = isNoYearCycle ? documents : yearDocuments
+    baseDocs.forEach(doc => {
       const cat = doc.category || 'Général'
       
       // Si on est à la racine, 'Général' est considéré comme la racine
