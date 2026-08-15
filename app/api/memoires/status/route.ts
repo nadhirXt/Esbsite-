@@ -15,9 +15,13 @@ export async function GET(req: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    const { data: profile } = await supabase.from('profiles').select('role, user_type').eq('id', user.id).single()
     if (profile?.role === 'admin') {
       return NextResponse.json({ status: 'unlocked' })
+    }
+
+    if (profile?.user_type !== 'etudiant_esb' && profile?.user_type !== 'ancien_etudiant_esb') {
+      return NextResponse.json({ error: 'Section réservée aux étudiants ESB' }, { status: 403 })
     }
 
     const { data: access } = await supabase

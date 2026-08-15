@@ -26,7 +26,8 @@ export default async function DashboardLayout({
           fullName: profile?.full_name, 
           cycle: profile?.cycle, 
           role: profile?.role,
-          is_delegate: profile?.is_delegate
+          is_delegate: profile?.is_delegate,
+          user_type: profile?.user_type
         }}
       />
       <main className="flex-1 min-w-0 p-6 md:p-8 lg:p-10">

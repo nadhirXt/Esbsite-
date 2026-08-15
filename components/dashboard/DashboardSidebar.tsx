@@ -29,6 +29,7 @@ interface SidebarProps {
     cycle?: string
     role?: string
     is_delegate?: boolean
+    user_type?: string
   }
 }
 
@@ -108,6 +109,11 @@ export default function DashboardSidebar({ user }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
+          if (item.href === '/dashboard/memoires') {
+            if (user.role !== 'admin' && user.user_type !== 'etudiant_esb' && user.user_type !== 'ancien_etudiant_esb') {
+              return null;
+            }
+          }
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
           return (
             <Link
