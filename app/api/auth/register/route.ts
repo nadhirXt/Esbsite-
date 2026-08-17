@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     // 5. Envoyer l'email via Nodemailer (Gmail)
     try {
       await transporter.sendMail({
-        from: `"ESB Hub" <${process.env.GMAIL_EMAIL}>`,
+        from: `"ESB Hub" <${process.env.SENDER_EMAIL || process.env.GMAIL_EMAIL}>`,
         to: email,
         subject: '✨ Confirmez votre inscription sur ESB Hub',
         html: `

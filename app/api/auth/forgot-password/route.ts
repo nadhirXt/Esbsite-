@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     // 6. Envoyer l'email via Nodemailer (Gmail)
     try {
       await transporter.sendMail({
-        from: `"ESB Hub" <${process.env.GMAIL_EMAIL}>`,
+        from: `"ESB Hub" <${process.env.SENDER_EMAIL || process.env.GMAIL_EMAIL}>`,
         to: email,
         subject: '🔐 Réinitialisation de votre mot de passe — ESB Hub',
         html: `

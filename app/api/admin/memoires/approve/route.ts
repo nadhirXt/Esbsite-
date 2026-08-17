@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
 
       try {
         await transporter.sendMail({
-          from: `"ESB Administration" <${process.env.GMAIL_EMAIL}>`,
+          from: `"ESB Administration" <${process.env.SENDER_EMAIL || process.env.GMAIL_EMAIL}>`,
           to: userEmail,
           subject: '🔐 Votre accès aux Mémoires ESB',
           html: emailHtml,
