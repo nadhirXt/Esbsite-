@@ -72,12 +72,12 @@ export default function DashboardSidebar({ user }: SidebarProps) {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between px-5 py-4 bg-[#0F172A]/90 dark:bg-[#020617]/90 backdrop-blur-xl text-white shrink-0 shadow-md relative z-50">
+      <div className="md:hidden flex items-center justify-between px-5 py-4 bg-white/90 dark:bg-[#020617]/90 backdrop-blur-xl text-slate-900 dark:text-white shrink-0 shadow-md relative z-50">
         <Link href="/" className="flex items-center gap-2 font-bold">
-          <GraduationCap className="w-5 h-5 text-blue-400" />
-          <span className="text-base">ESB <span className="text-blue-300 font-light">Hub</span></span>
+          <GraduationCap className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+          <span className="text-base">ESB <span className="text-blue-600 dark:text-blue-300 font-light">Hub</span></span>
         </Link>
-        <button onClick={() => setIsOpen(!isOpen)} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+        <button onClick={() => setIsOpen(!isOpen)} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors">
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
@@ -96,22 +96,22 @@ export default function DashboardSidebar({ user }: SidebarProps) {
         animate="visible"
         variants={sidebarVariants}
         className={cn(
-        "fixed md:static inset-y-0 left-0 z-50 flex flex-col w-72 md:w-64 h-full bg-[#0F172A]/80 dark:bg-[#020617]/80 backdrop-blur-2xl text-white shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 shadow-2xl md:shadow-[4px_0_24px_rgba(0,0,0,0.05)] border-r border-white/10",
+        "fixed md:static inset-y-0 left-0 z-50 flex flex-col w-72 md:w-64 h-full bg-white/80 dark:bg-[#020617]/80 backdrop-blur-2xl text-slate-900 dark:text-white shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 shadow-2xl md:shadow-[4px_0_24px_rgba(0,0,0,0.05)] border-r border-slate-200 dark:border-white/10",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Logo (Desktop) */}
-        <motion.div variants={itemVariants} className="hidden md:flex px-6 py-6 border-b border-white/10">
+        <motion.div variants={itemVariants} className="hidden md:flex px-6 py-6 border-b border-slate-200 dark:border-white/10">
         <Link href="/" className="flex items-center gap-2 font-bold group">
-          <div className="p-1.5 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors">
-            <GraduationCap className="w-5 h-5 text-blue-400 drop-shadow-sm" />
+          <div className="p-1.5 bg-blue-50 dark:bg-blue-500/20 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30 transition-colors">
+            <GraduationCap className="w-5 h-5 text-blue-600 dark:text-blue-400 drop-shadow-sm" />
           </div>
-          <span className="text-lg tracking-tight">ESB <span className="text-blue-300 font-light">Hub</span></span>
+          <span className="text-lg tracking-tight">ESB <span className="text-blue-600 dark:text-blue-300 font-light">Hub</span></span>
         </Link>
       </motion.div>
 
       {/* User info */}
       <motion.div variants={itemVariants}>
-        <Link href="/dashboard/profile" onClick={() => setIsOpen(false)} className="block px-5 py-5 border-b border-white/10 hover:bg-white/5 transition-colors duration-200 cursor-pointer">
+        <Link href="/dashboard/profile" onClick={() => setIsOpen(false)} className="block px-5 py-5 border-b border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-200 cursor-pointer">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shrink-0 shadow-inner">
               <span className="text-sm font-bold text-white">
@@ -119,10 +119,10 @@ export default function DashboardSidebar({ user }: SidebarProps) {
               </span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-white truncate">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
                 {user.fullName || 'Étudiant'}
               </p>
-              <p className="text-xs text-slate-400 truncate">{user.email}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
             </div>
           </div>
           {cycleBadge && (
@@ -157,12 +157,12 @@ export default function DashboardSidebar({ user }: SidebarProps) {
               className={cn(
                 'flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group',
                 active
-                  ? 'bg-blue-600/20 text-blue-400 font-semibold shadow-[inset_0_0_0_1px_rgba(59,130,246,0.3)]'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 font-semibold shadow-[inset_0_0_0_1px_rgba(59,130,246,0.3)]'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5'
               )}
             >
               <div className="flex items-center gap-3">
-                <item.icon className={cn("w-4 h-4 shrink-0 transition-colors", active ? "text-blue-400" : "group-hover:text-blue-300")} />
+                <item.icon className={cn("w-4 h-4 shrink-0 transition-colors", active ? "text-blue-600 dark:text-blue-400" : "group-hover:text-blue-500 dark:group-hover:text-blue-300")} />
                 {item.label}
               </div>
               {active && <ChevronRight className="w-3.5 h-3.5" />}
@@ -172,18 +172,18 @@ export default function DashboardSidebar({ user }: SidebarProps) {
 
         {/* Admin link */}
         {user.role === 'admin' && (
-          <div className="pt-2 mt-2 border-t border-white/5">
+          <div className="pt-2 mt-2 border-t border-slate-200 dark:border-white/5">
             <Link
               href="/admin"
               onClick={() => setIsOpen(false)}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group',
                 pathname.startsWith('/admin')
-                  ? 'bg-amber-900/30 text-amber-400 font-semibold shadow-[inset_0_0_0_1px_rgba(251,191,36,0.3)]'
-                  : 'text-slate-500 hover:text-amber-400 hover:bg-amber-900/20'
+                  ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 font-semibold shadow-[inset_0_0_0_1px_rgba(251,191,36,0.3)]'
+                  : 'text-slate-600 dark:text-slate-500 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20'
               )}
             >
-              <Shield className={cn("w-4 h-4 shrink-0 transition-colors", pathname.startsWith('/admin') ? "text-amber-400" : "group-hover:text-amber-300")} />
+              <Shield className={cn("w-4 h-4 shrink-0 transition-colors", pathname.startsWith('/admin') ? "text-amber-600 dark:text-amber-400" : "group-hover:text-amber-500 dark:group-hover:text-amber-300")} />
               Administration
             </Link>
           </div>
@@ -191,18 +191,18 @@ export default function DashboardSidebar({ user }: SidebarProps) {
 
         {/* Delegate link */}
         {user.role !== 'admin' && user.is_delegate && (
-          <div className="pt-2 mt-2 border-t border-white/5">
+          <div className="pt-2 mt-2 border-t border-slate-200 dark:border-white/5">
             <Link
               href="/dashboard/delegate"
               onClick={() => setIsOpen(false)}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group',
                 pathname.startsWith('/dashboard/delegate')
-                  ? 'bg-emerald-900/30 text-emerald-400 font-semibold shadow-[inset_0_0_0_1px_rgba(52,211,153,0.3)]'
-                  : 'text-slate-500 hover:text-emerald-400 hover:bg-emerald-900/20'
+                  ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-semibold shadow-[inset_0_0_0_1px_rgba(52,211,153,0.3)]'
+                  : 'text-slate-600 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
               )}
             >
-              <Shield className={cn("w-4 h-4 shrink-0 transition-colors", pathname.startsWith('/dashboard/delegate') ? "text-emerald-400" : "group-hover:text-emerald-300")} />
+              <Shield className={cn("w-4 h-4 shrink-0 transition-colors", pathname.startsWith('/dashboard/delegate') ? "text-emerald-600 dark:text-emerald-400" : "group-hover:text-emerald-500 dark:group-hover:text-emerald-300")} />
               Espace Délégué
             </Link>
           </div>
@@ -210,18 +210,18 @@ export default function DashboardSidebar({ user }: SidebarProps) {
       </motion.nav>
 
       {/* Return Home, Theme Toggle & Logout */}
-      <motion.div variants={itemVariants} className="px-3 py-4 border-t border-white/10 space-y-2">
+      <motion.div variants={itemVariants} className="px-3 py-4 border-t border-slate-200 dark:border-white/10 space-y-2">
         <ThemeToggle variant="sidebar" />
         <Link
           href="/"
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-200"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-all duration-200"
         >
           <ArrowLeft className="w-4 h-4 shrink-0" />
           Retour à l'accueil
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-slate-400 hover:text-red-400 hover:bg-red-900/10 transition-all duration-200 cursor-pointer"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all duration-200 cursor-pointer"
         >
           <LogOut className="w-4 h-4 shrink-0" />
           Se déconnecter
