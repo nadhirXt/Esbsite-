@@ -5,6 +5,7 @@ import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search
 import { formatDate, CYCLES } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { getPresignedDownloadUrl } from '@/app/actions/storage'
+import { motion, Variants } from 'framer-motion'
 
 interface CycleDocumentsClientProps {
   cycle: string
@@ -80,6 +81,19 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
     setCurrentPath(prev => prev.slice(0, index + 1))
   }
 
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.05, delayChildren: 0.1 }
+    }
+  }
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 15 } }
+  }
+
   return (
     <div className="animate-fade-in max-w-5xl">
       <div className="mb-8">
@@ -100,7 +114,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
                     onClick={() => setCurrentPath([])}
                     className={cn(
                       "transition-colors font-medium",
-                      currentPath.length === 0 ? "text-[#0F172A]" : "text-[#64748B] hover:text-[#1E3A8A]"
+                      currentPath.length === 0 ? "text-[#0F172A] dark:text-white" : "text-[#64748B] hover:text-[#1E3A8A] dark:hover:text-blue-400"
                     )}
                   >
                     Année {selectedYear}
@@ -111,7 +125,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
             {isNoYearCycle && currentPath.length > 0 && (
               <button 
                 onClick={() => setCurrentPath([])}
-                className="text-[#64748B] hover:text-[#1E3A8A] transition-colors flex items-center gap-1 font-medium"
+                className="text-[#64748B] dark:text-slate-400 hover:text-[#1E3A8A] dark:hover:text-blue-400 transition-colors flex items-center gap-1 font-medium"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Dossier Principal
@@ -119,12 +133,12 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
             )}
             {currentPath.map((crumb, index) => (
               <div key={index} className="flex items-center gap-2">
-                <ChevronRight className="w-4 h-4 text-[#CBD5E1]" />
+                <ChevronRight className="w-4 h-4 text-[#CBD5E1] dark:text-slate-600" />
                 <button
                   onClick={() => navigateToCrumb(index)}
                   className={cn(
                     "transition-colors font-medium",
-                    index === currentPath.length - 1 ? "text-[#0F172A]" : "text-[#64748B] hover:text-[#1E3A8A]"
+                    index === currentPath.length - 1 ? "text-[#0F172A] dark:text-white" : "text-[#64748B] dark:text-slate-400 hover:text-[#1E3A8A] dark:hover:text-blue-400"
                   )}
                 >
                   {crumb}
@@ -133,16 +147,16 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
             ))}
           </div>
         ) : (
-          <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium mb-3 ${cycleBadge?.color}`}>
+          <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium mb-3 shadow-sm ${cycleBadge?.color}`}>
             {cycleBadge?.label}
           </span>
         )}
         
-        <h1 className="text-2xl font-bold text-[#0F172A] flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2 drop-shadow-sm">
           {selectedYear !== null ? (
             currentPath.length > 0 ? (
               <>
-                <FolderOpen className="w-6 h-6 text-[#1E3A8A]" />
+                <FolderOpen className="w-6 h-6 text-[#1E3A8A] dark:text-blue-400" />
                 {currentPath[currentPath.length - 1]}
               </>
             ) : (
@@ -152,7 +166,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
             <>Cours — {cycleLabel}</>
           )}
         </h1>
-        <p className="text-[#64748B] text-sm mt-1">
+        <p className="text-[#64748B] dark:text-slate-400 text-sm mt-1 font-medium">
           {searchQuery 
             ? `${filesHere.length} résultat(s) pour "${searchQuery}"` 
             : selectedYear === null && !isNoYearCycle
@@ -162,52 +176,66 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
       </div>
 
       <div className="relative mb-8">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-[#94A3B8]" />
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Search className="h-5 w-5 text-slate-400" />
         </div>
         <input
           type="text"
           placeholder="Rechercher un document par nom..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="block w-full pl-10 pr-3 py-3 border border-[#E2E8F0] rounded-xl leading-5 bg-white placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 focus:border-[#1E3A8A] transition-all sm:text-sm shadow-sm"
+          className="block w-full pl-11 pr-4 py-3.5 border border-slate-200 dark:border-slate-800 rounded-xl leading-5 bg-white/70 dark:bg-[#0B1120]/70 backdrop-blur-md placeholder-slate-400 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all sm:text-sm shadow-sm"
         />
       </div>
 
       {selectedYear === null && searchQuery === '' && !isNoYearCycle ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
           {availableYears.map(year => (
-            <button
+            <motion.button
+              variants={itemVariants}
               key={year}
               onClick={() => setSelectedYear(year)}
-              className="group flex items-center gap-4 rounded-2xl border border-[#E2E8F0] bg-white p-5 hover:shadow-md hover:border-[#1E3A8A]/30 hover:-translate-y-0.5 transition-all duration-200 text-left"
+              className="group flex items-center gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg p-5 hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300 text-left"
             >
-              <div className="w-14 h-14 rounded-xl bg-[#EFF6FF] text-[#1E3A8A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+              <div className="w-14 h-14 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                 <Folder className="w-7 h-7 fill-current opacity-80" />
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="font-bold text-[#0F172A] group-hover:text-[#1E3A8A] transition-colors truncate">
+                <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                   {year}{year === 1 ? 'ère' : 'ème'} Année
                 </h3>
-                <p className="text-sm text-[#64748B] mt-0.5">Cliquez pour ouvrir</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Cliquez pour ouvrir</p>
               </div>
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
       ) : foldersList.length === 0 && filesHere.length === 0 ? (
-        <div className="text-center py-20 rounded-2xl border border-dashed border-[#E2E8F0] bg-white">
-          <FolderOpen className="w-10 h-10 text-[#CBD5E1] mx-auto mb-3" />
-          <p className="text-[#64748B] font-medium">Ce dossier est vide.</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm"
+        >
+          <FolderOpen className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Ce dossier est vide.</p>
+        </motion.div>
       ) : (
-        <div className="space-y-8">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-8"
+        >
           {/* FOLDERS GRID */}
           {foldersList.length > 0 && (
             <div>
-              {currentPath.length === 0 && <h2 className="text-sm font-semibold text-[#0F172A] mb-3">Dossiers</h2>}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {currentPath.length === 0 && <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-4 tracking-tight uppercase opacity-80">Dossiers</h2>}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {foldersList.map((folderName) => {
-                  // Compter le nombre total de fichiers à l'intérieur de ce dossier (récursivement)
                   const folderPrefix = currentPathString ? `${currentPathString}/${folderName}` : folderName;
                   let filesCount = 0;
                   documents.forEach(doc => {
@@ -217,19 +245,20 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
                   });
 
                   return (
-                    <button
+                    <motion.button
+                      variants={itemVariants}
                       key={folderName}
                       onClick={() => navigateTo(folderName)}
-                      className="group flex items-center gap-4 rounded-2xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 hover:-translate-y-0.5 transition-all duration-200 text-left"
+                      className="group flex items-center gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg p-4 hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300 text-left"
                     >
-                      <div className="w-12 h-12 rounded-xl bg-[#EFF6FF] text-[#1E3A8A] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                         <Folder className="w-6 h-6 fill-current opacity-80" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-[#0F172A] group-hover:text-[#1E3A8A] transition-colors truncate">{folderName}</h3>
-                        <p className="text-xs text-[#64748B] mt-0.5">{filesCount} élément{filesCount > 1 ? 's' : ''}</p>
+                        <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">{folderName}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">{filesCount} élément{filesCount > 1 ? 's' : ''}</p>
                       </div>
-                    </button>
+                    </motion.button>
                   )
                 })}
               </div>
@@ -240,16 +269,18 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
           {filesHere.length > 0 && (
             <div>
               {(currentPath.length > 0 || foldersList.length > 0) && (
-                <h2 className="text-sm font-semibold text-[#0F172A] mb-3 mt-4 pt-4 border-t border-[#E2E8F0]">Fichiers</h2>
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-4 mt-6 pt-6 border-t border-slate-200 dark:border-slate-800/50 tracking-tight uppercase opacity-80">Fichiers</h2>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filesHere.map((doc: any) => (
-                  <DocumentCard key={doc.id} doc={doc} supabase={supabase} isMemoire={cycle === 'memoires'} />
+                  <motion.div variants={itemVariants} key={doc.id}>
+                    <DocumentCard doc={doc} supabase={supabase} isMemoire={cycle === 'memoires'} />
+                  </motion.div>
                 ))}
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   )
@@ -258,6 +289,15 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
 function DocumentCard({ doc, supabase, isMemoire }: { doc: any; supabase: any; isMemoire?: boolean }) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (doc.thumbnail_path) {
+      getPresignedDownloadUrl(doc.thumbnail_path, false).then(res => {
+        if (res?.url) setThumbUrl(res.url)
+      })
+    }
+  }, [doc.thumbnail_path])
 
   const handleView = async () => {
     if (isLoadingView) return
@@ -297,24 +337,28 @@ function DocumentCard({ doc, supabase, isMemoire }: { doc: any; supabase: any; i
   }
 
   return (
-    <div className="group flex flex-col justify-between gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all duration-200">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
-          <FileText className="w-5 h-5 text-red-500" />
-        </div>
+    <div className="group flex flex-col justify-between gap-3 h-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg p-5 hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300">
+      <div className="flex items-start gap-4 w-full">
+        {thumbUrl ? (
+          <img src={thumbUrl} alt="Miniature" className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0 group-hover:shadow-md transition-shadow" />
+        ) : (
+          <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <FileText className="w-6 h-6 text-red-500 dark:text-red-400" />
+          </div>
+        )}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#0F172A] truncate" title={doc.title}>{doc.title}</p>
-          <p className="text-xs text-[#64748B] mt-0.5">{formatDate(doc.created_at)}</p>
+          <p className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" title={doc.title}>{doc.title}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatDate(doc.created_at)}</p>
         </div>
       </div>
       
-      <div className="flex items-center gap-2 mt-2 pt-3 border-t border-[#F1F5F9]">
+      <div className="flex items-center gap-2 mt-3 pt-4 border-t border-slate-100 dark:border-slate-800/50">
         <button 
           onClick={handleView}
           disabled={isLoadingView}
-          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-[#EFF6FF] text-[#1E3A8A] hover:bg-[#DBEAFE] transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoadingView ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+          {isLoadingView ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
           Voir
         </button>
         
@@ -322,9 +366,9 @@ function DocumentCard({ doc, supabase, isMemoire }: { doc: any; supabase: any; i
           <button
             onClick={handleDownload}
             disabled={isLoadingDownload}
-            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoadingDownload ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+            {isLoadingDownload ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             Télécharger
           </button>
         )}

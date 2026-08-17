@@ -25,7 +25,7 @@ const FORMATIONS = [
     title: 'Licence en Management et Banque',
     cycle: 'Licence',
     duration: '3 ans (6 semestres) — 2340 heures',
-    badge: 'bg-blue-50 text-blue-700 border-blue-200',
+    badge: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
     accent: 'bg-[#1E3A8A]',
     objectives: [
       "Qualifications techniques et professionnelles requises pour répondre aux attentes du marché du travail.",
@@ -45,7 +45,7 @@ const FORMATIONS = [
     title: 'Master en Monnaie et Banque',
     cycle: 'Master',
     duration: '2 ans (M1, M2) — Régime mixte',
-    badge: 'bg-purple-50 text-purple-700 border-purple-200',
+    badge: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800',
     accent: 'bg-[#581C87]',
     objectives: [
       "Former les candidats à l'exercice des métiers de la banque.",
@@ -60,7 +60,7 @@ const FORMATIONS = [
     title: 'Diplôme Supérieur des Études Bancaires',
     cycle: 'DSEB',
     duration: '4 ans (enseignements et stages)',
-    badge: 'bg-amber-50 text-amber-700 border-amber-200',
+    badge: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800',
     accent: 'bg-[#A16207]',
     objectives: [
       "Développer un fort potentiel technique et managérial pour devenir un acteur du changement.",
@@ -101,16 +101,22 @@ export default async function HomePage() {
       <PublicHeader />
       <main className="overflow-x-hidden">
         {/* ── HERO ─────────────────────────────────── */}
-        <section className="relative min-h-[100dvh] flex items-center bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#0F172A]">
+        <section className="relative min-h-[100dvh] flex items-center bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#0F172A] dark:from-[#020617] dark:via-[#0F172A] dark:to-[#020617]">
+          {/* Dot pattern */}
           <div
             className="absolute inset-0 opacity-5"
             style={{ backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`, backgroundSize: '32px 32px' }}
           />
+          {/* Gold accent line */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#A16207] to-transparent" />
+
+          {/* Gradient orbs for premium effect */}
+          <div className="gradient-orb gradient-orb-gold w-96 h-96 -top-48 -right-48 animate-glow" />
+          <div className="gradient-orb gradient-orb-blue w-80 h-80 bottom-20 -left-40 animate-glow" style={{ animationDelay: '1s' }} />
 
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 md:py-32 grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div className="animate-fade-in-up">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-blue-200 mb-8">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-blue-200 mb-8 backdrop-blur-sm">
                 <Star className="w-3.5 h-3.5 text-[#FCD34D]" />
                 <span>École d&apos;excellence en Algérie</span>
               </div>
@@ -137,17 +143,18 @@ export default async function HomePage() {
                   </button>
                 </a>
                 <Link href="/login">
-                  <button className="inline-flex items-center gap-2 h-12 px-7 rounded-xl border border-white/20 hover:bg-white/10 text-white font-medium transition-all duration-200 cursor-pointer">
+                  <button className="inline-flex items-center gap-2 h-12 px-7 rounded-xl border border-white/20 hover:bg-white/10 text-white font-medium transition-all duration-200 cursor-pointer backdrop-blur-sm">
                     <GraduationCap className="w-4 h-4" /> Espace Étudiant
                   </button>
                 </Link>
               </div>
             </div>
 
+            {/* Stats Card — Glassmorphism */}
             <div className="animate-fade-in-up animate-delay-200 hidden md:block">
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8">
+              <div className="glass-card p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-[#A16207] rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[#A16207] rounded-xl flex items-center justify-center shadow-lg shadow-amber-900/30">
                     <Building2 className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -161,9 +168,9 @@ export default async function HomePage() {
                     { label: 'Étudiants actifs',  val: totalUsers > 0 ? `${totalUsers}` : '0', color: 'bg-amber-500' },
                     { label: 'Taux de réussite',  val: '92%',  color: 'bg-green-500' },
                   ].map((s) => (
-                    <div key={s.label} className="flex items-center justify-between bg-white/5 rounded-xl px-4 py-3">
+                    <div key={s.label} className="flex items-center justify-between glass rounded-xl px-4 py-3 hover:bg-white/10 transition-colors duration-200">
                       <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${s.color}`} />
+                        <div className={`w-2 h-2 rounded-full ${s.color} animate-pulse-soft`} />
                         <span className="text-sm text-blue-200">{s.label}</span>
                       </div>
                       <span className="font-bold text-white">{s.val}</span>
@@ -176,22 +183,22 @@ export default async function HomePage() {
 
           <div className="absolute bottom-0 left-0 right-0">
             <svg viewBox="0 0 1440 60" className="w-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0,60 C360,0 1080,0 1440,60 L1440,60 L0,60 Z" fill="#F8FAFC" />
+              <path d="M0,60 C360,0 1080,0 1440,60 L1440,60 L0,60 Z" className="fill-[#F8FAFC] dark:fill-[#0B1120]" />
             </svg>
           </div>
         </section>
 
         {/* ── STATS ──────────────────────────────── */}
-        <section id="chiffres" className="bg-[#F8FAFC] py-10 sm:py-16">
+        <section id="chiffres" className="bg-[#F8FAFC] dark:bg-[#0B1120] py-10 sm:py-16">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               {STATS.map((stat) => (
                 <div key={stat.label} className="text-center group">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#EFF6FF] text-[#1E3A8A] mb-3 group-hover:bg-[#1E3A8A] group-hover:text-white transition-all duration-300">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 text-[#1E3A8A] dark:text-blue-400 mb-3 group-hover:bg-[#1E3A8A] group-hover:text-white dark:group-hover:bg-blue-600 transition-all duration-300">
                     <stat.icon className="w-5 h-5" />
                   </div>
-                  <p className="text-3xl font-bold text-[#0F172A] mb-1">{stat.value}</p>
-                  <p className="text-sm text-[#64748B]">{stat.label}</p>
+                  <p className="text-3xl font-bold text-[#0F172A] dark:text-white mb-1">{stat.value}</p>
+                  <p className="text-sm text-[#64748B] dark:text-slate-400">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -199,44 +206,44 @@ export default async function HomePage() {
         </section>
 
         {/* ── FORMATIONS ─────────────────────────── */}
-        <section id="formations" className="bg-slate-50 py-14 sm:py-20 md:py-24">
+        <section id="formations" className="bg-slate-50 dark:bg-[#0B1120] py-14 sm:py-20 md:py-24">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-10 sm:mb-16 md:mb-20">
-              <p className="text-sm font-semibold text-[#A16207] uppercase tracking-wider mb-3">Nos cycles de formation</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] mb-4">Découvrez nos programmes d&apos;excellence</h2>
-              <p className="text-[#64748B] max-w-2xl mx-auto">Des formations structurées et adaptées pour répondre aux plus hautes exigences du secteur bancaire et financier.</p>
+              <p className="text-sm font-semibold text-[#A16207] dark:text-amber-400 uppercase tracking-wider mb-3">Nos cycles de formation</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] dark:text-white mb-4">Découvrez nos programmes d&apos;excellence</h2>
+              <p className="text-[#64748B] dark:text-slate-400 max-w-2xl mx-auto">Des formations structurées et adaptées pour répondre aux plus hautes exigences du secteur bancaire et financier.</p>
             </div>
             
             <div className="space-y-12">
               {FORMATIONS.map((f) => (
-                <div key={f.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300">
+                <div key={f.id} className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden hover:shadow-lg dark:hover:shadow-2xl dark:hover:shadow-blue-900/10 transition-all duration-300">
                   <div className={`h-1.5 sm:h-2 w-full ${f.accent}`} />
                   <div className="p-4 sm:p-6 md:p-8 lg:p-10">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 pb-8 border-b border-slate-100">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 pb-8 border-b border-slate-100 dark:border-slate-800">
                       <div>
                         <div className="flex items-center gap-3 mb-4">
                           <span className={`inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-bold ${f.badge}`}>
                             {f.cycle}
                           </span>
-                          <span className="text-sm font-medium text-slate-500 flex items-center gap-1.5">
+                          <span className="text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                             <BookOpen className="w-4 h-4" /> {f.duration}
                           </span>
                         </div>
-                        <h3 className="text-2xl font-bold text-slate-800">{f.title}</h3>
+                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{f.title}</h3>
                       </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-12">
                       {/* Objectifs */}
                       <div>
-                        <h4 className="flex items-center gap-2 text-lg font-bold text-slate-800 mb-4">
+                        <h4 className="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-white mb-4">
                           <TrendingUp className="w-5 h-5 text-[#A16207]" /> Objectifs de la formation
                         </h4>
                         <ul className="space-y-3">
                           {f.objectives.map((obj, idx) => (
                             <li key={idx} className="flex items-start gap-3">
                               <div className="w-1.5 h-1.5 rounded-full bg-[#A16207] mt-2.5 shrink-0" />
-                              <span className="text-slate-600 leading-relaxed">{obj}</span>
+                              <span className="text-slate-600 dark:text-slate-300 leading-relaxed">{obj}</span>
                             </li>
                           ))}
                         </ul>
@@ -244,17 +251,17 @@ export default async function HomePage() {
 
                       {/* Programme / Compétences */}
                       <div>
-                        <h4 className="flex items-center gap-2 text-lg font-bold text-slate-800 mb-4">
-                          <Award className="w-5 h-5 text-[#1E3A8A]" /> Programme et Compétences
+                        <h4 className="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-white mb-4">
+                          <Award className="w-5 h-5 text-[#1E3A8A] dark:text-blue-400" /> Programme et Compétences
                         </h4>
-                        <p className="text-slate-600 mb-5 leading-relaxed">{f.programDesc}</p>
+                        <p className="text-slate-600 dark:text-slate-300 mb-5 leading-relaxed">{f.programDesc}</p>
                         
                         {f.outcomes.length > 0 && (
                           <ul className="space-y-3">
                             {f.outcomes.map((out, idx) => (
                               <li key={idx} className="flex items-start gap-3">
-                                <CheckCircle className="w-4 h-4 text-[#1E3A8A] mt-1 shrink-0" />
-                                <span className="text-slate-600 text-sm">{out}</span>
+                                <CheckCircle className="w-4 h-4 text-[#1E3A8A] dark:text-blue-400 mt-1 shrink-0" />
+                                <span className="text-slate-600 dark:text-slate-300 text-sm">{out}</span>
                               </li>
                             ))}
                           </ul>
@@ -269,7 +276,7 @@ export default async function HomePage() {
         </section>
 
         {/* ── WHY ESB ────────────────────────────── */}
-        <section id="presentation" className="bg-[#0F172A] py-14 sm:py-20 md:py-24 text-white">
+        <section id="presentation" className="bg-[#0F172A] dark:bg-[#020617] py-14 sm:py-20 md:py-24 text-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 grid md:grid-cols-2 gap-8 md:gap-14 items-center">
             <div>
               <p className="text-sm font-semibold text-[#FCD34D] uppercase tracking-wider mb-3">Pourquoi choisir l&apos;ESB ?</p>
@@ -278,7 +285,7 @@ export default async function HomePage() {
             </div>
             <div className="grid grid-cols-1 gap-3">
               {WHY_ESB.map((item, i) => (
-                <div key={i} className="flex items-start gap-3 bg-white/5 hover:bg-white/10 rounded-xl px-5 py-3.5 transition-colors duration-200 border border-white/5">
+                <div key={i} className="flex items-start gap-3 glass rounded-xl px-5 py-3.5 hover:bg-white/10 transition-colors duration-200">
                   <CheckCircle className="w-4 h-4 text-[#A16207] mt-0.5 shrink-0" />
                   <span className="text-sm text-slate-300">{item}</span>
                 </div>
@@ -288,32 +295,32 @@ export default async function HomePage() {
         </section>
 
         {/* ── A PROPOS ────────────────────────────────── */}
-        <section id="apropos" className="bg-white py-16 md:py-24">
+        <section id="apropos" className="bg-white dark:bg-[#0B1120] py-16 md:py-24">
           <div className="max-w-4xl mx-auto px-4 sm:px-6">
             <div className="mb-8 md:mb-12 text-center">
-              <p className="text-sm font-semibold text-[#A16207] uppercase tracking-wider mb-3">L&apos;histoire derrière le projet</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#0F172A]">À propos</h2>
+              <p className="text-sm font-semibold text-[#A16207] dark:text-amber-400 uppercase tracking-wider mb-3">L&apos;histoire derrière le projet</p>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#0F172A] dark:text-white">À propos</h2>
             </div>
             
-            <div className="bg-slate-50 rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 border border-slate-100 shadow-sm relative overflow-hidden">
+            <div className="bg-slate-50 dark:bg-[#111827] rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
               <div className="absolute -top-12 -right-12 p-8 opacity-[0.03] rotate-12 hidden sm:block">
                 <GraduationCap className="w-64 h-64 text-[#1E3A8A]" />
               </div>
               
-              <div className="relative z-10 space-y-8 md:space-y-10 text-slate-600 leading-relaxed">
+              <div className="relative z-10 space-y-8 md:space-y-10 text-slate-600 dark:text-slate-300 leading-relaxed">
                 {/* Profile Card */}
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 bg-white rounded-2xl p-5 sm:p-6 border border-slate-100 shadow-sm">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 bg-white dark:bg-[#1E293B] rounded-2xl p-5 sm:p-6 border border-slate-100 dark:border-slate-700 shadow-sm">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#0F172A] flex items-center justify-center shrink-0 shadow-lg">
                     <span className="text-2xl sm:text-3xl font-bold text-white">MN</span>
                   </div>
                   <div className="text-center sm:text-left flex-1 min-w-0">
-                    <h3 className="text-xl sm:text-2xl font-bold text-[#0F172A]">Mohamed Nadhir Benelhadj</h3>
-                    <p className="text-[#A16207] font-medium mt-1 text-sm sm:text-base">Étudiant DSEB 2ème année · École Supérieure de Banque</p>
-                    <p className="text-slate-500 text-xs sm:text-sm mt-1">Alger, Algérie · Ex-ENPO (École Nationale Polytechnique d&apos;Oran)</p>
+                    <h3 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white">Mohamed Nadhir Benelhadj</h3>
+                    <p className="text-[#A16207] dark:text-amber-400 font-medium mt-1 text-sm sm:text-base">Étudiant DSEB 2ème année · École Supérieure de Banque</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">Alger, Algérie · Ex-ENPO (École Nationale Polytechnique d&apos;Oran)</p>
                     <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium border border-blue-100">Finance & Banque</span>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-100">Développement Web</span>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-medium border border-purple-100">Data & Analyse</span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium border border-blue-100 dark:border-blue-800">Finance & Banque</span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium border border-amber-100 dark:border-amber-800">Développement Web</span>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium border border-purple-100 dark:border-purple-800">Data & Analyse</span>
                     </div>
                     <div className="mt-4">
                       <a
@@ -330,7 +337,7 @@ export default async function HomePage() {
                 </div>
 
                 <div>
-                  <p className="text-base sm:text-lg text-slate-800 font-medium mb-3 sm:mb-4">
+                  <p className="text-base sm:text-lg text-slate-800 dark:text-white font-medium mb-3 sm:mb-4">
                     Bonjour et bienvenue ! Je suis Mohamed Nadhir Benelhadj, étudiant en 2ème année DSEB (Diplôme Supérieur d&apos;Études Bancaires) et créateur de cet espace.
                   </p>
                   <p className="text-sm sm:text-base">
@@ -339,7 +346,7 @@ export default async function HomePage() {
                 </div>
 
                 <div>
-                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">
+                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 dark:text-white mb-3 sm:mb-4">
                     <span className="text-xl sm:text-2xl">🔄</span> De l&apos;ingénierie à l&apos;économie : Un grand saut
                   </h3>
                   <p className="mb-3 sm:mb-4 text-sm sm:text-base">
@@ -351,37 +358,37 @@ export default async function HomePage() {
                 </div>
 
                 <div>
-                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">
+                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 dark:text-white mb-3 sm:mb-4">
                     <span className="text-xl sm:text-2xl">🎯</span> Pourquoi cette plateforme ?
                   </h3>
                   <p className="mb-4 sm:mb-6 text-sm sm:text-base">
                     Ayant déjà pris l&apos;habitude de structurer et centraliser les dossiers numériques et les ressources académiques pour notre promotion afin de nous entraider, j&apos;ai ressenti le besoin de créer un outil plus grand et plus pérenne. J&apos;ai conçu ce site avec trois objectifs précis en tête :
                   </p>
                   <ul className="space-y-4 sm:space-y-6">
-                    <li className="flex items-start gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                    <li className="flex items-start gap-3 sm:gap-4 bg-white dark:bg-[#1E293B] p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
                         <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#A16207]" />
                       </div>
                       <div>
-                        <strong className="text-slate-800 block mb-1 text-sm sm:text-base">Faciliter le quotidien étudiant</strong>
+                        <strong className="text-slate-800 dark:text-white block mb-1 text-sm sm:text-base">Faciliter le quotidien étudiant</strong>
                         <span className="text-xs sm:text-sm">Centraliser les cours, les ressources et les outils pour que les étudiants de l&apos;ESB ne perdent plus de temps à chercher l&apos;information.</span>
                       </div>
                     </li>
-                    <li className="flex items-start gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                    <li className="flex items-start gap-3 sm:gap-4 bg-white dark:bg-[#1E293B] p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
                         <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#A16207]" />
                       </div>
                       <div>
-                        <strong className="text-slate-800 block mb-1 text-sm sm:text-base">Créer un pont</strong>
+                        <strong className="text-slate-800 dark:text-white block mb-1 text-sm sm:text-base">Créer un pont</strong>
                         <span className="text-xs sm:text-sm">Aider les étudiants d&apos;autres écoles ou universités équivalentes qui suivent des formations similaires en économie et en banque.</span>
                       </div>
                     </li>
-                    <li className="flex items-start gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                    <li className="flex items-start gap-3 sm:gap-4 bg-white dark:bg-[#1E293B] p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
                         <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#A16207]" />
                       </div>
                       <div>
-                        <strong className="text-slate-800 block mb-1 text-sm sm:text-base">Offrir de la visibilité</strong>
+                        <strong className="text-slate-800 dark:text-white block mb-1 text-sm sm:text-base">Offrir de la visibilité</strong>
                         <span className="text-xs sm:text-sm">Donner un coup d&apos;œil concret et transparent sur notre formation à tous ceux qui sont curieux, aux futurs bacheliers, ou à ceux qui, comme moi, envisagent une reconversion.</span>
                       </div>
                     </li>
@@ -389,15 +396,15 @@ export default async function HomePage() {
                 </div>
 
                 <div>
-                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">
+                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 dark:text-white mb-3 sm:mb-4">
                     <span className="text-xl sm:text-2xl">🤝</span> Avancer ensemble
                   </h3>
                   <p className="mb-4 sm:mb-6 text-sm sm:text-base">
                     Je sais ce que c&apos;est que de se sentir perdu face à de nouvelles matières. Ce site est ma façon de m&apos;assurer que les futurs étudiants auront un point de repère solide dès leur premier jour. J&apos;espère que cette plateforme vous fera gagner un temps précieux et facilitera votre réussite.
                   </p>
-                  <div className="pt-4 sm:pt-6 border-t border-slate-200">
-                    <p className="font-medium text-slate-800 mb-2 text-sm sm:text-base">Excellente navigation à toutes et à tous !</p>
-                    <p className="text-[#A16207] font-bold signature">— Mohamed Nadhir Benelhadj</p>
+                  <div className="pt-4 sm:pt-6 border-t border-slate-200 dark:border-slate-700">
+                    <p className="font-medium text-slate-800 dark:text-white mb-2 text-sm sm:text-base">Excellente navigation à toutes et à tous !</p>
+                    <p className="text-[#A16207] dark:text-amber-400 font-bold signature">— Mohamed Nadhir Benelhadj</p>
                   </div>
                 </div>
               </div>
@@ -406,8 +413,10 @@ export default async function HomePage() {
         </section>
 
         {/* ── CTA ────────────────────────────────── */}
-        <section id="contact" className="bg-gradient-to-r from-[#1E3A8A] to-[#0F172A] py-14 sm:py-20 text-white text-center">
-          <div className="max-w-2xl mx-auto px-4 sm:px-6">
+        <section id="contact" className="bg-gradient-to-r from-[#1E3A8A] to-[#0F172A] dark:from-[#0F172A] dark:to-[#020617] py-14 sm:py-20 text-white text-center relative overflow-hidden">
+          {/* Subtle glow */}
+          <div className="gradient-orb gradient-orb-gold w-64 h-64 top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-glow" />
+          <div className="relative max-w-2xl mx-auto px-4 sm:px-6">
             <GraduationCap className="w-10 h-10 sm:w-12 sm:h-12 text-[#FCD34D] mx-auto mb-4 sm:mb-6" />
             <h2 className="text-3xl font-bold mb-4">Prêt à rejoindre l&apos;ESB ?</h2>
             <p className="text-blue-200 mb-8">Accédez à votre espace étudiant et consultez vos cours, ressources et documents pédagogiques.</p>
@@ -418,7 +427,7 @@ export default async function HomePage() {
                 </button>
               </Link>
               <Link href="/login">
-                <button className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-white/30 hover:bg-white/10 text-white font-medium transition-all duration-200 cursor-pointer">
+                <button className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-white/30 hover:bg-white/10 text-white font-medium transition-all duration-200 cursor-pointer backdrop-blur-sm">
                   Se connecter
                 </button>
               </Link>

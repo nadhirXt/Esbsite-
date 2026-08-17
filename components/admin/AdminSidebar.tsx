@@ -7,6 +7,7 @@ import {
   GraduationCap, Upload, Link2, LayoutDashboard, Shield, Menu, X, Users, BookOpen
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 
 const NAV = [
   { href: '/admin',           label: 'Vue d\'ensemble', icon: LayoutDashboard },
@@ -30,7 +31,7 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between px-5 py-4 bg-[#0F172A] text-white shrink-0 shadow-md">
+      <div className="md:hidden flex items-center justify-between px-5 py-4 bg-[#0F172A] dark:bg-[#020617] text-white shrink-0 shadow-md">
         <Link href="/" className="flex items-center gap-2 font-bold text-sm">
           <GraduationCap className="w-5 h-5 text-[#A16207]" />
           ESB <span className="text-blue-300 font-light">Admin</span>
@@ -50,7 +51,7 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed md:static inset-y-0 left-0 z-50 flex flex-col w-72 md:w-64 min-h-screen bg-[#0F172A] text-white shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none",
+        "fixed md:static inset-y-0 left-0 z-50 flex flex-col w-72 md:w-64 min-h-screen bg-[#0F172A] dark:bg-[#020617] text-white shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Logo (Desktop) */}
@@ -96,7 +97,7 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
             )
           })}
           
-          <div className="pt-4 mt-4 border-t border-white/10">
+          <div className="pt-4 mt-4 border-t border-white/10 space-y-0.5">
             <Link
               href="/dashboard"
               onClick={() => setIsOpen(false)}
@@ -105,6 +106,7 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
               <LayoutDashboard className="w-4 h-4 shrink-0" />
               Retour au Portail étudiant
             </Link>
+            <ThemeToggle variant="sidebar" />
           </div>
         </nav>
       </aside>

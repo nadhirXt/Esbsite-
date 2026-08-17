@@ -19,7 +19,12 @@ export default async function DashboardLayout({
   const profile = await ensureProfile(supabase, user)
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1120] relative flex flex-col md:flex-row overflow-hidden">
+      {/* Ambient background orbs for glassmorphism effect */}
+      <div className="fixed top-0 left-0 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/4 pointer-events-none z-0" />
+      <div className="fixed bottom-0 right-0 w-[600px] h-[600px] bg-amber-500/10 dark:bg-amber-600/5 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 pointer-events-none z-0" />
+      
+      <div className="relative z-10 flex flex-col md:flex-row w-full h-screen">
       <DashboardSidebar
         user={{ 
           email: user.email!, 
@@ -27,12 +32,14 @@ export default async function DashboardLayout({
           cycle: profile?.cycle, 
           role: profile?.role,
           is_delegate: profile?.is_delegate,
-          user_type: profile?.user_type
+          user_type: profile?.user_type,
+          created_at: profile?.created_at
         }}
       />
-      <main className="flex-1 min-w-0 p-6 md:p-8 lg:p-10">
+      <main className="flex-1 min-w-0 p-6 md:p-8 lg:p-10 overflow-y-auto">
         {children}
       </main>
+      </div>
     </div>
   )
 }
