@@ -8,6 +8,8 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { getPresignedUploadUrl, getPresignedDownloadUrl, deleteStorageFile, deleteStorageFiles } from '@/app/actions/storage'
 
+import { generatePDFThumbnail } from '@/lib/pdf-thumbnail'
+
 export default function AdminDriveClient({ documents: initialDocuments }: { documents: any[] }) {
   const [documents, setDocuments] = useState(initialDocuments)
   const [cycle, setCycle] = useState('dseb')
@@ -119,8 +121,11 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     const docsToDelete = documents.filter(doc => doc.cycle === cycle && (doc.category === folderPath || doc.category?.startsWith(folderPath + '/')))
     
     const filePathsToDelete = docsToDelete.filter(d => d.file_path !== '.keep').map(d => d.file_path)
-    if (filePathsToDelete.length > 0) {
-      await deleteStorageFiles(filePathsToDelete)
+    const thumbPathsToDelete = docsToDelete.filter(d => d.thumbnail_path).map(d => d.thumbnail_path)
+    const allPathsToDelete = [...filePathsToDelete, ...thumbPathsToDelete]
+
+    if (allPathsToDelete.length > 0) {
+      await deleteStorageFiles(allPathsToDelete)
     }
 
     const idsToDelete = docsToDelete.map(d => d.id)
@@ -153,11 +158,17 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     setShowRenameFolderModal(null)
   }
 
-  async function deleteFile(id: string, filePath: string) {
+  async function deleteFile(id: string, filePath: string, thumbnailPath?: string) {
     if (!confirm('Supprimer ce fichier ?')) return
-    if (filePath !== '.keep') {
-      await deleteStorageFile(filePath)
+    
+    const pathsToDelete = []
+    if (filePath !== '.keep') pathsToDelete.push(filePath)
+    if (thumbnailPath) pathsToDelete.push(thumbnailPath)
+      
+    if (pathsToDelete.length > 0) {
+      await deleteStorageFiles(pathsToDelete)
     }
+    
     await supabase.from('documents').delete().eq('id', id)
     setDocuments(prev => prev.filter(d => d.id !== id))
   }
@@ -182,6 +193,27 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
       
       const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
       
+      // 1. Generate and upload thumbnail if PDF
+      let thumbnailPath: string | null = null;
+      if (file.type === 'application/pdf') {
+         const thumbBlob = await generatePDFThumbnail(file);
+         if (thumbBlob) {
+            const thumbName = `${cycle}/${Date.now()}_thumb_${safeFileName}.jpg`;
+            const { url: thumbUrl } = await getPresignedUploadUrl(thumbName, 'image/jpeg');
+            if (thumbUrl) {
+                try {
+                  const thumbRes = await fetch(thumbUrl, { method: 'PUT', body: thumbBlob, headers: { 'Content-Type': 'image/jpeg' } });
+                  if (thumbRes.ok) {
+                     thumbnailPath = thumbName;
+                  }
+                } catch(e) {
+                  console.error("Failed to upload thumbnail", e)
+                }
+            }
+         }
+      }
+      
+      // 2. Upload main file
       if (!urlError && url) {
         try {
           const res = await fetch(url, {
@@ -190,9 +222,11 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
             headers: { 'Content-Type': file.type || 'application/octet-stream' }
           })
           if (res.ok) {
-            const { data, error: dbError } = await supabase.from('documents').insert({
-              title: fileTitle, file_path: path, cycle, category
-            }).select().single()
+            const insertData: any = { title: fileTitle, file_path: path, cycle, category }
+            if (thumbnailPath) {
+              insertData.thumbnail_path = thumbnailPath
+            }
+            const { data, error: dbError } = await supabase.from('documents').insert(insertData).select().single()
             
             if (data) newDocs.push(data)
           } else {
@@ -483,6 +517,15 @@ function Modal({ title, children, onClose }: { title: string, children: React.Re
 function AdminDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename }: { doc: any; supabase: any, onContextMenu: (e:any) => void, onDelete: () => void, onRename: () => void }) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (doc.thumbnail_path) {
+      getPresignedDownloadUrl(doc.thumbnail_path, false).then(res => {
+        if (res?.url) setThumbUrl(res.url)
+      })
+    }
+  }, [doc.thumbnail_path])
 
   const handleView = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -526,16 +569,20 @@ function AdminDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename }:
   return (
     <div onContextMenu={onContextMenu} className="group flex flex-col justify-between gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all duration-200">
       <div className="flex items-start gap-3 justify-between">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
-            <FileText className="w-5 h-5 text-red-500" />
-          </div>
+        <div className="flex items-start gap-3 min-w-0 w-full">
+          {thumbUrl ? (
+            <img src={thumbUrl} alt="Miniature" className="w-10 h-10 rounded-lg object-cover border border-[#E2E8F0] shrink-0" />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5 text-red-500" />
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-[#0F172A] truncate" title={doc.title}>{doc.title}</p>
             <p className="text-xs text-[#64748B] mt-0.5">{formatDate(doc.created_at)}</p>
           </div>
         </div>
-        <button onClick={onContextMenu} className="p-1 rounded-md text-[#94A3B8] hover:bg-[#F1F5F9] hover:text-[#0F172A]">
+        <button onClick={onContextMenu} className="p-1 rounded-md text-[#94A3B8] hover:bg-[#F1F5F9] hover:text-[#0F172A] shrink-0">
           <MoreVertical className="w-4 h-4" />
         </button>
       </div>

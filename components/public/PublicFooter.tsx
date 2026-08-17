@@ -3,7 +3,7 @@ import { GraduationCap, Mail, Phone, MapPin } from 'lucide-react'
 
 export default function PublicFooter() {
   return (
-    <footer className="bg-[#0F172A] text-white">
+    <footer className="bg-[#0F172A] dark:bg-[#020617] text-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10">
           {/* Brand */}
@@ -79,7 +79,7 @@ export default function PublicFooter() {
           </div>
         </div>
 
-        <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+        <div className="mt-8 sm:mt-12 pt-4 sm:pt-6 border-t border-slate-800 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
           <p className="text-xs text-slate-500">
             © {new Date().getFullYear()} École Supérieure de Banque · Tous droits réservés
           </p>

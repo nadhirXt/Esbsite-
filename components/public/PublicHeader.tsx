@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { GraduationCap, Menu, X, User as UserIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Button from '@/components/ui/Button'
+import ThemeToggle from '@/components/ui/ThemeToggle'
+import { useTheme } from '@/components/ui/ThemeProvider'
 import { createClient } from '@/lib/supabase/client'
 
 const NAV_LINKS = [
@@ -19,6 +21,7 @@ export default function PublicHeader() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const { resolvedTheme } = useTheme()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -40,12 +43,14 @@ export default function PublicHeader() {
     }
   }, [])
 
+  const isScrolledOrDark = scrolled || resolvedTheme === 'dark'
+
   return (
     <header
       className={cn(
         'fixed top-0 inset-x-0 z-50 transition-all duration-300',
         scrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-[#E2E8F0]'
+          ? 'bg-white/95 dark:bg-[#0B1120]/95 backdrop-blur-md shadow-sm border-b border-[#E2E8F0] dark:border-white/10'
           : 'bg-transparent'
       )}
     >
@@ -55,12 +60,12 @@ export default function PublicHeader() {
           href="/"
           className={cn(
             'flex items-center gap-2 font-bold text-lg tracking-tight transition-colors',
-            scrolled ? 'text-[#0F172A]' : 'text-white'
+            isScrolledOrDark ? 'text-[#0F172A] dark:text-white' : 'text-white'
           )}
         >
           <GraduationCap className="w-6 h-6 text-[#A16207]" />
           <span>ESB</span>
-          <span className={cn('font-light', scrolled ? 'text-[#1E3A8A]' : 'text-blue-200')}>
+          <span className={cn('font-light', isScrolledOrDark ? 'text-[#1E3A8A] dark:text-blue-400' : 'text-blue-200')}>
             Hub
           </span>
         </Link>
@@ -73,7 +78,7 @@ export default function PublicHeader() {
               href={l.href}
               className={cn(
                 'text-sm font-medium transition-colors hover:text-[#A16207]',
-                scrolled ? 'text-[#64748B]' : 'text-blue-100'
+                isScrolledOrDark ? 'text-[#64748B] dark:text-slate-400' : 'text-blue-100'
               )}
             >
               {l.label}
@@ -83,6 +88,12 @@ export default function PublicHeader() {
 
         {/* Actions */}
         <div className="hidden md:flex items-center gap-3">
+          <ThemeToggle
+            variant="header"
+            className={cn(
+              !scrolled && resolvedTheme !== 'dark' && 'bg-white/10 text-white hover:bg-white/20'
+            )}
+          />
           {user ? (
             <Link href="/dashboard">
               <Button variant="secondary" size="sm" className="bg-[#A16207] hover:bg-[#854d0e] flex items-center gap-2">
@@ -96,7 +107,7 @@ export default function PublicHeader() {
                 href="/login"
                 className={cn(
                   'text-sm font-medium transition-colors',
-                  scrolled ? 'text-[#0F172A] hover:text-[#1E3A8A]' : 'text-white hover:text-blue-200'
+                  isScrolledOrDark ? 'text-[#0F172A] dark:text-white hover:text-[#1E3A8A] dark:hover:text-blue-400' : 'text-white hover:text-blue-200'
                 )}
               >
                 Connexion
@@ -111,32 +122,40 @@ export default function PublicHeader() {
         </div>
 
         {/* Mobile toggle */}
-        <button
-          className={cn(
-            'md:hidden p-2 rounded-lg',
-            scrolled ? 'text-[#0F172A]' : 'text-white'
-          )}
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Menu"
-        >
-          {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle
+            variant="header"
+            className={cn(
+              !scrolled && resolvedTheme !== 'dark' && 'bg-white/10 text-white hover:bg-white/20'
+            )}
+          />
+          <button
+            className={cn(
+              'p-2 rounded-lg',
+              isScrolledOrDark ? 'text-[#0F172A] dark:text-white' : 'text-white'
+            )}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Menu"
+          >
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-t border-[#E2E8F0] px-6 py-4 space-y-3 animate-fade-in">
+        <div className="md:hidden bg-white dark:bg-[#111827] border-t border-[#E2E8F0] dark:border-white/10 px-6 py-4 space-y-3 animate-fade-in">
           {NAV_LINKS.map((l) => (
             <a
               key={l.href}
               href={l.href}
               onClick={() => setMenuOpen(false)}
-              className="block text-sm text-[#64748B] hover:text-[#0F172A] py-1"
+              className="block text-sm text-[#64748B] dark:text-slate-400 hover:text-[#0F172A] dark:hover:text-white py-1"
             >
               {l.label}
             </a>
           ))}
-          <div className="pt-3 border-t border-[#E2E8F0] flex flex-col gap-2">
+          <div className="pt-3 border-t border-[#E2E8F0] dark:border-white/10 flex flex-col gap-2">
             {user ? (
               <Link href="/dashboard" onClick={() => setMenuOpen(false)}>
                 <Button size="sm" className="w-full bg-[#A16207] hover:bg-[#854d0e] flex items-center justify-center gap-2">
@@ -146,7 +165,7 @@ export default function PublicHeader() {
               </Link>
             ) : (
               <>
-                <Link href="/login" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-[#0F172A]">
+                <Link href="/login" onClick={() => setMenuOpen(false)} className="block text-sm font-medium text-[#0F172A] dark:text-white">
                   Connexion
                 </Link>
                 <Link href="/register" onClick={() => setMenuOpen(false)}>

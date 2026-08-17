@@ -1,8 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
-import { BookOpen, Link2, FileText, GraduationCap, ArrowRight } from 'lucide-react'
+import { BookOpen, Link2, FileText, GraduationCap, ArrowRight, Trophy } from 'lucide-react'
 import Link from 'next/link'
 import { CYCLES } from '@/lib/utils'
 import { ensureProfile } from '@/lib/ensure-profile'
+import { getUserBadges } from '@/lib/badges'
+import BadgeList from '@/components/ui/BadgeList'
+import { getPresignedDownloadUrl } from '@/app/actions/storage'
+
+import WelcomeBanner from '@/components/dashboard/WelcomeBanner'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -10,50 +15,73 @@ export default async function DashboardPage() {
 
   const profile = await ensureProfile(supabase, user!)
 
-  const { data: recentDocs } = await supabase
+  const { data: recentDocsRaw } = await supabase
     .from('documents')
     .select('*')
     .eq('cycle', profile?.cycle || '')
     .order('created_at', { ascending: false })
     .limit(4)
 
+  const recentDocs = await Promise.all(
+    (recentDocsRaw || []).map(async (doc) => {
+      if (doc.thumbnail_path) {
+        const res = await getPresignedDownloadUrl(doc.thumbnail_path, false)
+        return { ...doc, thumbUrl: res?.url }
+      }
+      return doc
+    })
+  )
+
   const cycleBadge = profile?.cycle ? CYCLES[profile.cycle as keyof typeof CYCLES] : null
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
 
+  const badges = getUserBadges({
+    role: profile?.role,
+    user_type: profile?.user_type,
+    cycle: profile?.cycle,
+    is_delegate: profile?.is_delegate,
+    created_at: profile?.created_at,
+  })
+
   return (
-    <div className="animate-fade-in max-w-4xl">
+    <div className="max-w-4xl mx-auto">
       {/* Welcome header */}
-      <div className="mb-8">
-        <p className="text-sm text-[#64748B] mb-1">{greeting},</p>
-        <h1 className="text-2xl font-bold text-[#0F172A]">
-          {profile?.full_name || 'Étudiant(e)'}
-        </h1>
-        {cycleBadge && (
-          <span className={`mt-2 inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${cycleBadge.color}`}>
-            {cycleBadge.label}
-          </span>
-        )}
-      </div>
+      <WelcomeBanner 
+        greeting={greeting} 
+        fullName={profile?.full_name || 'Étudiant(e)'} 
+        cycleBadge={cycleBadge} 
+      />
+
+      {/* Badges section */}
+      {badges.length > 0 && (
+        <div className="mb-8 p-5 rounded-2xl bg-white dark:bg-[#111827] border border-[#E2E8F0] dark:border-slate-800 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Trophy className="w-4 h-4 text-[#A16207]" />
+            <h2 className="text-sm font-semibold text-[#0F172A] dark:text-white">Vos badges</h2>
+          </div>
+          <BadgeList badges={badges} />
+        </div>
+      )}
 
       {/* Quick access cards */}
       <div className="grid sm:grid-cols-3 gap-4 mb-10">
         {[
-          { href: `/dashboard/${profile?.cycle || 'licence'}`, label: 'Mes cours', icon: BookOpen, color: 'bg-blue-50 text-blue-700 border-blue-100' },
-          { href: '/dashboard/ressources', label: 'Liens utiles', icon: Link2, color: 'bg-amber-50 text-amber-700 border-amber-100' },
+          { href: `/dashboard/${profile?.cycle || 'licence'}`, label: 'Mes cours', icon: BookOpen, color: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' },
+          { href: '/dashboard/ressources', label: 'Liens utiles', icon: Link2, color: 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' },
         ].map((card) => (
           <Link
             key={card.href}
             href={card.href}
-            className="group flex items-center justify-between rounded-xl border bg-white p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+            className="group flex items-center justify-between rounded-xl border bg-white dark:bg-[#111827] border-[#E2E8F0] dark:border-slate-800 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <div className="flex items-center gap-3">
               <div className={`w-9 h-9 rounded-lg border flex items-center justify-center ${card.color}`}>
                 <card.icon className="w-4 h-4" />
               </div>
-              <span className="text-sm font-medium text-[#0F172A]">{card.label}</span>
+              <span className="text-sm font-medium text-[#0F172A] dark:text-white">{card.label}</span>
             </div>
-            <ArrowRight className="w-4 h-4 text-[#94A3B8] group-hover:text-[#1E3A8A] transition-colors" />
+            <ArrowRight className="w-4 h-4 text-[#94A3B8] dark:text-slate-500 group-hover:text-[#1E3A8A] dark:group-hover:text-blue-400 transition-colors" />
           </Link>
         ))}
       </div>
@@ -61,10 +89,10 @@ export default async function DashboardPage() {
       {/* Recent documents */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-[#0F172A]">Documents récents</h2>
+          <h2 className="font-semibold text-[#0F172A] dark:text-white">Documents récents</h2>
           <Link
             href={`/dashboard/${profile?.cycle || 'licence'}`}
-            className="text-xs font-medium text-[#1E3A8A] hover:underline"
+            className="text-xs font-medium text-[#1E3A8A] dark:text-blue-400 hover:underline"
           >
             Voir tout
           </Link>
@@ -75,23 +103,27 @@ export default async function DashboardPage() {
             {recentDocs.map((doc) => (
               <div
                 key={doc.id}
-                className="group flex items-start gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-sm hover:border-[#1E3A8A] transition-all duration-200"
+                className="group flex items-start gap-3 rounded-xl border border-[#E2E8F0] dark:border-slate-800 bg-white dark:bg-[#111827] p-4 hover:shadow-sm hover:border-[#1E3A8A] dark:hover:border-blue-600 transition-all duration-200"
               >
-                <div className="w-9 h-9 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4 text-red-600" />
-                </div>
+                {doc.thumbUrl ? (
+                  <img src={doc.thumbUrl} alt="Miniature" className="w-9 h-9 rounded-lg object-cover border border-[#E2E8F0] shrink-0" />
+                ) : (
+                  <div className="w-9 h-9 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 flex items-center justify-center shrink-0">
+                    <FileText className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  </div>
+                )}
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#0F172A] truncate">{doc.title}</p>
-                  <p className="text-xs text-[#64748B] mt-0.5">{doc.category || 'Document'}</p>
+                  <p className="text-sm font-medium text-[#0F172A] dark:text-white truncate">{doc.title}</p>
+                  <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">{doc.category || 'Document'}</p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 rounded-xl border border-dashed border-[#E2E8F0]">
-            <GraduationCap className="w-8 h-8 text-[#CBD5E1] mx-auto mb-2" />
-            <p className="text-sm text-[#64748B]">Aucun document disponible pour le moment.</p>
-            <p className="text-xs text-[#94A3B8] mt-1">Les documents seront ajoutés par votre administration.</p>
+          <div className="text-center py-12 rounded-xl border border-dashed border-[#E2E8F0] dark:border-slate-700">
+            <GraduationCap className="w-8 h-8 text-[#CBD5E1] dark:text-slate-600 mx-auto mb-2" />
+            <p className="text-sm text-[#64748B] dark:text-slate-400">Aucun document disponible pour le moment.</p>
+            <p className="text-xs text-[#94A3B8] dark:text-slate-500 mt-1">Les documents seront ajoutés par votre administration.</p>
           </div>
         )}
       </div>

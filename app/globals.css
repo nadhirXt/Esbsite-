@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
+/* Tell Tailwind v4 to use class-based dark mode (html.dark) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  /* ESB Design Tokens */
+  /* ── ESB Design Tokens (Light) ─────────────────── */
   --color-primary: #0F172A;
   --color-secondary: #1E3A8A;
   --color-accent: #A16207;
@@ -12,8 +15,23 @@
   --color-muted-foreground: #64748B;
   --color-border: #E2E8F0;
   --color-card: #FFFFFF;
+  --color-card-hover: #F8FAFC;
   --color-destructive: #DC2626;
   --color-success: #16A34A;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #FFFFFF;
+  --color-hero-from: #0F172A;
+  --color-hero-via: #1E3A8A;
+  --color-hero-to: #0F172A;
+  --color-sidebar: #0F172A;
+  --color-sidebar-text: #FFFFFF;
+  --color-sidebar-muted: #94A3B8;
+  --color-sidebar-border: rgba(255,255,255,0.1);
+  --color-scrollbar-track: #E8ECF1;
+  --color-scrollbar-thumb: #CBD5E1;
+  --color-scrollbar-thumb-hover: #94A3B8;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.1);
 
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
   --radius: 0.5rem;
@@ -21,8 +39,43 @@
   --radius-xl: 1rem;
 }
 
+html.dark {
+  /* ── ESB Design Tokens (Dark) ──────────────────── */
+  --color-primary: #E2E8F0;
+  --color-secondary: #60A5FA;
+  --color-accent: #F59E0B;
+  --color-accent-light: #78350F;
+  --color-background: #0B1120;
+  --color-foreground: #E2E8F0;
+  --color-muted: #1E293B;
+  --color-muted-foreground: #94A3B8;
+  --color-border: #1E293B;
+  --color-card: #111827;
+  --color-card-hover: #1E293B;
+  --color-destructive: #EF4444;
+  --color-success: #22C55E;
+  --color-surface: #111827;
+  --color-surface-elevated: #1E293B;
+  --color-hero-from: #020617;
+  --color-hero-via: #0F172A;
+  --color-hero-to: #020617;
+  --color-sidebar: #020617;
+  --color-sidebar-text: #E2E8F0;
+  --color-sidebar-muted: #64748B;
+  --color-sidebar-border: rgba(255,255,255,0.06);
+  --color-scrollbar-track: #1E293B;
+  --color-scrollbar-thumb: #334155;
+  --color-scrollbar-thumb-hover: #475569;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* ── Base ──────────────────────────────────────────── */
+
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -30,6 +83,18 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Smooth transitions for theme-aware elements */
+*, *::before, *::after {
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+/* Exclude elements where transition interferes */
+input, textarea, select, button, a, [class*="animate-"], [class*="transition-"] {
+  transition-property: none;
 }
 
 /* Focus ring */
@@ -39,13 +104,13 @@ body {
   border-radius: var(--radius);
 }
 
-/* Scrollbar */
+/* ── Scrollbar ─────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--color-muted); }
-::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+::-webkit-scrollbar-track { background: var(--color-scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--color-scrollbar-thumb); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-scrollbar-thumb-hover); }
 
-/* Animations */
+/* ── Core Animations ───────────────────────────────── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -66,17 +131,112 @@ body {
 .animate-delay-300  { animation-delay: 300ms; }
 .animate-delay-400  { animation-delay: 400ms; }
 
-/* Skeleton loader */
+/* ── Premium Animations ────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+@keyframes glow {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.8; }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.7; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-float       { animation: float 3s ease-in-out infinite; }
+.animate-glow        { animation: glow 2s ease-in-out infinite; }
+.animate-slide-in-left { animation: slideInLeft 0.5s ease both; }
+.animate-pulse-soft  { animation: pulse-soft 2s ease-in-out infinite; }
+.animate-scale-in    { animation: scale-in 0.4s ease both; }
+
+/* ── Skeleton Loader ───────────────────────────────── */
 .skeleton {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg,
+    var(--color-muted) 25%,
+    var(--color-border) 50%,
+    var(--color-muted) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: var(--radius);
 }
 
-/* ── Responsive & Device Fixes ─────────────────── */
+/* ── Glassmorphism Utilities ───────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
 
-/* Safe area insets for notched devices (iPhone X+, etc.) */
+.glass-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+html.dark .glass {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+html.dark .glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Light surface glass (for hero stats card) */
+.glass-light {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ── Premium Card Hover Effects ────────────────────── */
+.card-premium {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-premium:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+  border-color: var(--color-secondary);
+}
+
+/* ── Gradient Orb (Background Glow) ────────────────── */
+.gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.3;
+  pointer-events: none;
+}
+.gradient-orb-gold {
+  background: radial-gradient(circle, #A16207 0%, transparent 70%);
+}
+.gradient-orb-blue {
+  background: radial-gradient(circle, #1E3A8A 0%, transparent 70%);
+}
+
+/* ── Responsive & Device Fixes ─────────────────────── */
 body {
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
@@ -84,13 +244,6 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
-/* Prevent text size adjustment on orientation change */
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-/* Touch-friendly minimum sizes */
 @media (pointer: coarse) {
   button, a, [role="button"] {
     min-height: 44px;
@@ -98,21 +251,19 @@ html {
   }
   input, select, textarea {
     min-height: 44px;
-    font-size: 16px !important; /* Prevent iOS zoom on focus */
+    font-size: 16px !important;
   }
 }
 
-/* Better tap highlight on mobile */
 * {
   -webkit-tap-highlight-color: rgba(30, 58, 138, 0.1);
 }
 
-/* Smooth overflow scrolling on iOS */
 .overflow-y-auto, .overflow-x-auto {
   -webkit-overflow-scrolling: touch;
 }
 
-/* LinkedIn button style */
+/* ── LinkedIn Button ───────────────────────────────── */
 .linkedin-btn {
   background: #0A66C2;
   color: white;
@@ -123,8 +274,42 @@ html {
   transform: translateY(-1px);
 }
 
-/* Signature style */
+/* ── Signature ─────────────────────────────────────── */
 .signature {
   font-family: 'Georgia', serif;
   font-style: italic;
+}
+
+/* ── Badge Styles ──────────────────────────────────── */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.badge-pill:hover {
+  transform: scale(1.05);
+}
+
+/* ── Theme Toggle Button ──────────────────────────── */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.theme-toggle svg {
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
