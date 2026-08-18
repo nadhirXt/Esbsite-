@@ -27,41 +27,41 @@ export default function AdminStudentsClient({ initialStudents }: { initialStuden
   })
 
   return (
-    <div className="animate-fade-in max-w-6xl">
+    <div className="animate-fade-in max-w-6xl mx-auto py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#0F172A] flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#EFF6FF] text-[#1E3A8A] rounded-xl flex items-center justify-center">
-            <Users className="w-5 h-5" />
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+            <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
           Annuaire des Étudiants
         </h1>
-        <p className="text-[#64748B] text-sm mt-2">
-          Consultez la liste des {students.length} étudiants inscrits sur la plateforme.
+        <p className="text-slate-500 dark:text-slate-400 mt-2">
+          Consultez la liste des <span className="font-semibold text-slate-900 dark:text-white">{students.length}</span> étudiants inscrits sur la plateforme.
         </p>
       </div>
 
-      <div className="bg-white border border-[#E2E8F0] p-4 rounded-2xl mb-8 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-white/10 p-5 rounded-3xl mb-8 shadow-sm flex flex-col md:flex-row gap-5 justify-between items-center">
         <div className="relative w-full md:max-w-md">
-          <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Rechercher par nom ou établissement..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/20 transition-all"
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-          <Filter className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
+        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+          <Filter className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
           {['all', 'dseb', 'master', 'licence', 'ancien'].map((type) => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
                 filterType === type 
-                  ? 'bg-[#1E3A8A] text-white' 
-                  : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
+                  : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-700'
               }`}
             >
               {type === 'all' ? 'Tous' : type === 'ancien' ? 'Anciens' : type.toUpperCase()}
@@ -71,59 +71,65 @@ export default function AdminStudentsClient({ initialStudents }: { initialStuden
       </div>
 
       {filteredStudents.length === 0 ? (
-        <div className="text-center py-20 rounded-2xl border border-dashed border-[#E2E8F0] bg-white">
-          <Users className="w-12 h-12 text-[#CBD5E1] mx-auto mb-3" />
-          <p className="text-[#64748B] font-medium">Aucun étudiant trouvé.</p>
+        <div className="text-center py-20 rounded-3xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm">
+          <Users className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Aucun étudiant ne correspond à votre recherche.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredStudents.map(student => {
             const cycleBadge = student.cycle ? CYCLES[student.cycle as keyof typeof CYCLES] : null
             
             return (
-              <div key={student.id} className="bg-white border border-[#E2E8F0] rounded-2xl p-5 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all flex flex-col justify-between">
+              <div key={student.id} className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border border-slate-200 dark:border-white/10 rounded-3xl p-6 hover:shadow-xl hover:border-blue-500/30 transition-all duration-300 flex flex-col justify-between group">
                 <div>
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-[#64748B] shrink-0 border border-slate-200">
-                      <User className="w-6 h-6" />
+                  <div className="flex items-start gap-4 mb-5">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 shrink-0 border border-slate-200 dark:border-white/5 shadow-inner group-hover:scale-105 transition-transform duration-300">
+                      <User className="w-7 h-7" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-[#0F172A] truncate" title={student.full_name}>{student.full_name || 'Utilisateur Anonyme'}</h3>
+                      <h3 className="font-bold text-lg text-slate-900 dark:text-white truncate" title={student.full_name}>{student.full_name || 'Utilisateur Anonyme'}</h3>
                       {cycleBadge ? (
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium mt-1.5 ${cycleBadge?.color}`}>
+                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold mt-1.5 ${cycleBadge?.color} dark:bg-opacity-20`}>
                           {cycleBadge?.label}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 px-2 py-0.5 text-xs font-medium mt-1.5">
+                        <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2.5 py-0.5 text-xs font-bold mt-1.5">
                           Non spécifié
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-2.5 pt-4 border-t border-slate-100">
-                    <div className="flex items-center gap-2 text-sm text-[#64748B]">
-                      <Building2 className="w-4 h-4 shrink-0" />
+                  <div className="space-y-3 pt-5 border-t border-slate-100 dark:border-white/10">
+                    <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                      <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                        <Building2 className="w-4 h-4 shrink-0 text-slate-400" />
+                      </div>
                       <span className="truncate">{student.institution_name || 'Établissement non renseigné'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-[#64748B]">
-                      <GraduationCap className="w-4 h-4 shrink-0" />
+                    <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                      <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                        <GraduationCap className="w-4 h-4 shrink-0 text-slate-400" />
+                      </div>
                       <span className="truncate capitalize">{student.user_type ? student.user_type.replace('_', ' ') : 'Type non renseigné'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-[#64748B]">
-                      <Calendar className="w-4 h-4 shrink-0" />
+                    <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                      <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                        <Calendar className="w-4 h-4 shrink-0 text-slate-400" />
+                      </div>
                       <span>Inscrit(e) le {formatDate(student.created_at)}</span>
                     </div>
                   </div>
                 </div>
                 
                 {student.linkedin_url && (
-                  <div className="mt-4 pt-4 border-t border-slate-100">
+                  <div className="mt-5 pt-5 border-t border-slate-100 dark:border-white/10">
                     <a 
                       href={student.linkedin_url} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="flex items-center justify-center gap-2 w-full py-2 bg-[#F8FAFC] hover:bg-[#EFF6FF] text-[#0A66C2] rounded-xl text-sm font-medium transition-colors border border-[#E2E8F0] hover:border-[#BFDBFE]"
+                      className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 dark:bg-[#0A66C2]/20 dark:hover:bg-[#0A66C2]/30 text-[#0A66C2] dark:text-blue-400 rounded-xl text-sm font-bold transition-colors border border-[#0A66C2]/20 hover:border-[#0A66C2]/40"
                     >
                       <LinkedinIcon className="w-4 h-4" />
                       Voir le profil LinkedIn
