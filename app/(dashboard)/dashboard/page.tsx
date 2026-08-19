@@ -15,22 +15,7 @@ export default async function DashboardPage() {
 
   const profile = await ensureProfile(supabase, user!)
 
-  const { data: recentDocsRaw } = await supabase
-    .from('documents')
-    .select('*')
-    .eq('cycle', profile?.cycle || '')
-    .order('created_at', { ascending: false })
-    .limit(4)
 
-  const recentDocs = await Promise.all(
-    (recentDocsRaw || []).map(async (doc) => {
-      if (doc.thumbnail_path) {
-        const res = await getPresignedDownloadUrl(doc.thumbnail_path, false)
-        return { ...doc, thumbUrl: res?.url }
-      }
-      return doc
-    })
-  )
 
   const cycleBadge = profile?.cycle ? CYCLES[profile.cycle as keyof typeof CYCLES] : null
   const hour = new Date().getHours()
@@ -86,47 +71,7 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* Recent documents */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-[#0F172A] dark:text-white">Documents récents</h2>
-          <Link
-            href={`/dashboard/${profile?.cycle || 'licence'}`}
-            className="text-xs font-medium text-[#1E3A8A] dark:text-blue-400 hover:underline"
-          >
-            Voir tout
-          </Link>
-        </div>
 
-        {recentDocs && recentDocs.length > 0 ? (
-          <div className="grid sm:grid-cols-2 gap-3">
-            {recentDocs.map((doc) => (
-              <div
-                key={doc.id}
-                className="group flex items-start gap-3 rounded-xl border border-[#E2E8F0] dark:border-slate-800 bg-white dark:bg-[#111827] p-4 hover:shadow-sm hover:border-[#1E3A8A] dark:hover:border-blue-600 transition-all duration-200"
-              >
-                {doc.thumbUrl ? (
-                  <img src={doc.thumbUrl} alt="Miniature" className="w-9 h-9 rounded-lg object-cover border border-[#E2E8F0] shrink-0" />
-                ) : (
-                  <div className="w-9 h-9 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800 flex items-center justify-center shrink-0">
-                    <FileText className="w-4 h-4 text-red-600 dark:text-red-400" />
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#0F172A] dark:text-white truncate">{doc.title}</p>
-                  <p className="text-xs text-[#64748B] dark:text-slate-400 mt-0.5">{doc.category || 'Document'}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 rounded-xl border border-dashed border-[#E2E8F0] dark:border-slate-700">
-            <GraduationCap className="w-8 h-8 text-[#CBD5E1] dark:text-slate-600 mx-auto mb-2" />
-            <p className="text-sm text-[#64748B] dark:text-slate-400">Aucun document disponible pour le moment.</p>
-            <p className="text-xs text-[#94A3B8] dark:text-slate-500 mt-1">Les documents seront ajoutés par votre administration.</p>
-          </div>
-        )}
-      </div>
     </div>
   )
 }

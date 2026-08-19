@@ -4,13 +4,14 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
+import type { Document } from '@/lib/types'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { getPresignedUploadUrl, getPresignedDownloadUrl, deleteStorageFile, deleteStorageFiles } from '@/app/actions/storage'
 
 import { generatePDFThumbnail } from '@/lib/pdf-thumbnail'
 
-export default function AdminDriveClient({ documents: initialDocuments }: { documents: any[] }) {
+export default function AdminDriveClient({ documents: initialDocuments }: { documents: Document[] }) {
   const [documents, setDocuments] = useState(initialDocuments)
   const [cycle, setCycle] = useState('dseb')
   const [currentPath, setCurrentPath] = useState<string[]>([])
@@ -23,7 +24,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     y: number,
     type: 'bg' | 'folder' | 'file',
     targetName?: string,
-    targetDoc?: any
+    targetDoc?: Document
   } | null>(null)
 
   // Modals state
@@ -52,7 +53,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
   const currentPathString = currentPath.join('/')
 
   const subFolders = new Set<string>()
-  let filesHere: any[] = []
+  let filesHere: Document[] = []
 
   if (searchQuery.trim() !== '') {
     const query = searchQuery.toLowerCase()
@@ -90,7 +91,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     e.stopPropagation()
     setContextMenu({ visible: true, x: e.pageX, y: e.pageY, type: 'folder', targetName: folderName })
   }
-  function handleContextMenuFile(e: React.MouseEvent, doc: any) {
+  function handleContextMenuFile(e: React.MouseEvent, doc: Document) {
     e.preventDefault()
     e.stopPropagation()
     setContextMenu({ visible: true, x: e.pageX, y: e.pageY, type: 'file', targetDoc: doc })
@@ -173,7 +174,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     setDocuments(prev => prev.filter(d => d.id !== id))
   }
 
-  async function renameFile(doc: any, newTitle: string) {
+  async function renameFile(doc: Document, newTitle: string) {
     if (!newTitle.trim() || newTitle === doc.title) return
     await supabase.from('documents').update({ title: newTitle }).eq('id', doc.id)
     setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, title: newTitle } : d))
@@ -185,7 +186,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     setUploading(true)
     const category = currentPathString || 'Général'
 
-    const newDocs: any[] = []
+    const newDocs: Document[] = []
     for (const file of Array.from(files)) {
       const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')
       const path = `${cycle}/${Date.now()}_${safeFileName}`
@@ -521,7 +522,7 @@ function Modal({ title, children, onClose }: { title: string, children: React.Re
   )
 }
 
-function AdminDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename }: { doc: any; supabase: any, onContextMenu: (e:any) => void, onDelete: () => void, onRename: () => void }) {
+function AdminDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename }: { doc: Document; supabase: any, onContextMenu: (e:any) => void, onDelete: () => void, onRename: () => void }) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
   const [thumbUrl, setThumbUrl] = useState<string | null>(null)

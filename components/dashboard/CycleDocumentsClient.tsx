@@ -2,20 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Loader2 } from 'lucide-react'
-import { formatDate, CYCLES } from '@/lib/utils'
+import { formatDate, CYCLES, cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { getPresignedDownloadUrl } from '@/app/actions/storage'
 import { motion, Variants } from 'framer-motion'
+import type { Document } from '@/lib/types'
+import FavoriteButton from '@/components/ui/FavoriteButton'
 
 interface CycleDocumentsClientProps {
   cycle: string
   cycleLabel: string
-  documents: any[]
+  documents: Document[]
+  favoriteDocsIds?: string[]
   supabaseUrl?: string
   supabaseKey?: string
 }
 
-export default function CycleDocumentsClient({ cycle, cycleLabel, documents, supabaseUrl, supabaseKey }: CycleDocumentsClientProps) {
+export default function CycleDocumentsClient({ cycle, cycleLabel, documents, favoriteDocsIds = [], supabaseUrl, supabaseKey }: CycleDocumentsClientProps) {
   const [currentPath, setCurrentPath] = useState<string[]>([])
   
   const supabase = createClient()
@@ -33,7 +36,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
 
   // Extract folders and files for the current path
   const subFolders = new Set<string>()
-  let filesHere: any[] = []
+  let filesHere: Document[] = []
 
   if (searchQuery.trim() !== '') {
     // If searching, ignore folders and just filter all documents
@@ -272,9 +275,14 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-4 mt-6 pt-6 border-t border-slate-200 dark:border-slate-800/50 tracking-tight uppercase opacity-80">Fichiers</h2>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filesHere.map((doc: any) => (
+                {filesHere.map((doc: Document) => (
                   <motion.div variants={itemVariants} key={doc.id}>
-                    <DocumentCard doc={doc} supabase={supabase} isMemoire={cycle === 'memoires'} />
+                    <DocumentCard 
+                      doc={doc} 
+                      supabase={supabase} 
+                      isMemoire={cycle === 'memoires'} 
+                      isFavorite={favoriteDocsIds.includes(doc.id)} 
+                    />
                   </motion.div>
                 ))}
               </div>
@@ -286,7 +294,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, sup
   )
 }
 
-function DocumentCard({ doc, supabase, isMemoire }: { doc: any; supabase: any; isMemoire?: boolean }) {
+function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document; supabase: any; isMemoire?: boolean; isFavorite?: boolean }) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
   const [thumbUrl, setThumbUrl] = useState<string | null>(null)
@@ -337,7 +345,7 @@ function DocumentCard({ doc, supabase, isMemoire }: { doc: any; supabase: any; i
   }
 
   return (
-    <div className="group flex flex-col justify-between gap-3 h-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg p-5 hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300">
+    <div className="relative group flex flex-col justify-between gap-3 h-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg p-5 hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300">
       <div className="flex items-start gap-4 w-full">
         {thumbUrl ? (
           <img src={thumbUrl} alt="Miniature" className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0 group-hover:shadow-md transition-shadow" />
@@ -373,10 +381,10 @@ function DocumentCard({ doc, supabase, isMemoire }: { doc: any; supabase: any; i
           </button>
         )}
       </div>
+
+      <div className="absolute top-2 right-2">
+        <FavoriteButton documentId={doc.id} initialIsFavorite={!!isFavorite} />
+      </div>
     </div>
   )
-}
-
-function cn(...classes: (string | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(' ')
 }

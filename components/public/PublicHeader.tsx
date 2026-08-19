@@ -114,7 +114,7 @@ export default function PublicHeader() {
               </Link>
               <Link href="/register">
                 <Button variant="secondary" size="sm" className="bg-[#A16207] hover:bg-[#854d0e]">
-                  Espace Étudiant
+                  S'inscrire
                 </Button>
               </Link>
             </>
@@ -170,7 +170,7 @@ export default function PublicHeader() {
                 </Link>
                 <Link href="/register" onClick={() => setMenuOpen(false)}>
                   <Button size="sm" className="w-full bg-[#A16207] hover:bg-[#854d0e]">
-                    Espace Étudiant
+                    S'inscrire
                   </Button>
                 </Link>
               </>

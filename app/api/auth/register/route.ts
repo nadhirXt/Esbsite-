@@ -1,23 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import nodemailer from 'nodemailer'
 import crypto from 'crypto'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import { transporter, FROM_ADDRESS } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
-  // Initialisation du client Supabase Admin
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  // Configuration de Nodemailer avec Gmail
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_EMAIL,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  })
 
   try {
     const { email, password, fullName, userType, institutionName, cycle } = await req.json()
@@ -73,7 +59,7 @@ export async function POST(req: NextRequest) {
     // 5. Envoyer l'email via Nodemailer (Gmail)
     try {
       await transporter.sendMail({
-        from: `"ESB Hub" <${process.env.SENDER_EMAIL || process.env.GMAIL_EMAIL}>`,
+        from: FROM_ADDRESS,
         to: email,
         subject: '✨ Confirmez votre inscription sur ESB Hub',
         html: `

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar'
+import RealtimeNotifications from '@/components/dashboard/RealtimeNotifications'
 import { ensureProfile } from '@/lib/ensure-profile'
 
 export const dynamic = 'force-dynamic'
@@ -25,6 +26,7 @@ export default async function DashboardLayout({
       <div className="fixed bottom-0 right-0 w-[600px] h-[600px] bg-amber-500/10 dark:bg-amber-600/5 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 pointer-events-none z-0" />
       
       <div className="relative z-10 flex flex-col md:flex-row w-full h-screen">
+      <RealtimeNotifications userCycle={profile?.cycle} userRole={profile?.role} />
       <DashboardSidebar
         user={{ 
           email: user.email!, 

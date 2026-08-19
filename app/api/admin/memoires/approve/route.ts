@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import nodemailer from 'nodemailer'
-
-// Configure Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_EMAIL,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-})
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import { transporter, FROM_ADDRESS } from '@/lib/email'
 
 // Generate a random password
 function generatePassword(length = 8) {
@@ -22,10 +13,7 @@ function generatePassword(length = 8) {
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  const supabase = supabaseAdmin
 
   try {
     const authHeader = req.headers.get('authorization')
@@ -89,7 +77,7 @@ export async function POST(req: NextRequest) {
 
       try {
         await transporter.sendMail({
-          from: `"ESB Administration" <${process.env.SENDER_EMAIL || process.env.GMAIL_EMAIL}>`,
+          from: FROM_ADDRESS,
           to: userEmail,
           subject: '🔐 Votre accès aux Mémoires ESB',
           html: emailHtml,

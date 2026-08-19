@@ -15,7 +15,18 @@ export default async function MemoiresPage() {
     .from('documents')
     .select('*')
     .eq('cycle', 'memoires')
+    .neq('title', '.keep')
     .order('created_at', { ascending: false })
 
-  return <MemoiresPageClient documents={documents || []} />
+  // Fetch favorites
+  let favoriteDocsIds: string[] = []
+  const { data: favs } = await supabase
+    .from('favorites')
+    .select('document_id')
+    .eq('user_id', session.user.id)
+  if (favs) {
+    favoriteDocsIds = favs.map(f => f.document_id)
+  }
+
+  return <MemoiresPageClient documents={documents || []} favoriteDocsIds={favoriteDocsIds} />
 }

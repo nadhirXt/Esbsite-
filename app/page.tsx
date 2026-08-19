@@ -4,7 +4,7 @@ import PublicHeader from '@/components/public/PublicHeader'
 import PublicFooter from '@/components/public/PublicFooter'
 import {
   GraduationCap, TrendingUp, Users, Award, BookOpen,
-  ArrowRight, CheckCircle, Building2, Star,
+  ArrowRight, CheckCircle, Building2, Star, Mail
 } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -88,6 +88,8 @@ const WHY_ESB = [
 ]
 
 import { createClient } from '@/lib/supabase/server'
+import { ClientImage } from '@/components/ui/ClientImage'
+import CopyEmailButton from '@/components/ui/CopyEmailButton'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -151,7 +153,7 @@ export default async function HomePage() {
             </div>
 
             {/* Stats Card — Glassmorphism */}
-            <div className="animate-fade-in-up animate-delay-200 hidden md:block">
+            <div className="animate-fade-in-up animate-delay-200 mt-8 md:mt-0 w-full max-w-md mx-auto md:max-w-none">
               <div className="glass-card p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 bg-[#A16207] rounded-xl flex items-center justify-center shadow-lg shadow-amber-900/30">
@@ -310,27 +312,29 @@ export default async function HomePage() {
               <div className="relative z-10 space-y-8 md:space-y-10 text-slate-600 dark:text-slate-300 leading-relaxed">
                 {/* Profile Card */}
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 bg-white dark:bg-[#1E293B] rounded-2xl p-5 sm:p-6 border border-slate-100 dark:border-slate-700 shadow-sm">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#0F172A] flex items-center justify-center shrink-0 shadow-lg">
-                    <span className="text-2xl sm:text-3xl font-bold text-white">MN</span>
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-[#1E3A8A] via-[#3B82F6] to-[#0F172A] flex items-center justify-center shrink-0 shadow-[0_0_40px_rgba(30,58,138,0.3)] overflow-hidden relative group ring-4 ring-white dark:ring-[#1E293B]">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-20 mix-blend-overlay"></div>
+                    <ClientImage src="/images/nadhir.jpg" alt="Mohamed Nadhir Benelhadj" className="w-full h-full object-cover absolute inset-0 z-10 group-hover:scale-110 transition-transform duration-700 ease-out" />
+                    <span className="text-3xl sm:text-4xl font-bold text-white relative z-0">MN</span>
                   </div>
                   <div className="text-center sm:text-left flex-1 min-w-0">
                     <h3 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white">Mohamed Nadhir Benelhadj</h3>
                     <p className="text-[#A16207] dark:text-amber-400 font-medium mt-1 text-sm sm:text-base">Étudiant DSEB 2ème année · École Supérieure de Banque</p>
                     <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">Alger, Algérie · Ex-ENPO (École Nationale Polytechnique d&apos;Oran)</p>
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-4">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium border border-blue-100 dark:border-blue-800">Finance & Banque</span>
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium border border-amber-100 dark:border-amber-800">Développement Web</span>
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium border border-purple-100 dark:border-purple-800">Data & Analyse</span>
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-5 flex flex-wrap gap-3 justify-center sm:justify-start">
                       <a
                         href="https://www.linkedin.com/in/mohamed-nadhir-benelhadj-833a32349/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="linkedin-btn inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md"
+                        className="linkedin-btn inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md hover:-translate-y-0.5 transition-transform"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                        Voir mon profil LinkedIn
+                        LinkedIn
                       </a>
                     </div>
                   </div>
@@ -405,6 +409,30 @@ export default async function HomePage() {
                   <div className="pt-4 sm:pt-6 border-t border-slate-200 dark:border-slate-700">
                     <p className="font-medium text-slate-800 dark:text-white mb-2 text-sm sm:text-base">Excellente navigation à toutes et à tous !</p>
                     <p className="text-[#A16207] dark:text-amber-400 font-bold signature">— Mohamed Nadhir Benelhadj</p>
+                  </div>
+                </div>
+
+                {/* ── NOUVELLE BOÎTE DE CONTACT ── */}
+                <div className="mt-8 sm:mt-12 bg-gradient-to-br from-[#0F172A] to-[#1E3A8A] dark:from-[#020617] dark:to-[#0F172A] rounded-3xl p-8 sm:p-10 relative overflow-hidden shadow-2xl border border-blue-900/50 group hover:shadow-blue-900/20 transition-all duration-500">
+                  <div className="absolute -top-10 -right-10 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 group-hover:rotate-12 pointer-events-none">
+                    <Mail className="w-48 h-48 text-white" />
+                  </div>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#A16207] to-transparent opacity-50" />
+                  <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="text-center md:text-left">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-blue-100 text-xs font-semibold mb-4 backdrop-blur-sm shadow-sm">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        Disponible pour échanger
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">Restons en contact</h3>
+                      <p className="text-blue-100/90 text-sm sm:text-base max-w-md leading-relaxed">
+                        Une question sur la plateforme, une suggestion d&apos;amélioration ou simplement envie d&apos;échanger ? N&apos;hésitez pas à m&apos;écrire directement.
+                      </p>
+                    </div>
+                    <CopyEmailButton email="info@esbhub.study" />
                   </div>
                 </div>
               </div>

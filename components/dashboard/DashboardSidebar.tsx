@@ -5,13 +5,15 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   GraduationCap, LayoutDashboard, BookOpen, FileText, Link2,
-  LogOut, ChevronRight, Settings, Shield, Menu, X, ArrowLeft, Users, Lock
+  LogOut, ChevronRight, Settings, Shield, Menu, X, ArrowLeft, Users, Lock, Heart
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn, CYCLES } from '@/lib/utils'
 import { getUserBadges } from '@/lib/badges'
 import BadgeList from '@/components/ui/BadgeList'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import GlobalSearch from '@/components/dashboard/GlobalSearch'
+import NotificationBell from '@/components/dashboard/NotificationBell'
 import { motion } from 'framer-motion'
 
 const NAV_ITEMS = [
@@ -20,6 +22,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/dseb',     label: 'DSEB',            icon: BookOpen },
   { href: '/dashboard/master',   label: 'Master',          icon: BookOpen },
   { href: '/dashboard/memoires', label: 'Mémoires (Confidentiel)', icon: Lock },
+  { href: '/dashboard/favoris',  label: 'Mes Favoris',     icon: Heart },
   { href: '/dashboard/bibliotheque', label: 'Bibliothèque', icon: FileText },
   { href: '/dashboard/ressources', label: 'Ressources',    icon: Link2 },
   { href: '/dashboard/annuaire',   label: 'Réseau / Annuaire', icon: Users },
@@ -73,13 +76,16 @@ export default function DashboardSidebar({ user }: SidebarProps) {
     <>
       {/* Mobile Top Bar */}
       <div className="md:hidden flex items-center justify-between px-5 py-4 bg-white/90 dark:bg-[#020617]/90 backdrop-blur-xl text-slate-900 dark:text-white shrink-0 shadow-md relative z-50">
-        <Link href="/" className="flex items-center gap-2 font-bold">
-          <GraduationCap className="w-5 h-5 text-blue-500 dark:text-blue-400" />
-          <span className="text-base">ESB <span className="text-blue-600 dark:text-blue-300 font-light">Hub</span></span>
-        </Link>
-        <button onClick={() => setIsOpen(!isOpen)} className="p-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors">
-          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setIsOpen(!isOpen)} className="p-1 -ml-1 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors">
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+          <Link href="/" className="flex items-center gap-2 font-bold">
+            <GraduationCap className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+            <span className="text-base">ESB <span className="text-blue-600 dark:text-blue-300 font-light">Hub</span></span>
+          </Link>
+        </div>
+        <NotificationBell userCycle={user.cycle} userRole={user.role} />
       </div>
 
       {/* Mobile Overlay */}
@@ -100,14 +106,15 @@ export default function DashboardSidebar({ user }: SidebarProps) {
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Logo (Desktop) */}
-        <motion.div variants={itemVariants} className="hidden md:flex px-6 py-6 border-b border-slate-200 dark:border-white/10">
-        <Link href="/" className="flex items-center gap-2 font-bold group">
-          <div className="p-1.5 bg-blue-50 dark:bg-blue-500/20 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30 transition-colors">
-            <GraduationCap className="w-5 h-5 text-blue-600 dark:text-blue-400 drop-shadow-sm" />
-          </div>
-          <span className="text-lg tracking-tight">ESB <span className="text-blue-600 dark:text-blue-300 font-light">Hub</span></span>
-        </Link>
-      </motion.div>
+        <motion.div variants={itemVariants} className="hidden md:flex items-center justify-between px-6 py-6 border-b border-slate-200 dark:border-white/10">
+          <Link href="/" className="flex items-center gap-2 font-bold group">
+            <div className="p-1.5 bg-blue-50 dark:bg-blue-500/20 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-blue-500/30 transition-colors">
+              <GraduationCap className="w-5 h-5 text-blue-600 dark:text-blue-400 drop-shadow-sm" />
+            </div>
+            <span className="text-lg tracking-tight">ESB <span className="text-blue-600 dark:text-blue-300 font-light">Hub</span></span>
+          </Link>
+          <NotificationBell userCycle={user.cycle} userRole={user.role} />
+        </motion.div>
 
       {/* User info */}
       <motion.div variants={itemVariants}>
@@ -138,6 +145,11 @@ export default function DashboardSidebar({ user }: SidebarProps) {
             <BadgeList badges={badges} compact className="mt-2" />
           )}
         </Link>
+      </motion.div>
+
+      {/* Global Search */}
+      <motion.div variants={itemVariants} className="px-5 py-3 border-b border-slate-200 dark:border-white/10">
+        <GlobalSearch />
       </motion.div>
 
       {/* Navigation */}
