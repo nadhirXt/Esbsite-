@@ -1,7 +1,16 @@
-import { type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/proxy'
 
 export async function middleware(request: NextRequest) {
+  const hostname = request.headers.get('host')
+  
+  if (hostname === 'esbhub.vercel.app') {
+    const url = request.nextUrl.clone()
+    url.host = 'esbhub.study'
+    url.port = '' // Ensure port is removed if any
+    return NextResponse.redirect(url)
+  }
+
   return await updateSession(request)
 }
 

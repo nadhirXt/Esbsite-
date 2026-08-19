@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "ESB Hub — École Supérieure de Banque",
     description: "Portail officiel de l'École Supérieure de Banque. Formations Licence, DSEB et Master en banque et finance.",
-    url: 'https://esbhub.vercel.app',
+    url: 'https://esbhub.study',
     siteName: 'ESB Hub',
     locale: 'fr_FR',
     type: 'website',
