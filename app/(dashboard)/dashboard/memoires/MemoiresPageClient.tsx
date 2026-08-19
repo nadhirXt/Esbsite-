@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react'
 import { Lock, FileKey, CheckCircle2, ShieldAlert, Key, HelpCircle, Loader2 } from 'lucide-react'
 import CycleDocumentsClient from '@/components/dashboard/CycleDocumentsClient'
 import { useRouter } from 'next/navigation'
+import type { Document } from '@/lib/types'
 
-export default function MemoiresPageClient({ documents }: { documents: any[] }) {
+export default function MemoiresPageClient({ documents, favoriteDocsIds = [] }: { documents: Document[], favoriteDocsIds?: string[] }) {
   const router = useRouter()
   const [status, setStatus] = useState<string | null>('loading')
   const [isLoading, setIsLoading] = useState(false)
@@ -101,8 +102,9 @@ export default function MemoiresPageClient({ documents }: { documents: any[] }) 
     return (
       <CycleDocumentsClient 
         cycle="memoires" 
-        cycleLabel="Mémoires (Confidentiel)" 
+        cycleLabel="Mémoires Confidentiels" 
         documents={documents} 
+        favoriteDocsIds={favoriteDocsIds}
       />
     )
   }

@@ -1,24 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import nodemailer from 'nodemailer'
 import crypto from 'crypto'
+import { supabaseAdmin } from '@/lib/supabase/admin'
+import { transporter, FROM_ADDRESS } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
-  // Initialisation du client Supabase
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  // Configuration de Nodemailer avec Gmail
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_EMAIL,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-  })
-
   try {
     const { email } = await req.json()
 
@@ -26,23 +11,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email invalide.' }, { status: 400 })
     }
 
-    // 1. Chercher l'utilisateur dans Supabase Auth
-    const { data: usersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers()
-    if (usersError) throw usersError
+    // 1. Chercher l'utilisateur par email
+    // Utilise listUsers avec pagination limitée au lieu de charger tous les users
+    const normalizedEmail = email.toLowerCase().trim()
+    const { data: usersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 1,
+      filter: normalizedEmail,
+    } as any)
 
-    const user = usersData.users.find(u => u.email === email.toLowerCase().trim())
+    const user = usersData?.users?.find(u => u.email === normalizedEmail)
 
     // Sécurité : on répond toujours "succès" même si l'email n'existe pas
     // (évite l'énumération d'utilisateurs)
-    if (!user) {
+    if (usersError || !user) {
       return NextResponse.json({ success: true })
     }
+
+    const userId = user.id
 
     // 2. Supprimer les anciens tokens de cet utilisateur
     await supabaseAdmin
       .from('password_reset_tokens')
       .delete()
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
 
     // 3. Générer un token sécurisé (UUID + random hex)
     const token = crypto.randomUUID() + '-' + crypto.randomBytes(16).toString('hex')
@@ -52,7 +44,7 @@ export async function POST(req: NextRequest) {
     const { error: insertError } = await supabaseAdmin
       .from('password_reset_tokens')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         token,
         expires_at: expiresAt.toISOString(),
       })
@@ -66,7 +58,7 @@ export async function POST(req: NextRequest) {
     // 6. Envoyer l'email via Nodemailer (Gmail)
     try {
       await transporter.sendMail({
-        from: `"ESB Hub" <${process.env.SENDER_EMAIL || process.env.GMAIL_EMAIL}>`,
+        from: FROM_ADDRESS,
         to: email,
         subject: '🔐 Réinitialisation de votre mot de passe — ESB Hub',
         html: `

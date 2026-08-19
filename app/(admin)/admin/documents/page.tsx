@@ -10,6 +10,7 @@ export default async function AdminDocumentsPage() {
   const { data: documents } = await supabase
     .from('documents')
     .select('*')
+    .neq('title', '.keep')
     .order('created_at', { ascending: false })
 
   return <AdminDriveClient documents={documents || []} />
