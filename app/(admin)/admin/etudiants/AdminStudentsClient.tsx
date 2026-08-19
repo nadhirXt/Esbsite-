@@ -86,10 +86,10 @@ export default function AdminStudentsClient({ initialStudents }: { initialStuden
                 <div>
                   <div className="flex items-start gap-4 mb-5">
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 shrink-0 border border-slate-200 dark:border-white/5 shadow-inner group-hover:scale-105 transition-transform duration-300">
-                      <User className="w-7 h-7" />
+                      <UserIcon className="w-7 h-7" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-lg text-slate-900 dark:text-white truncate" title={student.full_name}>{student.full_name || 'Utilisateur Anonyme'}</h3>
+                      <h3 className="font-bold text-lg text-slate-900 dark:text-white truncate" title={student.full_name || ''}>{student.full_name || 'Utilisateur Anonyme'}</h3>
                       {cycleBadge ? (
                         <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold mt-1.5 ${cycleBadge?.color} dark:bg-opacity-20`}>
                           {cycleBadge?.label}

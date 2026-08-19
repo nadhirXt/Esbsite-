@@ -82,10 +82,10 @@ export default function PublicStudentsClient({ initialStudents }: { initialStude
             <div key={student.id} className="bg-white border border-[#E2E8F0] rounded-2xl p-5 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all flex flex-col justify-between">
               <div className="flex items-start gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-[#64748B] shrink-0 border border-slate-200">
-                  <User className="w-6 h-6" />
+                  <UserIcon className="w-6 h-6" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-bold text-[#0F172A] truncate" title={student.full_name}>
+                  <h3 className="font-bold text-[#0F172A] truncate" title={student.full_name || ''}>
                     {student.full_name || 'Utilisateur Anonyme'}
                   </h3>
                   {student.cycle ? (

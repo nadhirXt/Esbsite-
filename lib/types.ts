@@ -9,6 +9,7 @@ export interface Document {
   is_memoire?: boolean
   fileUrl?: string
   thumbUrl?: string
+  year?: number | null
 }
 
 export interface Profile {
@@ -21,6 +22,8 @@ export interface Profile {
   delegate_cycle?: string | null
   delegate_year?: string | null
   created_at: string
+  institution_name?: string | null
+  linkedin_url?: string | null
 }
 
 export interface User extends Profile {
