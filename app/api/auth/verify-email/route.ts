@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase/admin'
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token')
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://esbhub.study'
 
   if (!token) {
     return NextResponse.redirect(`${siteUrl}/login?error=Lien de vérification invalide.`)

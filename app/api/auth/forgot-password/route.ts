@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     if (insertError) throw insertError
 
     // 5. Construire le lien de réinitialisation
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://esbhub.study'
     const resetLink = `${siteUrl}/reset-password?token=${token}`
 
     // 6. Envoyer l'email via Nodemailer (Gmail)

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Construire le lien de vérification
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://esbhub.study'
     const verifyLink = `${siteUrl}/api/auth/verify-email?token=${token}`
 
     // 5. Envoyer l'email via Nodemailer (Gmail)
