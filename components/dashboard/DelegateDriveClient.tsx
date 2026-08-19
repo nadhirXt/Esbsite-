@@ -409,7 +409,7 @@ export default function DelegateDriveClient({
                 <Edit2 className="w-4 h-4 text-[#64748B]" /> Renommer
               </button>
               <div className="h-px bg-[#E2E8F0] my-1" />
-              <button className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2" onClick={() => deleteFile(contextMenu.targetDoc.id, contextMenu.targetDoc.file_path)}>
+              <button className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2" onClick={() => contextMenu.targetDoc && deleteFile(contextMenu.targetDoc.id, contextMenu.targetDoc.file_path)}>
                 <Trash2 className="w-4 h-4" /> Supprimer
               </button>
             </>

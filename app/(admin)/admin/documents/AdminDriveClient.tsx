@@ -122,7 +122,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     const docsToDelete = documents.filter(doc => doc.cycle === cycle && (doc.category === folderPath || doc.category?.startsWith(folderPath + '/')))
     
     const filePathsToDelete = docsToDelete.filter(d => d.file_path !== '.keep').map(d => d.file_path)
-    const thumbPathsToDelete = docsToDelete.filter(d => d.thumbnail_path).map(d => d.thumbnail_path)
+    const thumbPathsToDelete = docsToDelete.map(d => d.thumbnail_path).filter((p): p is string => Boolean(p))
     const allPathsToDelete = [...filePathsToDelete, ...thumbPathsToDelete]
 
     if (allPathsToDelete.length > 0) {
@@ -159,7 +159,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     setShowRenameFolderModal(null)
   }
 
-  async function deleteFile(id: string, filePath: string, thumbnailPath?: string) {
+  async function deleteFile(id: string, filePath: string, thumbnailPath?: string | null) {
     if (!confirm('Supprimer ce fichier ?')) return
     
     const pathsToDelete = []
@@ -450,7 +450,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                 <Edit2 className="w-4 h-4 text-slate-400" /> Renommer
               </button>
               <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
-              <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => deleteFile(contextMenu.targetDoc.id, contextMenu.targetDoc.file_path, contextMenu.targetDoc.thumbnail_path)}>
+              <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => contextMenu.targetDoc && deleteFile(contextMenu.targetDoc.id, contextMenu.targetDoc.file_path, contextMenu.targetDoc.thumbnail_path)}>
                 <Trash2 className="w-4 h-4" /> Supprimer
               </button>
             </>
