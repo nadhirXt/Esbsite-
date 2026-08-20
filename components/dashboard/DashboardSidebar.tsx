@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   GraduationCap, LayoutDashboard, BookOpen, FileText, Link2,
-  LogOut, ChevronRight, Settings, Shield, Menu, X, ArrowLeft, Users, Lock, Heart
+  LogOut, ChevronRight, Settings, Shield, Menu, X, ArrowLeft, Users, Lock, Heart, BarChart2
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn, CYCLES } from '@/lib/utils'
@@ -21,12 +21,13 @@ const NAV_ITEMS = [
   { href: '/dashboard/licence',  label: 'Licence',         icon: BookOpen },
   { href: '/dashboard/dseb',     label: 'DSEB',            icon: BookOpen },
   { href: '/dashboard/master',   label: 'Master',          icon: BookOpen },
-  { href: '/dashboard/memoires', label: 'Mémoires (Confidentiel)', icon: Lock },
+  { href: '/dashboard/memoires', label: 'Mémoires',        icon: Lock },
   { href: '/dashboard/favoris',  label: 'Mes Favoris',     icon: Heart },
   { href: '/dashboard/bibliotheque', label: 'Bibliothèque', icon: FileText },
   { href: '/dashboard/ressources', label: 'Ressources',    icon: Link2 },
   { href: '/dashboard/annuaire',   label: 'Réseau / Annuaire', icon: Users },
   { href: '/dashboard/profile',    label: 'Mon Profil',      icon: Settings },
+  { href: '/dashboard/analytics',  label: 'Mes Stats',       icon: BarChart2 },
 ]
 
 interface SidebarProps {

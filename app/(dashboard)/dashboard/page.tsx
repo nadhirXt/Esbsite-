@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { BookOpen, Link2, FileText, GraduationCap, ArrowRight, Trophy } from 'lucide-react'
+import { BookOpen, Link2, FileText, GraduationCap, ArrowRight, Trophy, Sparkles, FolderOpen, Star, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { CYCLES } from '@/lib/utils'
 import { ensureProfile } from '@/lib/ensure-profile'
@@ -8,12 +8,46 @@ import BadgeList from '@/components/ui/BadgeList'
 import { getPresignedDownloadUrl } from '@/app/actions/storage'
 
 import WelcomeBanner from '@/components/dashboard/WelcomeBanner'
+import PopularDocuments from '@/components/dashboard/PopularDocuments'
+import ContinueLearning from '@/components/dashboard/ContinueLearning'
+import { StatsOverview, QuickActions } from '@/components/dashboard/InteractiveStatsCard'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const profile = await ensureProfile(supabase, user!)
+
+  // Fetch recent documents for "Popular" section
+  const { data: recentDocs } = await supabase
+    .from('documents')
+    .select('*')
+    .neq('title', '.keep')
+    .order('created_at', { ascending: false })
+    .limit(6)
+
+  // Fetch stats for the dashboard
+  const userCycle = profile?.cycle || 'licence'
+
+  const { count: totalDocs } = await supabase
+    .from('documents')
+    .select('*', { count: 'exact', head: true })
+    .eq('cycle', userCycle)
+    .neq('title', '.keep')
+
+  const { data: coursesData } = await supabase
+    .from('documents')
+    .select('category')
+    .eq('cycle', userCycle)
+    .neq('title', '.keep')
+
+  const uniqueCourses = new Set(coursesData?.map(d => d.category) || []).size
+
+  const { count: recentCount } = await supabase
+    .from('documents')
+    .select('*', { count: 'exact', head: true })
+    .neq('title', '.keep')
+    .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
 
 
 
@@ -49,27 +83,24 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Quick access cards */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-10">
-        {[
-          { href: `/dashboard/${profile?.cycle || 'licence'}`, label: 'Mes cours', icon: BookOpen, color: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' },
-          { href: '/dashboard/ressources', label: 'Liens utiles', icon: Link2, color: 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800' },
-        ].map((card) => (
-          <Link
-            key={card.href}
-            href={card.href}
-            className="group flex items-center justify-between rounded-xl border bg-white dark:bg-[#111827] border-[#E2E8F0] dark:border-slate-800 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-          >
-            <div className="flex items-center gap-3">
-              <div className={`w-9 h-9 rounded-lg border flex items-center justify-center ${card.color}`}>
-                <card.icon className="w-4 h-4" />
-              </div>
-              <span className="text-sm font-medium text-[#0F172A] dark:text-white">{card.label}</span>
-            </div>
-            <ArrowRight className="w-4 h-4 text-[#94A3B8] dark:text-slate-500 group-hover:text-[#1E3A8A] dark:group-hover:text-blue-400 transition-colors" />
-          </Link>
-        ))}
-      </div>
+      {/* Recommandations "Reprendre là où vous étiez" */}
+      <ContinueLearning />
+
+      {/* Stats Overview */}
+      <StatsOverview
+        totalDocuments={totalDocs || 0}
+        totalCourses={uniqueCourses || 0}
+        recentActivity={recentCount || 0}
+        cycle={userCycle}
+      />
+
+      {/* Popular Documents section */}
+      {recentDocs && recentDocs.length > 0 && (
+        <PopularDocuments documents={recentDocs} />
+      )}
+
+      {/* Quick Actions */}
+      <QuickActions cycle={userCycle} />
 
 
     </div>

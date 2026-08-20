@@ -1,14 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Loader2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Loader2, Sparkles } from 'lucide-react'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { getPresignedDownloadUrl } from '@/app/actions/storage'
-import { motion, Variants } from 'framer-motion'
 import type { Document } from '@/lib/types'
 import FavoriteButton from '@/components/ui/FavoriteButton'
 import ShareButtons from '@/components/ui/ShareButtons'
+import { CourseThumbnailCard } from './CourseThumbnailCard'
+import { getCourseThumbnail } from '@/lib/course-thumbnails'
+import { useTrackReading } from './useTrackReading'
+import { QAButtons } from './DocumentQA'
 
 interface CycleDocumentsClientProps {
   cycle: string
@@ -21,17 +25,18 @@ interface CycleDocumentsClientProps {
 
 export default function CycleDocumentsClient({ cycle, cycleLabel, documents, favoriteDocsIds = [], supabaseUrl, supabaseKey }: CycleDocumentsClientProps) {
   const [currentPath, setCurrentPath] = useState<string[]>([])
-  
+  const [viewMode, setViewMode] = useState<'cards' | 'thumbnails'>('thumbnails')
+
   const supabase = createClient()
 
   const isNoYearCycle = cycle === 'memoires' || cycle === 'bibliotheque'
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
-  
+
   const currentPathString = currentPath.join('/')
 
   // Filtrer d'abord par année si une année est sélectionnée
-  const yearDocuments = selectedYear !== null 
+  const yearDocuments = selectedYear !== null
     ? documents.filter(doc => doc.year === selectedYear)
     : documents
 
@@ -48,7 +53,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
     const baseDocs = isNoYearCycle ? documents : yearDocuments
     baseDocs.forEach(doc => {
       const cat = doc.category || 'Général'
-      
+
       // Si on est à la racine, 'Général' est considéré comme la racine
       if (currentPath.length === 0 && cat === 'Général') {
         if (doc.title !== '.keep') filesHere.push(doc)
@@ -85,27 +90,15 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
     setCurrentPath(prev => prev.slice(0, index + 1))
   }
 
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.05, delayChildren: 0.1 }
-    }
-  }
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 15 } }
-  }
-
   return (
     <div className="animate-fade-in max-w-5xl">
+      {/* Header */}
       <div className="mb-8">
         {selectedYear !== null ? (
           <div className="mb-4 flex items-center flex-wrap gap-2 text-sm">
             {!isNoYearCycle && (
               <>
-                <button 
+                <button
                   onClick={() => { setSelectedYear(null); setCurrentPath([]) }}
                   className="text-[#64748B] hover:text-[#1E3A8A] transition-colors flex items-center gap-1 font-medium"
                 >
@@ -127,7 +120,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
               </>
             )}
             {isNoYearCycle && currentPath.length > 0 && (
-              <button 
+              <button
                 onClick={() => setCurrentPath([])}
                 className="text-[#64748B] dark:text-slate-400 hover:text-[#1E3A8A] dark:hover:text-blue-400 transition-colors flex items-center gap-1 font-medium"
               >
@@ -155,7 +148,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
             {cycleBadge?.label}
           </span>
         )}
-        
+
         <h1 className="text-2xl font-bold text-[#0F172A] dark:text-white flex items-center gap-2 drop-shadow-sm">
           {selectedYear !== null ? (
             currentPath.length > 0 ? (
@@ -171,14 +164,15 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
           )}
         </h1>
         <p className="text-[#64748B] dark:text-slate-400 text-sm mt-1 font-medium">
-          {searchQuery 
-            ? `${filesHere.length} résultat(s) pour "${searchQuery}"` 
+          {searchQuery
+            ? `${filesHere.length} résultat(s) pour "${searchQuery}"`
             : selectedYear === null && !isNoYearCycle
               ? `${availableYears.length} années d'études`
               : `${foldersList.length} dossier(s), ${filesHere.length} fichier(s)`}
         </p>
       </div>
 
+      {/* Search Bar */}
       <div className="relative mb-8">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-slate-400" />
@@ -192,34 +186,73 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
         />
       </div>
 
+      {/* Year Selection with Thumbnails */}
       {selectedYear === null && searchQuery === '' && !isNoYearCycle ? (
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-6"
         >
-          {availableYears.map(year => (
-            <motion.button
-              variants={itemVariants}
-              key={year}
-              onClick={() => setSelectedYear(year)}
-              className="group flex items-center gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg p-5 hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300 text-left"
-            >
-              <div className="w-14 h-14 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                <Folder className="w-7 h-7 fill-current opacity-80" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
-                  {year}{year === 1 ? 'ère' : 'ème'} Année
-                </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Cliquez pour ouvrir</p>
-              </div>
-            </motion.button>
-          ))}
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            Sélectionnez votre année
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {availableYears.map((year, index) => {
+              const yearDocs = documents.filter(d => d.year === year)
+              const coursesCount = new Set(yearDocs.map(d => d.category)).size
+
+              return (
+                <motion.button
+                  key={year}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setSelectedYear(year)}
+                  className="group relative overflow-hidden rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white hover:shadow-2xl hover:shadow-blue-900/30 hover:border-blue-400/50 transition-all duration-300"
+                >
+                  {/* Background pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <svg width="100%" height="100%">
+                      <defs>
+                        <pattern id={`year-${year}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                          <circle cx="20" cy="20" r="2" fill="white" />
+                        </pattern>
+                      </defs>
+                      <rect width="100%" height="100%" fill={`url(#year-${year})`} />
+                    </svg>
+                  </div>
+
+                  <div className="relative z-10">
+                    <motion.div
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 shadow-xl"
+                    >
+                      <span className="text-3xl font-bold">{year}</span>
+                    </motion.div>
+
+                    <h3 className="text-lg font-bold mb-1">
+                      {year}{year === 1 ? 'ère' : 'ème'} Année
+                    </h3>
+                    <p className="text-sm text-white/80 mb-3">
+                      {coursesCount} cours disponibles
+                    </p>
+
+                    <div className="flex items-center justify-center gap-2 text-sm font-semibold bg-white/20 backdrop-blur-sm rounded-lg py-2 px-3">
+                      <Folder className="w-4 h-4" />
+                      Explorer
+                    </div>
+                  </div>
+                </motion.button>
+              )
+            })}
+          </div>
         </motion.div>
       ) : foldersList.length === 0 && filesHere.length === 0 ? (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm"
@@ -228,39 +261,67 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
           <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Ce dossier est vide.</p>
         </motion.div>
       ) : (
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="space-y-8"
         >
-          {/* FOLDERS GRID */}
+          {/* FOLDERS WITH THUMBNAILS */}
           {foldersList.length > 0 && (
             <div>
-              {currentPath.length === 0 && <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-4 tracking-tight uppercase opacity-80">Dossiers</h2>}
+              {currentPath.length === 0 && (
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-4 tracking-tight uppercase opacity-80 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  Dossiers
+                </h2>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {foldersList.map((folderName) => {
-                  const folderPrefix = currentPathString ? `${currentPathString}/${folderName}` : folderName;
-                  let filesCount = 0;
+                {foldersList.map((folderName, index) => {
+                  const folderPrefix = currentPathString ? `${currentPathString}/${folderName}` : folderName
+                  let filesCount = 0
                   documents.forEach(doc => {
                     if (doc.category === folderPrefix || doc.category?.startsWith(folderPrefix + '/')) {
-                      filesCount++;
+                      filesCount++
                     }
-                  });
+                  })
+
+                  const thumbnail = getCourseThumbnail(folderName)
+                  const Icon = thumbnail.icon
 
                   return (
                     <motion.button
-                      variants={itemVariants}
                       key={folderName}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ scale: 1.02, y: -4 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => navigateTo(folderName)}
-                      className="group flex items-center gap-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg p-4 hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300 text-left"
+                      className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] hover:shadow-xl hover:shadow-blue-900/10 hover:border-blue-400/50 transition-all duration-300 text-left"
                     >
-                      <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                        <Folder className="w-6 h-6 fill-current opacity-80" />
+                      {/* Thumbnail gradient header */}
+                      <div className={`h-24 bg-gradient-to-br ${thumbnail.gradient} dark:bg-gradient-to-br dark:${thumbnail.gradientDark} relative overflow-hidden`}>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <motion.div
+                            animate={{ y: [0, -3, 0] }}
+                            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                            className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30"
+                          >
+                            <Icon className="w-7 h-7 text-white" />
+                          </motion.div>
+                        </div>
+
+                        {/* File count badge */}
+                        <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-[10px] font-semibold">
+                          {filesCount} fichiers
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">{folderName}</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">{filesCount} élément{filesCount > 1 ? 's' : ''}</p>
+
+                      <div className="p-4">
+                        <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                          {folderName}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{thumbnail.description}</p>
                       </div>
                     </motion.button>
                   )
@@ -273,16 +334,23 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
           {filesHere.length > 0 && (
             <div>
               {(currentPath.length > 0 || foldersList.length > 0) && (
-                <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-4 mt-6 pt-6 border-t border-slate-200 dark:border-slate-800/50 tracking-tight uppercase opacity-80">Fichiers</h2>
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-4 mt-6 pt-6 border-t border-slate-200 dark:border-slate-800/50 tracking-tight uppercase opacity-80 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-blue-500" />
+                  Fichiers
+                </h2>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filesHere.map((doc: Document) => (
-                  <motion.div variants={itemVariants} key={doc.id}>
-                    <DocumentCard 
-                      doc={doc} 
-                      supabase={supabase} 
-                      isMemoire={cycle === 'memoires'} 
-                      isFavorite={favoriteDocsIds.includes(doc.id)} 
+                  <motion.div
+                    key={doc.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <DocumentCard
+                      doc={doc}
+                      supabase={supabase}
+                      isMemoire={cycle === 'memoires'}
+                      isFavorite={favoriteDocsIds.includes(doc.id)}
                     />
                   </motion.div>
                 ))}
@@ -299,6 +367,7 @@ function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document;
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
   const [thumbUrl, setThumbUrl] = useState<string | null>(null)
+  const { trackView, trackDownload } = useTrackReading(doc.id)
 
   useEffect(() => {
     if (doc.thumbnail_path) {
@@ -311,6 +380,7 @@ function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document;
   const handleView = async () => {
     if (isLoadingView) return
     setIsLoadingView(true)
+    trackView()  // ← Analytics
     try {
       const pData = await getPresignedDownloadUrl(doc.file_path, false)
       if (pData?.url) {
@@ -330,6 +400,7 @@ function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document;
   const handleDownload = async () => {
     if (isLoadingDownload) return
     setIsLoadingDownload(true)
+    trackDownload() // ← Analytics
     try {
       const dData = await getPresignedDownloadUrl(doc.file_path, true)
       if (dData?.url) {
@@ -345,48 +416,57 @@ function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document;
     }
   }
 
+  const thumbnail = getCourseThumbnail(doc.category)
+
   return (
-    <div className="relative group flex flex-col justify-between gap-3 h-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg p-5 hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300">
-      <div className="flex items-start gap-4 w-full">
+    <motion.div
+      whileHover={{ scale: 1.02, y: -4 }}
+      className="relative group flex flex-col justify-between gap-3 h-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg overflow-hidden hover:shadow-xl hover:shadow-blue-900/10 hover:border-blue-400/50 transition-all duration-300"
+    >
+      {/* Thumbnail header */}
+      <div className={`h-20 bg-gradient-to-br ${thumbnail.gradient} dark:bg-gradient-to-br dark:${thumbnail.gradientDark} relative flex items-center justify-center`}>
         {thumbUrl ? (
-          <img src={thumbUrl} alt="Miniature" className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0 group-hover:shadow-md transition-shadow" />
+          <img src={thumbUrl} alt="Miniature" className="w-full h-full object-cover absolute inset-0" />
         ) : (
-          <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <FileText className="w-6 h-6 text-red-500 dark:text-red-400" />
-          </div>
+          <FileText className="w-8 h-8 text-white/80" />
         )}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" title={doc.title}>{doc.title}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatDate(doc.created_at)}</p>
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
-      
-      <div className="flex items-center gap-2 mt-3 pt-4 border-t border-slate-100 dark:border-slate-800/50">
-        <button 
-          onClick={handleView}
-          disabled={isLoadingView}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoadingView ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-          Voir
-        </button>
-        
-        {!isMemoire && (
+
+      <div className="p-4 pt-2">
+        <p className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" title={doc.title}>
+          {doc.title}
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatDate(doc.created_at)}</p>
+
+        <div className="flex items-center gap-2 mt-3">
           <button
-            onClick={handleDownload}
-            disabled={isLoadingDownload}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleView}
+            disabled={isLoadingView}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-xs font-bold disabled:opacity-50"
           >
-            {isLoadingDownload ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            Télécharger
+            {isLoadingView ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+            Voir
           </button>
-        )}
+
+          {!isMemoire && (
+            <button
+              onClick={handleDownload}
+              disabled={isLoadingDownload}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs font-bold disabled:opacity-50"
+            >
+              {isLoadingDownload ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+              Télécharger
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="absolute top-2 right-2 flex items-center gap-1">
+        <QAButtons documentId={doc.id} compact />
         <ShareButtons documentTitle={doc.title} documentId={doc.id} />
         <FavoriteButton documentId={doc.id} initialIsFavorite={!!isFavorite} />
       </div>
-    </div>
+    </motion.div>
   )
 }
