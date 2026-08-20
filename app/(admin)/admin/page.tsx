@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Upload, Link2, FileText, Users, ArrowRight, Shield } from 'lucide-react'
 
 import AdminWelcomeBanner from '@/components/admin/AdminWelcomeBanner'
+import AdminAnalyticsPrototype from '@/components/admin/AdminAnalyticsPrototype'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -47,6 +48,9 @@ export default async function AdminDashboard() {
               ))}
             </div>
           </div>
+
+          {/* NOUVEAU : Analytics Prototype */}
+          <AdminAnalyticsPrototype />
         </div>
 
         <div>

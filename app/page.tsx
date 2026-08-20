@@ -90,6 +90,7 @@ const WHY_ESB = [
 import { createClient } from '@/lib/supabase/server'
 import { ClientImage } from '@/components/ui/ClientImage'
 import CopyEmailButton from '@/components/ui/CopyEmailButton'
+import QRCodeSection from '@/components/public/QRCodeSection'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -439,6 +440,9 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ── QR CODE SECTION ────────────────────── */}
+        <QRCodeSection />
 
         {/* ── CTA ────────────────────────────────── */}
         <section id="contact" className="bg-gradient-to-r from-[#1E3A8A] to-[#0F172A] dark:from-[#0F172A] dark:to-[#020617] py-14 sm:py-20 text-white text-center relative overflow-hidden">

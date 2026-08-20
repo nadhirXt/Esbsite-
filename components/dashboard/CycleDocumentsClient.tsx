@@ -8,6 +8,7 @@ import { getPresignedDownloadUrl } from '@/app/actions/storage'
 import { motion, Variants } from 'framer-motion'
 import type { Document } from '@/lib/types'
 import FavoriteButton from '@/components/ui/FavoriteButton'
+import ShareButtons from '@/components/ui/ShareButtons'
 
 interface CycleDocumentsClientProps {
   cycle: string
@@ -382,7 +383,8 @@ function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document;
         )}
       </div>
 
-      <div className="absolute top-2 right-2">
+      <div className="absolute top-2 right-2 flex items-center gap-1">
+        <ShareButtons documentTitle={doc.title} documentId={doc.id} />
         <FavoriteButton documentId={doc.id} initialIsFavorite={!!isFavorite} />
       </div>
     </div>

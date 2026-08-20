@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import CycleDocumentsClient from './CycleDocumentsClient'
+import CycleDocumentsClient from './CycleDocumentsGrid'
 
 interface DocPageProps {
   cycle: string
