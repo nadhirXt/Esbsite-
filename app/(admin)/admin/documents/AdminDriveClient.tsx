@@ -292,7 +292,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
             
             if (data) newDocs.push(data)
           } else {
-            console.error("Upload error text:", await res.text())
+            console.error("Upload error text:", "Upload failed")
             alert(`Erreur d'upload. Vérifiez vos CORS.`)
           }
         } catch (err: any) {
