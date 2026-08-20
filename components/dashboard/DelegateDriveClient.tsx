@@ -43,8 +43,22 @@ export default function DelegateDriveClient({
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
 
   const supabase = createClient()
+
+  // Prevent navigation when uploading
+  useEffect(() => {
+    const isUploading = Object.keys(uploadProgress).length > 0
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isUploading) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [uploadProgress])
 
   // Click outside to close context menu
   useEffect(() => {
@@ -188,6 +202,9 @@ export default function DelegateDriveClient({
 
     const newDocs: Document[] = []
     for (const file of Array.from(files)) {
+      const fileId = `${file.name}-${Date.now()}`
+      setUploadProgress(prev => ({ ...prev, [fileId]: 0 }))
+
       const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')
       const path = `${delegateCycle}/A${delegateYear}/${Date.now()}_${safeFileName}`
       const fileTitle = file.name.replace(/\.[^.]+$/, '')
@@ -196,28 +213,55 @@ export default function DelegateDriveClient({
       
       if (!urlError && url) {
         try {
-          const res = await fetch(url, {
-            method: 'PUT',
-            body: file,
-            headers: { 'Content-Type': file.type || 'application/octet-stream' }
+          const success = await new Promise<boolean>((resolve) => {
+            const xhr = new XMLHttpRequest()
+            xhr.open('PUT', url, true)
+            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+            
+            xhr.upload.onprogress = (e) => {
+              if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100)
+                setUploadProgress(prev => ({ ...prev, [fileId]: percent }))
+              }
+            }
+
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(true)
+              } else {
+                console.error("Upload error text:", xhr.responseText)
+                resolve(false)
+              }
+            }
+
+            xhr.onerror = () => {
+              console.error("Upload xhr error")
+              resolve(false)
+            }
+
+            xhr.send(file)
           })
-          if (res.ok) {
+
+          if (success) {
             const { data, error: dbError } = await supabase.from('documents').insert({
               title: fileTitle, file_path: path, cycle: delegateCycle, year: delegateYear, category, uploader_id: uploaderId
             }).select().single()
             
             if (data) newDocs.push(data)
           } else {
-            console.error("Upload error text:", await res.text())
-            alert(`Erreur d'upload (HTTP ${res.status}). Vérifiez vos CORS.`)
+            console.error("Upload error text:", "Upload failed")
+            alert(`Erreur d'upload. Vérifiez vos CORS.`)
           }
         } catch (err: any) {
           console.error("Upload fetch error", err)
-          if (err.message === "Failed to fetch") {
-            alert("Erreur de connexion (CORS). Avez-vous bien fait l'étape 3 du guide ?")
-          }
         }
       }
+      
+      setUploadProgress(prev => {
+        const next = { ...prev }
+        delete next[fileId]
+        return next
+      })
     }
     setDocuments(prev => [...newDocs, ...prev])
     setUploading(false)
@@ -463,6 +507,29 @@ export default function DelegateDriveClient({
             </div>
           </form>
         </Modal>
+      )}
+
+      {/* Global Upload Progress Toast */}
+      {Object.keys(uploadProgress).length > 0 && (
+        <div className="fixed bottom-6 right-6 bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-2xl z-50 w-80 animate-in slide-in-from-bottom-5">
+          <h3 className="font-bold text-sm mb-4 text-[#0F172A] flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-[#1E3A8A]" />
+            Uploads en cours...
+          </h3>
+          <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+            {Object.entries(uploadProgress).map(([id, progress]) => (
+              <div key={id}>
+                <div className="flex justify-between text-xs mb-1.5 font-medium text-[#64748B]">
+                  <span className="truncate w-56" title={id.split('-').slice(0, -1).join('-')}>{id.split('-').slice(0, -1).join('-')}</span>
+                  <span>{progress}%</span>
+                </div>
+                <div className="w-full bg-[#F1F5F9] rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-[#1E3A8A] h-1.5 rounded-full transition-all duration-300 ease-out" style={{ width: `${progress}%` }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
     </div>
