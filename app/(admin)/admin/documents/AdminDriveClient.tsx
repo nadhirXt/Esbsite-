@@ -14,7 +14,7 @@ import { generatePDFThumbnail } from '@/lib/pdf-thumbnail'
 export default function AdminDriveClient({ documents: initialDocuments }: { documents: Document[] }) {
   const [documents, setDocuments] = useState(initialDocuments)
   const [cycle, setCycle] = useState('dseb')
-  const [year, setYear] = useState(1)
+  const [year, setYear] = useState<number | null>(1)
   const [currentPath, setCurrentPath] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   
@@ -50,7 +50,8 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
   }, [contextMenu])
 
   // Process documents
-  const cycleDocuments = documents.filter(doc => doc.cycle === cycle && doc.year === year)
+  const isNoYearCycle = cycle === 'memoires' || cycle === 'bibliotheque'
+  const cycleDocuments = documents.filter(doc => doc.cycle === cycle && (isNoYearCycle || doc.year === year))
   const currentPathString = currentPath.join('/')
 
   const subFolders = new Set<string>()
@@ -121,7 +122,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
     
     // Find all documents in this folder and subfolders
-    const docsToDelete = documents.filter(doc => doc.cycle === cycle && doc.year === year && (doc.category === folderPath || doc.category?.startsWith(folderPath + '/')))
+    const docsToDelete = documents.filter(doc => doc.cycle === cycle && (isNoYearCycle || doc.year === year) && (doc.category === folderPath || doc.category?.startsWith(folderPath + '/')))
     
     const filePathsToDelete = docsToDelete.filter(d => d.file_path !== '.keep').map(d => d.file_path)
     const thumbPathsToDelete = docsToDelete.map(d => d.thumbnail_path).filter((p): p is string => Boolean(p))
@@ -144,7 +145,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     const oldPath = currentPathString ? `${currentPathString}/${oldName}` : oldName
     const newPath = currentPathString ? `${currentPathString}/${newName}` : newName
     
-    const docsToUpdate = documents.filter(doc => doc.cycle === cycle && doc.year === year && (doc.category === oldPath || doc.category?.startsWith(oldPath + '/')))
+    const docsToUpdate = documents.filter(doc => doc.cycle === cycle && (isNoYearCycle || doc.year === year) && (doc.category === oldPath || doc.category?.startsWith(oldPath + '/')))
     
     for (const doc of docsToUpdate) {
       let updatedCategory = doc.category
@@ -191,7 +192,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     const newDocs: Document[] = []
     for (const file of Array.from(files)) {
       const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')
-      const path = `${cycle}/A${year}/${Date.now()}_${safeFileName}`
+      const path = isNoYearCycle ? `${cycle}/${Date.now()}_${safeFileName}` : `${cycle}/A${year}/${Date.now()}_${safeFileName}`
       const fileTitle = file.name.replace(/\.[^.]+$/, '')
       
       const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
@@ -201,7 +202,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
       if (file.type === 'application/pdf') {
          const thumbBlob = await generatePDFThumbnail(file);
          if (thumbBlob) {
-            const thumbName = `${cycle}/A${year}/${Date.now()}_thumb_${safeFileName}.jpg`;
+            const thumbName = isNoYearCycle ? `${cycle}/${Date.now()}_thumb_${safeFileName}.jpg` : `${cycle}/A${year}/${Date.now()}_thumb_${safeFileName}.jpg`;
             const { url: thumbUrl } = await getPresignedUploadUrl(thumbName, 'image/jpeg');
             if (thumbUrl) {
                 try {
@@ -225,7 +226,8 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
             headers: { 'Content-Type': file.type || 'application/octet-stream' }
           })
           if (res.ok) {
-            const insertData: any = { title: fileTitle, file_path: path, cycle, year, category }
+            const insertData: any = { title: fileTitle, file_path: path, cycle, category }
+            if (!isNoYearCycle) insertData.year = year
             if (thumbnailPath) {
               insertData.thumbnail_path = thumbnailPath
             }
@@ -300,7 +302,13 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
               {Object.entries(CYCLES).map(([cValue, cData]) => (
                 <button
                   key={cValue}
-                  onClick={() => { setCycle(cValue); setYear(1); setCurrentPath([]); setSearchQuery('') }}
+                  onClick={() => { 
+                    setCycle(cValue); 
+                    const newIsNoYear = cValue === 'memoires' || cValue === 'bibliotheque';
+                    setYear(newIsNoYear ? null : 1); 
+                    setCurrentPath([]); 
+                    setSearchQuery(''); 
+                  }}
                   className={cn(
                     "px-4 py-2.5 rounded-xl border text-sm font-bold transition-all duration-300",
                     cycle === cValue ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/30" : "bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
@@ -310,20 +318,22 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                 </button>
               ))}
             </div>
-            <div className="flex flex-wrap gap-2">
-              {availableYears.map((y) => (
-                <button
-                  key={y}
-                  onClick={() => { setYear(y); setCurrentPath([]); setSearchQuery('') }}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg border text-xs font-bold transition-all duration-300",
-                    year === y ? "bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/30" : "bg-white/40 dark:bg-slate-800/40 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
-                  )}
-                >
-                  Année {y}
-                </button>
-              ))}
-            </div>
+            {!isNoYearCycle && (
+              <div className="flex flex-wrap gap-2">
+                {availableYears.map((y) => (
+                  <button
+                    key={y}
+                    onClick={() => { setYear(y); setCurrentPath([]); setSearchQuery('') }}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg border text-xs font-bold transition-all duration-300",
+                      year === y ? "bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/30" : "bg-white/40 dark:bg-slate-800/40 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    )}
+                  >
+                    Année {y}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
