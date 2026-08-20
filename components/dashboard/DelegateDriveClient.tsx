@@ -42,6 +42,7 @@ export default function DelegateDriveClient({
   // Upload State (for drag and drop / direct upload)
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const folderInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
 
@@ -195,15 +196,30 @@ export default function DelegateDriveClient({
     setShowRenameFileModal(null)
   }
 
-  async function handleFilesUpload(files: FileList | File[]) {
+  async function handleFilesUpload(files: FileList | File[] | any[]) {
     if (files.length === 0) return
     setUploading(true)
-    const category = currentPathString || 'Général'
+    const baseCategory = currentPathString || 'Général'
 
     const newDocs: Document[] = []
-    for (const file of Array.from(files)) {
+    
+    for (const file of Array.from(files) as any[]) {
       const fileId = `${file.name}-${Date.now()}`
       setUploadProgress(prev => ({ ...prev, [fileId]: 0 }))
+
+      let relativeCat = ''
+      const pathStr = file.customPath || file.webkitRelativePath || ''
+      if (pathStr) {
+        const parts = pathStr.split('/')
+        parts.pop() // remove filename
+        if (parts.length > 0) {
+          relativeCat = parts.join('/')
+        }
+      }
+      
+      const category = relativeCat 
+        ? (baseCategory === 'Général' ? relativeCat : `${baseCategory}/${relativeCat}`)
+        : baseCategory
 
       const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')
       const path = `${delegateCycle}/A${delegateYear}/${Date.now()}_${safeFileName}`
@@ -268,6 +284,48 @@ export default function DelegateDriveClient({
   }
 
   // Drag and drop handlers
+  const getFilesFromDataTransferItems = async (items: DataTransferItemList) => {
+    const files: any[] = []
+    
+    const readEntry = async (entry: any, path: string = '') => {
+      if (entry.isFile) {
+        const file = await new Promise<File>((resolve) => entry.file(resolve))
+        Object.defineProperty(file, 'customPath', { value: path + file.name })
+        files.push(file)
+      } else if (entry.isDirectory) {
+        const dirReader = entry.createReader()
+        
+        const readAllEntries = async (reader: any): Promise<any[]> => {
+          let allEntries: any[] = []
+          let currentEntries = await new Promise<any[]>((resolve) => reader.readEntries(resolve))
+          while (currentEntries.length > 0) {
+            allEntries = allEntries.concat(currentEntries)
+            currentEntries = await new Promise<any[]>((resolve) => reader.readEntries(resolve))
+          }
+          return allEntries
+        }
+        
+        const entries = await readAllEntries(dirReader)
+        for (const e of entries) {
+          await readEntry(e, path + entry.name + '/')
+        }
+      }
+    }
+
+    const promises = []
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      if (item.kind === 'file') {
+        const entry = item.webkitGetAsEntry()
+        if (entry) {
+          promises.push(readEntry(entry))
+        }
+      }
+    }
+    await Promise.all(promises)
+    return files
+  }
+
   function onDragOver(e: React.DragEvent) {
     e.preventDefault()
     setIsDragging(true)
@@ -276,10 +334,13 @@ export default function DelegateDriveClient({
     e.preventDefault()
     setIsDragging(false)
   }
-  function onDrop(e: React.DragEvent) {
+  async function onDrop(e: React.DragEvent) {
     e.preventDefault()
     setIsDragging(false)
-    if (e.dataTransfer.files?.length > 0) {
+    if (e.dataTransfer.items) {
+      const files = await getFilesFromDataTransferItems(e.dataTransfer.items)
+      if (files.length > 0) handleFilesUpload(files)
+    } else if (e.dataTransfer.files?.length > 0) {
       handleFilesUpload(e.dataTransfer.files)
     }
   }
@@ -431,6 +492,9 @@ export default function DelegateDriveClient({
               <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2" onClick={() => fileInputRef.current?.click()}>
                 <UploadIcon className="w-4 h-4 text-[#64748B]" /> Uploader un fichier
               </button>
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2" onClick={() => folderInputRef.current?.click()}>
+                <FolderOpen className="w-4 h-4 text-[#64748B]" /> Uploader un dossier
+              </button>
             </>
           )}
           {contextMenu.type === 'folder' && (
@@ -467,6 +531,16 @@ export default function DelegateDriveClient({
         multiple 
         className="hidden" 
         ref={fileInputRef}
+        onChange={(e) => {
+          if (e.target.files) handleFilesUpload(e.target.files)
+        }}
+      />
+      <input 
+        type="file" 
+        multiple 
+        {...{ webkitdirectory: "", directory: "" }}
+        className="hidden" 
+        ref={folderInputRef}
         onChange={(e) => {
           if (e.target.files) handleFilesUpload(e.target.files)
         }}
