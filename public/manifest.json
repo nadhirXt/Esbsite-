@@ -1,26 +1,44 @@
 {
-  "name": "ESB Hub — École Supérieure de Banque",
+  "name": "ESB Hub",
   "short_name": "ESB Hub",
-  "description": "Portail numérique de l'École Supérieure de Banque. Accédez à vos cours, ressources et annuaire.",
-  "start_url": "/",
+  "description": "La plateforme collaborative des étudiants de l'École Supérieure de Banque",
+  "start_url": "/dashboard",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#0F172A",
-  "theme_color": "#0F172A",
-  "categories": ["education", "finance"],
+  "background_color": "#0B1120",
+  "theme_color": "#1E3A8A",
+  "orientation": "portrait-primary",
+  "categories": ["education", "productivity"],
   "lang": "fr",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Mes cours",
+      "url": "/dashboard",
+      "description": "Accéder à mon tableau de bord"
+    },
+    {
+      "name": "Calendrier",
+      "url": "/dashboard/calendrier",
+      "description": "Voir les examens à venir"
+    },
+    {
+      "name": "Flashcards",
+      "url": "/dashboard/flashcards",
+      "description": "Réviser avec les flashcards"
     }
   ]
 }
