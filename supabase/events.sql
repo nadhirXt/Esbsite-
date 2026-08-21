@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.events (
   description text CHECK (char_length(description) <= 1000),
   event_date  date NOT NULL,
   event_time  time,
+  end_time    time,
   type        text NOT NULL DEFAULT 'exam', -- 'exam' | 'tp' | 'rendu' | 'holiday' | 'autre'
   cycle       text,   -- null = tous les cycles
   year        int,    -- null = toutes les années
@@ -52,6 +53,7 @@ RETURNS TABLE (
   description text,
   event_date date,
   event_time time,
+  end_time time,
   type text,
   cycle text,
   year int,
@@ -60,7 +62,7 @@ RETURNS TABLE (
 SECURITY DEFINER
 SET search_path = public
 LANGUAGE sql AS $$
-  SELECT e.id, e.title, e.description, e.event_date, e.event_time,
+  SELECT e.id, e.title, e.description, e.event_date, e.event_time, e.end_time,
          e.type, e.cycle, e.year, e.location
   FROM public.events e
   WHERE
