@@ -16,7 +16,7 @@ export default async function CalendrierPage() {
 
   const { data: events, error } = await supabase.rpc('get_upcoming_events', {
     p_cycle: profile?.cycle || null,
-    p_year: null,
+    p_year: profile?.year || null,
   })
 
   if (error) {

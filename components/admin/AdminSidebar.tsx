@@ -4,18 +4,20 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  GraduationCap, Upload, Link2, LayoutDashboard, Shield, Menu, X, Users, BookOpen
+  GraduationCap, Upload, Link2, LayoutDashboard, Shield, Menu, X, Users, BookOpen, Newspaper, Calendar
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import ThemeToggle from '@/components/ui/ThemeToggle'
 
 const NAV = [
-  { href: '/admin',           label: 'Vue d\'ensemble', icon: LayoutDashboard },
-  { href: '/admin/documents', label: 'Gérer les documents', icon: Upload },
-  { href: '/admin/users',     label: 'Gestion des Membres', icon: Shield },
-  { href: '/admin/etudiants', label: 'Annuaire Étudiants', icon: Users },
-  { href: '/admin/memoires',  label: 'Mémoires',          icon: BookOpen },
-  { href: '/admin/liens',     label: 'Liens utiles',      icon: Link2 },
+  { href: '/admin',            label: 'Vue d\'ensemble',   icon: LayoutDashboard },
+  { href: '/admin/documents',  label: 'Gérer les documents', icon: Upload },
+  { href: '/admin/actualites', label: 'Actualités',         icon: Newspaper },
+  { href: '/admin/calendrier', label: 'Calendrier',         icon: Calendar },
+  { href: '/admin/users',      label: 'Gestion des Membres', icon: Shield },
+  { href: '/admin/etudiants',  label: 'Annuaire Étudiants', icon: Users },
+  { href: '/admin/memoires',   label: 'Mémoires',          icon: BookOpen },
+  { href: '/admin/liens',      label: 'Liens utiles',      icon: Link2 },
 ]
 
 interface AdminSidebarProps {
