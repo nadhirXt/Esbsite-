@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — NEVER commit secrets
 .env*
 
 # vercel
@@ -40,3 +40,19 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 drive-import/
+
+# ⚠️ SÉCURITÉ — Fichiers dangereux (scripts admin, DB wipe, migration)
+# Ces fichiers ne doivent JAMAIS être sur GitHub
+wipe-db.js
+migrate.js
+fix-*.js
+fix-*.ts
+
+# Scripts d'upload/migration (contiennent des logiques d'accès admin)
+scripts/
+
+# Données privées — Dossier contenant les documents des étudiants
+New Folder/
+
+# Logs de tâches locales
+*.log
