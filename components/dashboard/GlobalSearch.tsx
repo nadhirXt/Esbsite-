@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, FileText, BookOpen, Link2, Users, Loader2, File, Clock, Calendar, Trophy, Brain, Megaphone, X } from 'lucide-react'
+import { Search, FileText, BookOpen, Link2, Users, Loader2, File, Clock, Calendar, Trophy, Megaphone, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 
@@ -20,8 +20,7 @@ const PAGES = [
   { type: 'page' as const, id: 'p6',  title: 'Ressources',     subtitle: 'Liens utiles',         url: '/dashboard/ressources',  icon: Link2 },
   { type: 'page' as const, id: 'p7',  title: 'Calendrier',     subtitle: 'Examens & dates',      url: '/dashboard/calendrier',  icon: Calendar },
   { type: 'page' as const, id: 'p8',  title: 'Classement',     subtitle: 'Mes points',           url: '/dashboard/classement',  icon: Trophy },
-  { type: 'page' as const, id: 'p9',  title: 'Flashcards',     subtitle: 'Révision espacée',     url: '/dashboard/flashcards',  icon: Brain },
-  { type: 'page' as const, id: 'p10', title: 'Actualités ESB', subtitle: 'Annonces',             url: '/dashboard/actualites',  icon: Megaphone },
+  { type: 'page' as const, id: 'p9',  title: 'Actualités ESB', subtitle: 'Annonces',             url: '/dashboard/actualites',  icon: Megaphone },
 ]
 
 const STORAGE_KEY = 'esb_recent_searches'
