@@ -1033,7 +1033,8 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
               <div className="grid sm:grid-cols-3 lg:grid-cols-4 gap-5">
                 {foldersList.map(folderName => {
                   const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
-                  const isFolderCut = clipboard?.type === 'folder' && clipboard.folderPath === folderPath
+                  const isFolderCut = (clipboard?.type === 'folder' && clipboard.folderPath === folderPath) ||
+                    (clipboard?.type === 'batch' && Boolean(clipboard.batchFolders?.some(f => f.folderPath === folderPath)))
                   const isFolderSelected = selectedFolderNames.includes(folderName)
 
                   return (
@@ -1098,7 +1099,8 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
               <h2 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-wider pl-2">Fichiers</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filesHere.map(doc => {
-                  const isFileCut = clipboard?.type === 'file' && clipboard.doc?.id === doc.id
+                  const isFileCut = (clipboard?.type === 'file' && clipboard.doc?.id === doc.id) ||
+                    (clipboard?.type === 'batch' && Boolean(clipboard.batchDocs?.some(d => d.id === doc.id)))
                   const isFileSelected = selectedFileIds.includes(doc.id)
 
                   return (
@@ -1127,7 +1129,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
       {/* Context Menu */}
       {contextMenu?.visible && (
         <div 
-          className="fixed z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl py-2 w-56 text-sm font-medium overflow-hidden"
+          className="fixed z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl py-2 w-60 text-sm font-medium overflow-hidden"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           {contextMenu.type === 'bg' && (
@@ -1138,7 +1140,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                     className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-3 text-blue-600 dark:text-blue-400 font-semibold transition-colors" 
                     onClick={() => handlePaste()}
                   >
-                    <ClipboardPaste className="w-4 h-4" /> Coller ici
+                    <ClipboardPaste className="w-4 h-4" /> Coller ici {clipboard.type === 'batch' ? `(${(clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0)})` : ''}
                   </button>
                   <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
                 </>
@@ -1156,51 +1158,86 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
           )}
           {contextMenu.type === 'folder' && (
             <>
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => navigateTo(contextMenu.targetName!)}>
-                <FolderOpen className="w-4 h-4 text-slate-400" /> Ouvrir
-              </button>
-              {clipboard && (
-                <button 
-                  className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-3 text-blue-600 dark:text-blue-400 font-semibold transition-colors" 
-                  onClick={() => handlePaste(currentPathString ? `${currentPathString}/${contextMenu.targetName!}` : contextMenu.targetName!)}
-                >
-                  <ClipboardPaste className="w-4 h-4" /> Coller dans ce dossier
-                </button>
+              {selectedCount > 0 && selectedFolderNames.includes(contextMenu.targetName!) ? (
+                <>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={handleCutSelection}>
+                    <Scissors className="w-4 h-4 text-blue-500" /> Couper la sélection ({selectedCount})
+                  </button>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => { setContextMenu(null); setShowMoveBatchModal(true); }}>
+                    <FolderInput className="w-4 h-4 text-emerald-500" /> Déplacer la sélection ({selectedCount})...
+                  </button>
+                  <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => { setContextMenu(null); handleDeleteSelection(); }}>
+                    <Trash2 className="w-4 h-4" /> Supprimer la sélection ({selectedCount})
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => navigateTo(contextMenu.targetName!)}>
+                    <FolderOpen className="w-4 h-4 text-slate-400" /> Ouvrir
+                  </button>
+                  {clipboard && (
+                    <button 
+                      className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-3 text-blue-600 dark:text-blue-400 font-semibold transition-colors" 
+                      onClick={() => handlePaste(currentPathString ? `${currentPathString}/${contextMenu.targetName!}` : contextMenu.targetName!)}
+                    >
+                      <ClipboardPaste className="w-4 h-4" /> Coller dans ce dossier {clipboard.type === 'batch' ? `(${(clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0)})` : ''}
+                    </button>
+                  )}
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => handleCutFolder(contextMenu.targetName!)}>
+                    <Scissors className="w-4 h-4 text-slate-400" /> Couper
+                  </button>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowMoveFolderModal({ folderPath: contextMenu.targetName! })}>
+                    <FolderInput className="w-4 h-4 text-slate-400" /> Déplacer...
+                  </button>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowRenameFolderModal({ oldPath: contextMenu.targetName! })}>
+                    <Edit2 className="w-4 h-4 text-slate-400" /> Renommer
+                  </button>
+                  <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => deleteFolder(contextMenu.targetName!)}>
+                    <Trash2 className="w-4 h-4" /> Supprimer
+                  </button>
+                </>
               )}
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => handleCutFolder(contextMenu.targetName!)}>
-                <Scissors className="w-4 h-4 text-slate-400" /> Couper
-              </button>
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowMoveFolderModal({ folderPath: contextMenu.targetName! })}>
-                <FolderInput className="w-4 h-4 text-slate-400" /> Déplacer...
-              </button>
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowRenameFolderModal({ oldPath: contextMenu.targetName! })}>
-                <Edit2 className="w-4 h-4 text-slate-400" /> Renommer
-              </button>
-              <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
-              <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => deleteFolder(contextMenu.targetName!)}>
-                <Trash2 className="w-4 h-4" /> Supprimer
-              </button>
             </>
           )}
           {contextMenu.type === 'file' && (
             <>
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && handleCutFile(contextMenu.targetDoc)}>
-                <Scissors className="w-4 h-4 text-slate-400" /> Couper
-              </button>
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && setShowMoveFileModal(contextMenu.targetDoc)}>
-                <FolderInput className="w-4 h-4 text-slate-400" /> Déplacer...
-              </button>
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && setShowRenameFileModal(contextMenu.targetDoc)}>
-                <Edit2 className="w-4 h-4 text-slate-400" /> Renommer
-              </button>
-              <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
-              <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => contextMenu.targetDoc && deleteFile(contextMenu.targetDoc.id, contextMenu.targetDoc.file_path, contextMenu.targetDoc.thumbnail_path)}>
-                <Trash2 className="w-4 h-4" /> Supprimer
-              </button>
+              {selectedCount > 0 && contextMenu.targetDoc && selectedFileIds.includes(contextMenu.targetDoc.id) ? (
+                <>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={handleCutSelection}>
+                    <Scissors className="w-4 h-4 text-blue-500" /> Couper la sélection ({selectedCount})
+                  </button>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => { setContextMenu(null); setShowMoveBatchModal(true); }}>
+                    <FolderInput className="w-4 h-4 text-emerald-500" /> Déplacer la sélection ({selectedCount})...
+                  </button>
+                  <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => { setContextMenu(null); handleDeleteSelection(); }}>
+                    <Trash2 className="w-4 h-4" /> Supprimer la sélection ({selectedCount})
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && handleCutFile(contextMenu.targetDoc)}>
+                    <Scissors className="w-4 h-4 text-slate-400" /> Couper
+                  </button>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && setShowMoveFileModal(contextMenu.targetDoc)}>
+                    <FolderInput className="w-4 h-4 text-slate-400" /> Déplacer...
+                  </button>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && setShowRenameFileModal(contextMenu.targetDoc)}>
+                    <Edit2 className="w-4 h-4 text-slate-400" /> Renommer
+                  </button>
+                  <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => contextMenu.targetDoc && deleteFile(contextMenu.targetDoc.id, contextMenu.targetDoc.file_path, contextMenu.targetDoc.thumbnail_path)}>
+                    <Trash2 className="w-4 h-4" /> Supprimer
+                  </button>
+                </>
+              )}
             </>
           )}
         </div>
       )}
+
 
       {/* Hidden file input for contextual upload */}
       <input 

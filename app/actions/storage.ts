@@ -493,8 +493,26 @@ export async function moveFolderAction(params: {
     )
 
     if (matchingDocs.length === 0) {
-      return { error: null, success: true, count: 0 }
+      const { data: keepDoc } = await supabase
+        .from('documents')
+        .insert({
+          title: '.keep',
+          file_path: '.keep',
+          cycle: targetCycle,
+          year: targetYear,
+          category: newPrefix,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      revalidatePath('/admin/documents')
+      revalidatePath('/dashboard/delegate')
+      revalidatePath('/dashboard')
+
+      return { error: null, success: true, count: 1, docs: keepDoc ? [keepDoc] : [] }
     }
+
 
     const now = new Date().toISOString()
     const updatedDocs = []
