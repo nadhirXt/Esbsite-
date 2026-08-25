@@ -536,3 +536,158 @@ export async function moveFolderAction(params: {
   }
 }
 
+/**
+ * Action de suppression par lot (fichiers multiples + dossiers multiples)
+ */
+export async function deleteBatchAction(params: {
+  documentIds: string[]
+  folders: { cycle: string; year: number | null; folderPath: string }[]
+}) {
+  try {
+    const { documentIds, folders } = params
+    const { supabase, user, isAdmin, isDelegate, profile } = await getAuthContext()
+
+    if (!user) {
+      return { error: 'Non authentifié' }
+    }
+
+    const allPathsToDelete: string[] = []
+    const allIdsToDelete: string[] = []
+
+    // 1. Fichiers individuels
+    if (documentIds.length > 0) {
+      const { data: docs } = await supabase
+        .from('documents')
+        .select('id, cycle, year, file_path, thumbnail_path')
+        .in('id', documentIds)
+
+      for (const doc of docs || []) {
+        if (!isAdmin) {
+          const isOwnerOrDelegate = isDelegate && profile?.delegate_cycle === doc.cycle && profile?.delegate_year === doc.year
+          if (!isOwnerOrDelegate) continue
+        }
+        allIdsToDelete.push(doc.id)
+        if (doc.file_path && doc.file_path !== '.keep') allPathsToDelete.push(doc.file_path)
+        if (doc.thumbnail_path && doc.thumbnail_path !== '.keep') allPathsToDelete.push(doc.thumbnail_path)
+      }
+    }
+
+    // 2. Dossiers
+    for (const f of folders) {
+      if (!isAdmin) {
+        const isOwnerOrDelegate = isDelegate && profile?.delegate_cycle === f.cycle && profile?.delegate_year === f.year
+        if (!isOwnerOrDelegate) continue
+      }
+
+      let query = supabase.from('documents').select('id, file_path, thumbnail_path, category').eq('cycle', f.cycle)
+      if (f.year !== null && f.year !== undefined) {
+        query = query.eq('year', f.year)
+      }
+
+      const { data: folderDocs } = await query
+      const matching = (folderDocs || []).filter(d => d.category === f.folderPath || d.category?.startsWith(`${f.folderPath}/`))
+      for (const d of matching) {
+        allIdsToDelete.push(d.id)
+        if (d.file_path && d.file_path !== '.keep') allPathsToDelete.push(d.file_path)
+        if (d.thumbnail_path && d.thumbnail_path !== '.keep') allPathsToDelete.push(d.thumbnail_path)
+      }
+    }
+
+    // 3. Supprimer de Backblaze B2
+    if (allPathsToDelete.length > 0) {
+      await deleteStorageFiles(allPathsToDelete)
+    }
+
+    // 4. Supprimer de Supabase
+    const uniqueIds = Array.from(new Set(allIdsToDelete))
+    if (uniqueIds.length > 0) {
+      await supabase.from('documents').delete().in('id', uniqueIds)
+    }
+
+    revalidatePath('/admin/documents')
+    revalidatePath('/dashboard/delegate')
+    revalidatePath('/dashboard')
+
+    return { error: null, success: true, count: uniqueIds.length }
+  } catch (error: any) {
+    console.error('deleteBatchAction error:', error)
+    return { error: error.message || 'Erreur lors de la suppression groupée' }
+  }
+}
+
+/**
+ * Action de déplacement par lot (fichiers multiples + dossiers multiples)
+ */
+export async function moveBatchAction(params: {
+  documentIds: string[]
+  folders: { sourceCycle: string; sourceYear: number | null; folderPath: string }[]
+  targetCycle: string
+  targetYear: number | null
+  targetCategory: string
+}) {
+  try {
+    const { documentIds, folders, targetCycle, targetYear, targetCategory } = params
+    const { supabase, user, isAdmin, isDelegate, profile } = await getAuthContext()
+
+    if (!user) {
+      return { error: 'Non authentifié' }
+    }
+
+    const cleanTargetCat = targetCategory.trim() || 'Général'
+    const now = new Date().toISOString()
+    const allUpdatedDocs: any[] = []
+
+    // 1. Déplacer les fichiers individuels
+    if (documentIds.length > 0) {
+      for (const docId of documentIds) {
+        const { data: doc } = await supabase.from('documents').select('*').eq('id', docId).single()
+        if (!doc) continue
+
+        if (!isAdmin) {
+          const isAllowed = isDelegate && profile?.delegate_cycle === doc.cycle && profile?.delegate_year === doc.year && profile?.delegate_cycle === targetCycle && profile?.delegate_year === targetYear
+          if (!isAllowed) continue
+        }
+
+        const { data: updated } = await supabase
+          .from('documents')
+          .update({
+            cycle: targetCycle,
+            year: targetYear,
+            category: cleanTargetCat,
+            updated_at: now
+          })
+          .eq('id', docId)
+          .select()
+          .single()
+
+        if (updated) allUpdatedDocs.push(updated)
+      }
+    }
+
+    // 2. Déplacer les dossiers
+    for (const f of folders) {
+      const res = await moveFolderAction({
+        sourceCycle: f.sourceCycle,
+        sourceYear: f.sourceYear,
+        sourceFolderPath: f.folderPath,
+        targetCycle,
+        targetYear,
+        targetCategory: cleanTargetCat
+      })
+      if (res.docs) {
+        allUpdatedDocs.push(...res.docs)
+      }
+    }
+
+    revalidatePath('/admin/documents')
+    revalidatePath('/dashboard/delegate')
+    revalidatePath('/dashboard')
+
+    return { error: null, success: true, count: allUpdatedDocs.length, docs: allUpdatedDocs }
+  } catch (error: any) {
+    console.error('moveBatchAction error:', error)
+    return { error: error.message || 'Erreur lors du déplacement groupé' }
+  }
+}
+
+

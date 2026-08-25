@@ -8,7 +8,7 @@ import type { Document } from '@/lib/types'
 interface MoveDocumentModalProps {
   isOpen: boolean
   onClose: () => void
-  type: 'file' | 'folder'
+  type: 'file' | 'folder' | 'batch'
   itemTitle: string
   sourceCycle: string
   sourceYear: number | null
@@ -17,6 +17,7 @@ interface MoveDocumentModalProps {
   isDelegate?: boolean
   onConfirmMove: (targetCycle: string, targetYear: number | null, targetCategory: string) => Promise<void>
 }
+
 
 export default function MoveDocumentModal({
   isOpen,
@@ -128,11 +129,12 @@ export default function MoveDocumentModal({
           </div>
           <div className="min-w-0 pr-8">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white truncate">
-              Déplacer {type === 'file' ? 'le document' : 'le dossier'}
+              Déplacer {type === 'file' ? 'le document' : type === 'folder' ? 'le dossier' : 'la sélection'}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5" title={itemTitle}>
               « {itemTitle} »
             </p>
+
           </div>
         </div>
 

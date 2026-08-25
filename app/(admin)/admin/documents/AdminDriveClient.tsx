@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-
-import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2, FolderInput, Scissors, ClipboardPaste } from 'lucide-react'
+import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2, FolderInput, Scissors, ClipboardPaste, CheckSquare, Square, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
 import type { Document } from '@/lib/types'
@@ -15,7 +14,9 @@ import {
   deleteDocumentAction, 
   deleteFolderAction,
   moveDocumentAction,
-  moveFolderAction 
+  moveFolderAction,
+  deleteBatchAction,
+  moveBatchAction
 } from '@/app/actions/storage'
 import MoveDocumentModal from '@/components/admin/MoveDocumentModal'
 import FileConflictModal, { ConflictResolution } from '@/components/admin/FileConflictModal'
@@ -23,13 +24,21 @@ import FileConflictModal, { ConflictResolution } from '@/components/admin/FileCo
 import { generatePDFThumbnail } from '@/lib/pdf-thumbnail'
 
 interface ClipboardItem {
-  type: 'file' | 'folder'
+  type: 'file' | 'folder' | 'batch'
   sourceCycle: string
   sourceYear: number | null
   sourceCategory: string
   doc?: Document
   folderPath?: string
   folderName?: string
+  batchDocs?: Document[]
+  batchFolders?: {
+    sourceCycle: string
+    sourceYear: number | null
+    sourceCategory: string
+    folderPath: string
+    folderName: string
+  }[]
 }
 
 function generateUniqueTitle(baseTitle: string, existingTitles: string[]): string {
@@ -50,6 +59,11 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
   const [currentPath, setCurrentPath] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   
+  // Multi-Selection State
+  const [selectedFileIds, setSelectedFileIds] = useState<string[]>([])
+  const [selectedFolderNames, setSelectedFolderNames] = useState<string[]>([])
+  const [showMoveBatchModal, setShowMoveBatchModal] = useState(false)
+
   // Clipboard (Couper / Coller) State
   const [clipboard, setClipboard] = useState<ClipboardItem | null>(null)
 
@@ -139,9 +153,43 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
 
   const foldersList = Array.from(subFolders).sort()
 
+  // Multi-Selection Helpers
+  const selectedCount = selectedFileIds.length + selectedFolderNames.length
+  const isAllSelected = (foldersList.length > 0 || filesHere.length > 0) &&
+    selectedFolderNames.length === foldersList.length &&
+    selectedFileIds.length === filesHere.length
+
+  function clearSelection() {
+    setSelectedFileIds([])
+    setSelectedFolderNames([])
+  }
+
+  function toggleSelectFile(fileId: string) {
+    setSelectedFileIds(prev => prev.includes(fileId) ? prev.filter(id => id !== fileId) : [...prev, fileId])
+  }
+
+  function toggleSelectFolder(folderName: string) {
+    setSelectedFolderNames(prev => prev.includes(folderName) ? prev.filter(n => n !== folderName) : [...prev, folderName])
+  }
+
+  function selectAll() {
+    if (isAllSelected) {
+      clearSelection()
+    } else {
+      setSelectedFolderNames(foldersList)
+      setSelectedFileIds(filesHere.map(f => f.id))
+    }
+  }
+
   // Navigation
-  function navigateTo(folder: string) { setCurrentPath(prev => [...prev, folder]) }
-  function navigateToCrumb(index: number) { setCurrentPath(prev => prev.slice(0, index + 1)) }
+  function navigateTo(folder: string) { 
+    clearSelection()
+    setCurrentPath(prev => [...prev, folder]) 
+  }
+  function navigateToCrumb(index: number) { 
+    clearSelection()
+    setCurrentPath(prev => prev.slice(0, index + 1)) 
+  }
 
   // Context Menu Handlers
   function handleContextMenuBg(e: React.MouseEvent) {
@@ -184,6 +232,99 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     setContextMenu(null)
   }
 
+  // Couper la sélection multiple
+  function handleCutSelection() {
+    if (selectedCount === 0) return
+    const selectedDocs = filesHere.filter(d => selectedFileIds.includes(d.id))
+    const selectedFolders = selectedFolderNames.map(fName => {
+      const fPath = currentPathString ? `${currentPathString}/${fName}` : fName
+      return {
+        sourceCycle: cycle,
+        sourceYear: isNoYearCycle ? null : year,
+        sourceCategory: fPath,
+        folderPath: fPath,
+        folderName: fName
+      }
+    })
+
+    setClipboard({
+      type: 'batch',
+      sourceCycle: cycle,
+      sourceYear: isNoYearCycle ? null : year,
+      sourceCategory: currentPathString || 'Général',
+      batchDocs: selectedDocs,
+      batchFolders: selectedFolders
+    })
+    clearSelection()
+  }
+
+  // Supprimer la sélection multiple
+  async function handleDeleteSelection() {
+    if (selectedCount === 0) return
+    if (!confirm(`Supprimer définitivement les ${selectedCount} éléments sélectionnés et tout leur contenu ?`)) return
+
+    const foldersToDelete = selectedFolderNames.map(fName => ({
+      cycle,
+      year: isNoYearCycle ? null : year,
+      folderPath: currentPathString ? `${currentPathString}/${fName}` : fName
+    }))
+
+    const res = await deleteBatchAction({
+      documentIds: selectedFileIds,
+      folders: foldersToDelete
+    })
+
+    if (res.error) {
+      alert('Erreur lors de la suppression groupée : ' + res.error)
+      return
+    }
+
+    const deletedFileIdsSet = new Set(selectedFileIds)
+    const deletedFolderPaths = new Set(foldersToDelete.map(f => f.folderPath))
+
+    setDocuments(prev => prev.filter(doc => {
+      if (deletedFileIdsSet.has(doc.id)) return false
+      const matchCycle = doc.cycle === cycle && (isNoYearCycle || doc.year === year)
+      if (matchCycle && doc.category) {
+        for (const fPath of deletedFolderPaths) {
+          if (doc.category === fPath || doc.category.startsWith(`${fPath}/`)) return false
+        }
+      }
+      return true
+    }))
+
+    clearSelection()
+  }
+
+  // Déplacer la sélection multiple
+  async function moveBatch(targetCycle: string, targetYear: number | null, targetCategory: string) {
+    const foldersToMove = selectedFolderNames.map(fName => ({
+      sourceCycle: cycle,
+      sourceYear: isNoYearCycle ? null : year,
+      folderPath: currentPathString ? `${currentPathString}/${fName}` : fName
+    }))
+
+    const res = await moveBatchAction({
+      documentIds: selectedFileIds,
+      folders: foldersToMove,
+      targetCycle,
+      targetYear,
+      targetCategory
+    })
+
+    if (res.error) {
+      alert('Erreur lors du déplacement groupé : ' + res.error)
+      throw new Error(res.error)
+    }
+
+    if (res.docs && res.docs.length > 0) {
+      const updatedMap = new Map(res.docs.map((d: Document) => [d.id, d]))
+      setDocuments(prev => prev.map(d => updatedMap.get(d.id) || d))
+    }
+    setShowMoveBatchModal(false)
+    clearSelection()
+  }
+
   // Coller (Paste)
   async function handlePaste(targetCategoryParam?: string) {
     if (!clipboard) return
@@ -191,6 +332,33 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     const targetCycle = cycle
     const targetYear = isNoYearCycle ? null : year
 
+    // 1. Batch paste
+    if (clipboard.type === 'batch') {
+      const docIds = (clipboard.batchDocs || []).map(d => d.id)
+      const folders = clipboard.batchFolders || []
+
+      const res = await moveBatchAction({
+        documentIds: docIds,
+        folders,
+        targetCycle,
+        targetYear,
+        targetCategory
+      })
+
+      if (res.error) {
+        alert(res.error)
+        return
+      }
+
+      if (res.docs && res.docs.length > 0) {
+        const updatedMap = new Map(res.docs.map((d: Document) => [d.id, d]))
+        setDocuments(prev => prev.map(d => updatedMap.get(d.id) || d))
+      }
+      setClipboard(null)
+      return
+    }
+
+    // 2. Single file paste
     if (clipboard.type === 'file' && clipboard.doc) {
       const sourceDoc = clipboard.doc
       const sameLocation = 
@@ -214,7 +382,6 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
       )
 
       if (existingDoc) {
-        // Open conflict dialog
         const existingTitles = documents
           .filter(d => d.cycle === targetCycle && (isNoYearCycle || d.year === targetYear) && (d.category || 'Général') === targetCategory)
           .map(d => d.title)
@@ -252,7 +419,6 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     } else if (clipboard.type === 'folder' && clipboard.folderPath) {
       const sourcePath = clipboard.folderPath
       
-      // Prevent pasting folder into itself or its children
       if (targetCategory === sourcePath || targetCategory.startsWith(`${sourcePath}/`)) {
         alert("Impossible de déplacer un dossier dans lui-même ou dans l'un de ses sous-dossiers.")
         return
@@ -346,27 +512,38 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     setClipboard(null)
   }
 
-  // Keyboard Shortcuts (Ctrl+X, Ctrl+V, Escape)
+  // Keyboard Shortcuts (Ctrl+A, Ctrl+X, Ctrl+V, Escape)
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
 
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+        e.preventDefault()
+        selectAll()
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') {
+        if (selectedCount > 0) {
+          e.preventDefault()
+          handleCutSelection()
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
         if (clipboard) {
           e.preventDefault()
           handlePaste()
         }
       } else if (e.key === 'Escape') {
-        if (clipboard) {
+        if (selectedCount > 0) {
+          clearSelection()
+        } else if (clipboard) {
           setClipboard(null)
         }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [clipboard, cycle, year, currentPathString, documents, isNoYearCycle])
+  }, [clipboard, cycle, year, currentPathString, documents, isNoYearCycle, selectedCount, isAllSelected, foldersList, filesHere, selectedFileIds, selectedFolderNames])
 
   // Actions
+
   async function createFolder(folderName: string) {
     if (!folderName.trim()) return
     const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
@@ -778,9 +955,10 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
         )}
       </div>
 
-      {/* Search & Breadcrumbs */}
+      {/* Search & Breadcrumbs & Selection Toolbar */}
       <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-white/10 p-5 rounded-3xl mb-8 flex flex-col md:flex-row gap-5 justify-between items-center shadow-sm">
-        <div className="flex items-center flex-wrap gap-2 text-sm font-bold">
+
+        <div className="flex items-center flex-wrap gap-2 text-sm font-bold w-full md:w-auto">
           <button 
             onClick={() => setCurrentPath([])}
             className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
@@ -804,15 +982,36 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
           ))}
         </div>
         
-        <div className="relative w-full md:w-72 shrink-0">
-          <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Rechercher un document..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
-          />
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          {(foldersList.length > 0 || filesHere.length > 0) && (
+            <button
+              type="button"
+              onClick={selectAll}
+              className={cn(
+                "flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer",
+                isAllSelected
+                  ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                  : selectedCount > 0
+                  ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400"
+                  : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+              )}
+              title="Tout sélectionner (Ctrl+A)"
+            >
+              {isAllSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+              <span>{isAllSelected ? "Tout désélectionner" : "Tout sélectionner"}</span>
+            </button>
+          )}
+
+          <div className="relative flex-1 md:w-72 shrink-0">
+            <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Rechercher un document..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
+            />
+          </div>
         </div>
       </div>
 
@@ -835,28 +1034,55 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                 {foldersList.map(folderName => {
                   const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
                   const isFolderCut = clipboard?.type === 'folder' && clipboard.folderPath === folderPath
+                  const isFolderSelected = selectedFolderNames.includes(folderName)
 
                   return (
                     <div
                       key={folderName}
                       onContextMenu={(e) => handleContextMenuFolder(e, folderName)}
-                      onClick={() => navigateTo(folderName)}
+                      onClick={() => {
+                        if (selectedCount > 0) {
+                          toggleSelectFolder(folderName)
+                        } else {
+                          navigateTo(folderName)
+                        }
+                      }}
                       className={cn(
-                        "group flex items-center justify-between gap-3 rounded-2xl border bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg p-4 hover:shadow-xl transition-all duration-300 cursor-pointer",
-                        isFolderCut 
+                        "group relative flex items-center justify-between gap-3 rounded-2xl border bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg p-4 hover:shadow-xl transition-all duration-300 cursor-pointer",
+                        isFolderSelected
+                          ? "ring-2 ring-blue-500 border-blue-500 bg-blue-50/60 dark:bg-blue-900/30"
+                          : isFolderCut 
                           ? "opacity-50 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 ring-2 ring-blue-500/20" 
                           : "border-slate-200 dark:border-white/10 hover:border-blue-500/30"
                       )}
                     >
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                          <Folder className="w-7 h-7 text-blue-600 dark:text-blue-400 fill-blue-100 dark:fill-blue-900/50 shrink-0" />
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        {/* Checkbox button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleSelectFolder(folderName)
+                          }}
+                          className={cn(
+                            "w-5 h-5 rounded-lg border flex items-center justify-center transition-all cursor-pointer shrink-0",
+                            isFolderSelected
+                              ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                              : "border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800 opacity-0 group-hover:opacity-100",
+                            selectedCount > 0 && "opacity-100"
+                          )}
+                        >
+                          {isFolderSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        </button>
+
+                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl group-hover:scale-110 transition-transform duration-300 shrink-0">
+                          <Folder className="w-6 h-6 text-blue-600 dark:text-blue-400 fill-blue-100 dark:fill-blue-900/50 shrink-0" />
                         </div>
                         <span className="font-bold text-slate-900 dark:text-white truncate">{folderName}</span>
                       </div>
                       <button 
                         onClick={(e) => handleContextMenuFolder(e, folderName)}
-                        className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0"
                       >
                         <MoreVertical className="w-5 h-5" />
                       </button>
@@ -873,6 +1099,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filesHere.map(doc => {
                   const isFileCut = clipboard?.type === 'file' && clipboard.doc?.id === doc.id
+                  const isFileSelected = selectedFileIds.includes(doc.id)
 
                   return (
                     <AdminDocumentCard 
@@ -880,6 +1107,9 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                       doc={doc} 
                       supabase={supabase} 
                       isCut={isFileCut}
+                      isSelected={isFileSelected}
+                      showCheckbox={selectedCount > 0}
+                      onToggleSelect={() => toggleSelectFile(doc.id)}
                       onContextMenu={(e) => handleContextMenuFile(e, doc)}
                       onDelete={() => deleteFile(doc.id, doc.file_path, doc.thumbnail_path)}
                       onRename={() => setShowRenameFileModal(doc)}
@@ -1060,6 +1290,21 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
         />
       )}
 
+      {/* Modal: Déplacer la sélection multiple */}
+      {showMoveBatchModal && (
+        <MoveDocumentModal
+          isOpen={Boolean(showMoveBatchModal)}
+          onClose={() => setShowMoveBatchModal(false)}
+          type="batch"
+          itemTitle={`${selectedCount} éléments sélectionnés`}
+          sourceCycle={cycle}
+          sourceYear={isNoYearCycle ? null : year}
+          sourceCategory={currentPathString || 'Général'}
+          allDocuments={documents}
+          onConfirmMove={moveBatch}
+        />
+      )}
+
       {/* Modal: Résolution de conflit (Fichier en doublon) */}
       {conflictState && (
         <FileConflictModal
@@ -1073,17 +1318,76 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
         />
       )}
 
+      {/* Floating Multi-Selection Action Bar */}
+      {selectedCount > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 dark:bg-slate-800/95 text-white backdrop-blur-xl border border-white/10 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3.5 animate-slide-up">
+          <div className="flex items-center gap-2 pr-2 border-r border-white/10">
+            <span className="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-xs font-bold">
+              {selectedCount}
+            </span>
+            <span className="text-xs font-medium text-slate-300">
+              sélectionné{selectedCount > 1 ? 's' : ''}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCutSelection}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all cursor-pointer border border-white/10"
+            title="Couper la sélection (Ctrl+X)"
+          >
+            <Scissors className="w-3.5 h-3.5 text-blue-400" />
+            Couper
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowMoveBatchModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-all cursor-pointer border border-white/10"
+            title="Déplacer la sélection"
+          >
+            <FolderInput className="w-3.5 h-3.5 text-emerald-400" />
+            Déplacer
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDeleteSelection}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600/80 hover:bg-red-600 text-white text-xs font-bold transition-all cursor-pointer shadow-sm"
+            title="Supprimer la sélection"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Supprimer
+          </button>
+
+          <button
+            type="button"
+            onClick={clearSelection}
+            className="p-1.5 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer ml-1"
+            title="Désélectionner tout (Échap)"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Floating Clipboard Bar (Couper / Coller) */}
-      {clipboard && (
+      {clipboard && selectedCount === 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 dark:bg-slate-800/95 text-white backdrop-blur-xl border border-white/10 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 animate-slide-up">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 bg-blue-500/20 text-blue-400 rounded-lg animate-pulse">
               <Scissors className="w-4 h-4" />
             </div>
             <div className="text-xs">
-              <span className="text-slate-400 block text-[11px]">Élément coupé (prêt à coller) :</span>
+              <span className="text-slate-400 block text-[11px]">
+                {clipboard.type === 'batch'
+                  ? `${(clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0)} éléments coupés`
+                  : 'Élément coupé (prêt à coller) :'}
+              </span>
               <strong className="text-white truncate max-w-xs block font-bold">
-                {clipboard.type === 'file' ? clipboard.doc?.title : clipboard.folderName}
+                {clipboard.type === 'batch' 
+                  ? 'Sélection multiple' 
+                  : (clipboard.type === 'file' ? clipboard.doc?.title : clipboard.folderName)}
               </strong>
             </div>
           </div>
@@ -1144,9 +1448,31 @@ function Modal({ title, children, onClose }: { title: string, children: React.Re
   )
 }
 
-function AdminDocumentCard({ doc, supabase, isCut, onContextMenu, onDelete, onRename, onMove, onCut }: { doc: Document; supabase: any, isCut?: boolean, onContextMenu: (e:any) => void, onDelete: () => void, onRename: () => void, onMove?: () => void, onCut?: () => void }) {
-
-
+function AdminDocumentCard({ 
+  doc, 
+  supabase, 
+  isCut, 
+  isSelected, 
+  showCheckbox,
+  onToggleSelect, 
+  onContextMenu, 
+  onDelete, 
+  onRename, 
+  onMove, 
+  onCut 
+}: { 
+  doc: Document
+  supabase: any
+  isCut?: boolean
+  isSelected?: boolean
+  showCheckbox?: boolean
+  onToggleSelect?: () => void
+  onContextMenu: (e:any) => void
+  onDelete: () => void
+  onRename: () => void
+  onMove?: () => void
+  onCut?: () => void 
+}) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
   const [thumbUrl, setThumbUrl] = useState<string | null>(null)
@@ -1201,16 +1527,40 @@ function AdminDocumentCard({ doc, supabase, isCut, onContextMenu, onDelete, onRe
   return (
     <div 
       onContextMenu={onContextMenu} 
+      onClick={(e) => {
+        if (showCheckbox && onToggleSelect) {
+          onToggleSelect()
+        }
+      }}
       className={cn(
-        "group flex flex-col justify-between gap-4 rounded-3xl border bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg p-5 hover:shadow-xl transition-all duration-300",
-        isCut
+        "group relative flex flex-col justify-between gap-4 rounded-3xl border bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg p-5 hover:shadow-xl transition-all duration-300",
+        isSelected
+          ? "ring-2 ring-blue-500 border-blue-500 bg-blue-50/60 dark:bg-blue-900/30"
+          : isCut
           ? "opacity-50 border-dashed border-blue-500 bg-blue-50/30 dark:bg-blue-900/20 ring-2 ring-blue-500/20"
           : "border-slate-200 dark:border-white/10 hover:border-blue-500/30"
       )}
     >
-      <div className="flex items-start gap-4 justify-between">
+      <div className="flex items-start gap-3 justify-between">
+        <div className="flex items-start gap-3 min-w-0 w-full">
+          {/* Checkbox button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleSelect?.()
+            }}
+            className={cn(
+              "w-5 h-5 rounded-lg border flex items-center justify-center transition-all cursor-pointer shrink-0 mt-3",
+              isSelected
+                ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                : "border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800 opacity-0 group-hover:opacity-100",
+              showCheckbox && "opacity-100"
+            )}
+          >
+            {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+          </button>
 
-        <div className="flex items-start gap-4 min-w-0 w-full">
           {thumbUrl ? (
             <img src={thumbUrl} alt="Miniature" className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-white/10 shrink-0 group-hover:scale-105 transition-transform duration-300" />
           ) : (
@@ -1250,3 +1600,4 @@ function AdminDocumentCard({ doc, supabase, isCut, onContextMenu, onDelete, onRe
     </div>
   )
 }
+
