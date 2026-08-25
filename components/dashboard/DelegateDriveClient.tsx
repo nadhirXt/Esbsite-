@@ -20,7 +20,6 @@ import {
 } from '@/app/actions/storage'
 import MoveDocumentModal from '@/components/admin/MoveDocumentModal'
 import FileConflictModal, { ConflictResolution } from '@/components/admin/FileConflictModal'
-import { generatePDFThumbnail } from '@/lib/pdf-thumbnail'
 
 interface ClipboardItem {
   type: 'file' | 'folder' | 'batch'
@@ -707,26 +706,6 @@ export default function DelegateDriveClient({
       const fileTitle = file.name.replace(/\.[^.]+$/, '')
       
       const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
-      
-      // 1. Generate and upload thumbnail if PDF
-      let thumbnailPath: string | null = null
-      if (file.type === 'application/pdf') {
-        const thumbBlob = await generatePDFThumbnail(file)
-        if (thumbBlob) {
-          const thumbName = `${delegateCycle}/A${delegateYear}/${Date.now()}_thumb_${safeFileName}.jpg`
-          const { url: thumbUrl } = await getPresignedUploadUrl(thumbName, 'image/jpeg')
-          if (thumbUrl) {
-            try {
-              const thumbRes = await fetch(thumbUrl, { method: 'PUT', body: thumbBlob, headers: { 'Content-Type': 'image/jpeg' } })
-              if (thumbRes.ok) {
-                thumbnailPath = thumbName
-              }
-            } catch (e) {
-              console.error('Failed to upload thumbnail', e)
-            }
-          }
-        }
-      }
 
       if (!urlError && url) {
         try {
@@ -767,9 +746,6 @@ export default function DelegateDriveClient({
               year: delegateYear,
               category,
               uploader_id: uploaderId
-            }
-            if (thumbnailPath) {
-              insertData.thumbnail_path = thumbnailPath
             }
 
             const { data, error: dbError } = await supabase.from('documents').insert(insertData).select().single()
@@ -1488,15 +1464,6 @@ function DelegateDocumentCard({
 }) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
-  const [thumbUrl, setThumbUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (doc.thumbnail_path) {
-      getPresignedDownloadUrl(doc.thumbnail_path, false).then(res => {
-        if (res?.url) setThumbUrl(res.url)
-      })
-    }
-  }, [doc.thumbnail_path])
 
   const handleView = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -1574,13 +1541,9 @@ function DelegateDocumentCard({
             {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
           </button>
 
-          {thumbUrl ? (
-            <img src={thumbUrl} alt="Miniature" className="w-10 h-10 rounded-xl object-cover border border-[#E2E8F0] shrink-0 group-hover:scale-105 transition-transform duration-200" />
-          ) : (
-            <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
-              <FileText className="w-5 h-5 text-red-500" />
-            </div>
-          )}
+          <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-red-500" />
+          </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-[#0F172A] truncate" title={doc.title}>{doc.title}</p>
             <p className="text-xs text-[#64748B] mt-0.5">{formatDate(doc.created_at)}</p>

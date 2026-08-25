@@ -374,16 +374,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
 function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document; supabase: any; isMemoire?: boolean; isFavorite?: boolean }) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
-  const [thumbUrl, setThumbUrl] = useState<string | null>(null)
   const { trackView, trackDownload } = useTrackReading(doc.id)
-
-  useEffect(() => {
-    if (doc.thumbnail_path) {
-      getPresignedDownloadUrl(doc.thumbnail_path, false).then(res => {
-        if (res?.url) setThumbUrl(res.url)
-      })
-    }
-  }, [doc.thumbnail_path])
 
   const handleView = async () => {
     if (isLoadingView) return
@@ -433,11 +424,7 @@ function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document;
     >
       {/* Thumbnail header */}
       <div className={`h-20 bg-gradient-to-br ${thumbnail.gradient} dark:bg-gradient-to-br dark:${thumbnail.gradientDark} relative flex items-center justify-center`}>
-        {thumbUrl ? (
-          <img src={thumbUrl} alt="Miniature" className="w-full h-full object-cover absolute inset-0" />
-        ) : (
-          <FileText className="w-8 h-8 text-white/80" />
-        )}
+        <FileText className="w-8 h-8 text-white/80" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
 

@@ -298,15 +298,6 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
 function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document; supabase: any; isMemoire?: boolean; isFavorite?: boolean }) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
-  const [thumbUrl, setThumbUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (doc.thumbnail_path) {
-      getPresignedDownloadUrl(doc.thumbnail_path, false).then(res => {
-        if (res?.url) setThumbUrl(res.url)
-      })
-    }
-  }, [doc.thumbnail_path])
 
   const handleView = async () => {
     if (isLoadingView) return
@@ -348,13 +339,9 @@ function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document;
   return (
     <div className="relative group flex flex-col justify-between gap-3 h-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg p-5 hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300">
       <div className="flex items-start gap-4 w-full">
-        {thumbUrl ? (
-          <img src={thumbUrl} alt="Miniature" className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0 group-hover:shadow-md transition-shadow" />
-        ) : (
-          <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <FileText className="w-6 h-6 text-red-500 dark:text-red-400" />
-          </div>
-        )}
+        <div className="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-800/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+          <FileText className="w-6 h-6 text-red-500 dark:text-red-400" />
+        </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" title={doc.title}>{doc.title}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatDate(doc.created_at)}</p>

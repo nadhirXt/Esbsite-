@@ -1,10 +1,11 @@
 'use server'
 
 import { b2 } from '@/lib/b2'
-import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand, DeleteObjectsCommand } from '@aws-sdk/client-s3'
+import { PutObjectCommand, GetObjectCommand, DeleteObjectCommand, DeleteObjectsCommand, ListObjectVersionsCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+
 
 const BUCKET_NAME = process.env.B2_BUCKET_NAME || 'esb-documents-prod'
 
@@ -115,35 +116,15 @@ export async function getPresignedDownloadUrl(filePath: string, download: boolea
 }
 
 /**
- * Supprime un fichier individuel directement sur Backblaze B2
+ * Supprime un fichier individuel directement et définitivement sur Backblaze B2 (incluant toutes ses versions)
  */
 export async function deleteStorageFile(filePath: string) {
-  try {
-    const { user, isAdmin, isDelegate } = await getAuthContext()
-    if (!user || (!isAdmin && !isDelegate)) {
-      return { error: 'Action non autorisée' }
-    }
-
-    const safeKey = sanitizeS3Key(filePath)
-    if (!safeKey || safeKey === '.keep') {
-      return { error: null } // Rien à supprimer sur B2 pour un marqueur .keep
-    }
-
-    const command = new DeleteObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: safeKey,
-    })
-    
-    await b2.send(command)
-    return { error: null }
-  } catch (error: any) {
-    console.error('Error deleting B2 file:', error)
-    return { error: 'Erreur lors de la suppression du fichier sur le stockage' }
-  }
+  return deleteStorageFiles([filePath])
 }
 
 /**
- * Supprime une liste de fichiers sur Backblaze B2 (par paquets de 1000 max)
+ * Supprime définitivement une liste de fichiers sur Backblaze B2
+ * Purge toutes les versions et tous les delete markers pour qu'aucun résidu ne reste dans le bucket.
  */
 export async function deleteStorageFiles(filePaths: string[]) {
   try {
@@ -165,14 +146,43 @@ export async function deleteStorageFiles(filePaths: string[]) {
       return { error: null }
     }
 
+    // Pour chaque clé, rechercher toutes ses versions et delete markers pour une suppression totale
+    const objectsToPurge: { Key: string; VersionId?: string }[] = []
+
+    for (const key of validKeys) {
+      try {
+        const versionsRes = await b2.send(new ListObjectVersionsCommand({
+          Bucket: BUCKET_NAME,
+          Prefix: key
+        }))
+
+        const matchingVersions = (versionsRes.Versions || []).filter(v => v.Key === key)
+        const matchingMarkers = (versionsRes.DeleteMarkers || []).filter(dm => dm.Key === key)
+
+        if (matchingVersions.length > 0 || matchingMarkers.length > 0) {
+          matchingVersions.forEach(v => {
+            if (v.Key) objectsToPurge.push({ Key: v.Key, VersionId: v.VersionId })
+          })
+          matchingMarkers.forEach(dm => {
+            if (dm.Key) objectsToPurge.push({ Key: dm.Key, VersionId: dm.VersionId })
+          })
+        } else {
+          objectsToPurge.push({ Key: key })
+        }
+      } catch (listErr) {
+        console.warn(`Could not list versions for key ${key}:`, listErr)
+        objectsToPurge.push({ Key: key })
+      }
+    }
+
     // Traiter par lots de 1000 (limite maximale S3 DeleteObjects)
     const CHUNK_SIZE = 1000
-    for (let i = 0; i < validKeys.length; i += CHUNK_SIZE) {
-      const chunk = validKeys.slice(i, i + CHUNK_SIZE)
+    for (let i = 0; i < objectsToPurge.length; i += CHUNK_SIZE) {
+      const chunk = objectsToPurge.slice(i, i + CHUNK_SIZE)
       const command = new DeleteObjectsCommand({
         Bucket: BUCKET_NAME,
         Delete: {
-          Objects: chunk.map(Key => ({ Key })),
+          Objects: chunk,
           Quiet: true,
         },
       })
@@ -181,10 +191,11 @@ export async function deleteStorageFiles(filePaths: string[]) {
 
     return { error: null }
   } catch (error: any) {
-    console.error('Error deleting B2 files batch:', error)
-    return { error: 'Erreur lors de la suppression groupée sur le stockage' }
+    console.error('Error permanently deleting B2 files batch:', error)
+    return { error: 'Erreur lors de la suppression définitive sur Backblaze B2' }
   }
 }
+
 
 /**
  * Action complète : Supprime un document de Backblaze B2 (fichier + miniature) ET de la base Supabase

@@ -21,8 +21,6 @@ import {
 import MoveDocumentModal from '@/components/admin/MoveDocumentModal'
 import FileConflictModal, { ConflictResolution } from '@/components/admin/FileConflictModal'
 
-import { generatePDFThumbnail } from '@/lib/pdf-thumbnail'
-
 interface ClipboardItem {
   type: 'file' | 'folder' | 'batch'
   sourceCycle: string
@@ -727,28 +725,8 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
       const fileTitle = file.name.replace(/\.[^.]+$/, '')
       
       const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
-      
-      // 1. Generate and upload thumbnail if PDF
-      let thumbnailPath: string | null = null;
-      if (file.type === 'application/pdf') {
-         const thumbBlob = await generatePDFThumbnail(file);
-         if (thumbBlob) {
-            const thumbName = isNoYearCycle ? `${cycle}/${Date.now()}_thumb_${safeFileName}.jpg` : `${cycle}/A${year}/${Date.now()}_thumb_${safeFileName}.jpg`;
-            const { url: thumbUrl } = await getPresignedUploadUrl(thumbName, 'image/jpeg');
-            if (thumbUrl) {
-                try {
-                  const thumbRes = await fetch(thumbUrl, { method: 'PUT', body: thumbBlob, headers: { 'Content-Type': 'image/jpeg' } });
-                  if (thumbRes.ok) {
-                     thumbnailPath = thumbName;
-                  }
-                } catch(e) {
-                  console.error("Failed to upload thumbnail", e)
-                }
-            }
-         }
-      }
-      
-      // 2. Upload main file
+
+      // Upload main file
       if (!urlError && url) {
         try {
           const success = await new Promise<boolean>((resolve) => {
@@ -783,9 +761,6 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
           if (success) {
             const insertData: any = { title: fileTitle, file_path: path, cycle, category }
             if (!isNoYearCycle) insertData.year = year
-            if (thumbnailPath) {
-              insertData.thumbnail_path = thumbnailPath
-            }
             const { data, error: dbError } = await supabase.from('documents').insert(insertData).select().single()
             
             if (data) newDocs.push(data)
@@ -1542,15 +1517,6 @@ function AdminDocumentCard({
 }) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
-  const [thumbUrl, setThumbUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (doc.thumbnail_path) {
-      getPresignedDownloadUrl(doc.thumbnail_path, false).then(res => {
-        if (res?.url) setThumbUrl(res.url)
-      })
-    }
-  }, [doc.thumbnail_path])
 
   const handleView = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -1628,13 +1594,9 @@ function AdminDocumentCard({
             {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
           </button>
 
-          {thumbUrl ? (
-            <img src={thumbUrl} alt="Miniature" className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-white/10 shrink-0 group-hover:scale-105 transition-transform duration-300" />
-          ) : (
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/10 border border-red-200 dark:border-red-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
-              <FileText className="w-6 h-6 text-red-500 dark:text-red-400" />
-            </div>
-          )}
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/10 border border-red-200 dark:border-red-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
+            <FileText className="w-6 h-6 text-red-500 dark:text-red-400" />
+          </div>
           <div className="flex-1 min-w-0">
             <p className="text-base font-bold text-slate-900 dark:text-white truncate" title={doc.title}>{doc.title}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatDate(doc.created_at)}</p>
