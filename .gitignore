@@ -39,6 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local scripts
+launch-claude.sh
 drive-import/
 
 # ⚠️ SÉCURITÉ — Fichiers dangereux (scripts admin, DB wipe, migration)

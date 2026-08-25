@@ -114,13 +114,6 @@ export default function QRCodeSection() {
                 Facebook
               </a>
             </div>
-
-            {/* Tip */}
-            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50">
-              <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-                <strong>💡 Astuce :</strong> Imprimez ce code QR et affichez-le dans les salles de classe ou partagez-le sur vos groupes WhatsApp pour aider vos camarades à découvrir la plateforme.
-              </p>
-            </div>
           </div>
         </div>
       </div>

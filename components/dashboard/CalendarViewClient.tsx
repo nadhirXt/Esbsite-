@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, AlertCircle, GraduationCap, Sparkles, Timer, Download, Printer, FileDown } from 'lucide-react'
+import Link from 'next/link'
+import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, AlertCircle, GraduationCap, Sparkles, Timer, Download, Printer, FileDown, ArrowLeft } from 'lucide-react'
 
 interface Event {
   id: string
@@ -184,6 +185,14 @@ export default function CalendarViewClient({ events }: { events: Event[] }) {
 
   return (
     <div className="max-w-5xl mx-auto animate-fade-in" id="calendar-view">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium no-print"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Retour au tableau de bord
+      </Link>
+
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">

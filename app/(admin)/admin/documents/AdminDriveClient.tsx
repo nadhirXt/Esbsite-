@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import Link from 'next/link'
 import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
@@ -396,6 +397,13 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
       {/* Header & Cycle Selector */}
       <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
+          <Link
+            href="/admin"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Retour à l&apos;administration
+          </Link>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-3">
             <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
               <FolderOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />

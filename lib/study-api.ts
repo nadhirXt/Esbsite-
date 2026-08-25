@@ -134,46 +134,90 @@ export function addLocalFocusSession(minutes: number, module: string) {
   }
 }
 
-/** Stats focus client-side (derniers 7 jours) */
+/** Supprime une session focus */
+export function deleteLocalFocusSession(id: string) {
+  if (typeof window === 'undefined') return
+  const sessions = getLocalFocusSessions().filter(s => s.id !== id)
+  try {
+    localStorage.setItem(FOCUS_STORAGE_KEY, JSON.stringify(sessions))
+  } catch (e) {
+    // Ignore
+  }
+}
+
+/** Efface toutes les sessions focus */
+export function clearLocalFocusSessions() {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.removeItem(FOCUS_STORAGE_KEY)
+  } catch (e) {
+    // Ignore
+  }
+}
+
+/** Stats focus client-side (derniers 7 jours et métriques Pomodoro) */
 export function getLocalFocusStats() {
   const sessions = getLocalFocusSessions()
   const now = new Date()
+  const todayKey = now.toISOString().slice(0, 10)
 
   const weekStart = new Date(now)
   weekStart.setDate(now.getDate() - 6)
   weekStart.setHours(0, 0, 0, 0)
 
   // Group by day for heatmap (7 derniers jours)
-  const days: Array<{ day: string; minutes: number }> = []
+  const days: Array<{ day: string; minutes: number; count: number }> = []
   for (let i = 0; i < 7; i++) {
     const d = new Date(weekStart)
     d.setDate(weekStart.getDate() + i)
     const key = d.toISOString().slice(0, 10)
-    const total = sessions
-      .filter(s => s.date.slice(0, 10) === key)
-      .reduce((acc, s) => acc + s.minutes, 0)
-    days.push({ day: key, minutes: total })
+    const daySessions = sessions.filter(s => s.date.slice(0, 10) === key)
+    const total = daySessions.reduce((acc, s) => acc + s.minutes, 0)
+    days.push({ day: key, minutes: total, count: daySessions.length })
+  }
+
+  // Today minutes
+  const todayMinutes = sessions
+    .filter(s => s.date.slice(0, 10) === todayKey)
+    .reduce((acc, s) => acc + s.minutes, 0)
+
+  // Streak calculation (consecutive days with at least 1 session)
+  const sessionDates = new Set(sessions.map(s => s.date.slice(0, 10)))
+  let streak = 0
+  let checkDate = new Date(now)
+  
+  // If no session today yet, check starting from yesterday
+  if (!sessionDates.has(todayKey)) {
+    checkDate.setDate(checkDate.getDate() - 1)
+  }
+  
+  while (sessionDates.has(checkDate.toISOString().slice(0, 10))) {
+    streak++
+    checkDate.setDate(checkDate.getDate() - 1)
   }
 
   return {
     totalMinutes: sessions.reduce((acc, s) => acc + s.minutes, 0),
     totalSessions: sessions.length,
     weekMinutes: days.reduce((acc, d) => acc + d.minutes, 0),
+    todayMinutes,
+    streakDays: streak,
     thisWeek: days,
     topModules: topModules(sessions),
+    recentSessions: [...sessions].reverse(),
   }
 }
 
 function topModules(sessions: FocusSession[]) {
   const map = new Map<string, number>()
   for (const s of sessions) {
-    const mod = s.module || 'Général'
+    const mod = s.module?.trim() || 'Général'
     map.set(mod, (map.get(mod) || 0) + s.minutes)
   }
   return Array.from(map.entries())
     .map(([module, minutes]) => ({ module, minutes }))
     .sort((a, b) => b.minutes - a.minutes)
-    .slice(0, 5)
+    .slice(0, 8)
 }
 
 export function formatMinutes(min: number): string {

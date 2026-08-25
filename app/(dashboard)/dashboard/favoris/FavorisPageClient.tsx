@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart } from 'lucide-react'
+import Link from 'next/link'
+import { Heart, ArrowLeft } from 'lucide-react'
 import CycleDocumentsClient from '@/components/dashboard/CycleDocumentsClient'
 import type { Document } from '@/lib/types'
 
@@ -9,6 +10,13 @@ export default function FavorisPageClient({ documents, favoriteDocsIds }: { docu
   if (documents.length === 0) {
     return (
       <div className="max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-6 transition-colors font-medium self-start"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Retour au tableau de bord
+        </Link>
         <div className="w-20 h-20 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mb-6">
           <Heart className="w-10 h-10 text-red-500" />
         </div>
@@ -25,6 +33,13 @@ export default function FavorisPageClient({ documents, favoriteDocsIds }: { docu
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Retour au tableau de bord
+      </Link>
       <div className="flex items-center gap-3 bg-white dark:bg-[#111827] p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="w-12 h-12 bg-red-50 dark:bg-red-500/10 rounded-xl flex items-center justify-center shrink-0">
           <Heart className="w-6 h-6 text-red-500 fill-current" />

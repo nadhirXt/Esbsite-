@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { User, Mail, Shield, Building2, BookOpen, Settings, Calendar, Hash, Clock, CheckCircle2 } from 'lucide-react'
+import Link from 'next/link'
+import { User, Mail, Shield, Building2, BookOpen, Settings, Calendar, Hash, Clock, CheckCircle2, ArrowLeft } from 'lucide-react'
 
 const LinkedinIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
@@ -72,6 +73,13 @@ export default async function ProfilePage() {
   return (
     <div className="max-w-3xl mx-auto animate-fade-in">
       <div className="mb-8">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Retour au tableau de bord
+        </Link>
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
           <Settings className="w-6 h-6 text-[#A16207]" /> Mon Profil
         </h1>

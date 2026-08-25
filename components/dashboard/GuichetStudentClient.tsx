@@ -1,11 +1,19 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Ticket, Plus, MessageSquare } from 'lucide-react'
+import Link from 'next/link'
+import { Ticket, Plus, MessageSquare, ArrowLeft } from 'lucide-react'
 
 export default function GuichetStudentClient({ tickets, userCycle, userId }: { tickets?: any[], userCycle?: any, userId?: string }) {
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Retour au tableau de bord
+      </Link>
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

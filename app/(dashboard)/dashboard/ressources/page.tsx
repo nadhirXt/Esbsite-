@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { ExternalLink, Link2 } from 'lucide-react'
+import Link from 'next/link'
+import { ExternalLink, Link2, ArrowLeft } from 'lucide-react'
 
 export default async function RessourcesPage() {
   const supabase = await createClient()
@@ -20,8 +21,15 @@ export default async function RessourcesPage() {
   return (
     <div className="animate-fade-in max-w-3xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#0F172A]">Liens utiles & Ressources</h1>
-        <p className="text-[#64748B] text-sm mt-1">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Retour au tableau de bord
+        </Link>
+        <h1 className="text-2xl font-bold text-[#0F172A] dark:text-white">Liens utiles & Ressources</h1>
+        <p className="text-[#64748B] dark:text-slate-400 text-sm mt-1">
           Ressources, outils et liens recommandés par l&apos;administration ESB.
         </p>
       </div>

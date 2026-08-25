@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import Link from 'next/link'
 import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
@@ -365,20 +366,29 @@ export default function DelegateDriveClient({
       )}
 
       {/* Header & Cycle Selector */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Espace Délégué</h1>
-          <p className="text-[#64748B] text-sm">
-            Vous gérez les fichiers de la <strong className="text-[#1E3A8A] uppercase">{delegateCycle}</strong> - Année <strong className="text-[#1E3A8A]">{delegateYear}</strong>
-          </p>
-        </div>
-
-        {uploading && (
-          <div className="flex items-center gap-2 text-sm text-[#1E3A8A] bg-[#EFF6FF] px-4 py-2 rounded-lg font-medium animate-pulse">
-            <UploadIcon className="w-4 h-4" />
-            Upload en cours...
+      <div className="mb-8">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Retour au tableau de bord
+        </Link>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-[#0F172A] mb-1">Espace Délégué</h1>
+            <p className="text-[#64748B] text-sm">
+              Vous gérez les fichiers de la <strong className="text-[#1E3A8A] uppercase">{delegateCycle}</strong> - Année <strong className="text-[#1E3A8A]">{delegateYear}</strong>
+            </p>
           </div>
-        )}
+
+          {uploading && (
+            <div className="flex items-center gap-2 text-sm text-[#1E3A8A] bg-[#EFF6FF] px-4 py-2 rounded-lg font-medium animate-pulse">
+              <UploadIcon className="w-4 h-4" />
+              Upload en cours...
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Search & Breadcrumbs */}

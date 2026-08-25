@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
   Calendar, Plus, Pencil, Trash2, AlertTriangle, X, Loader2,
-  Save, Clock, MapPin, Download
+  Save, Clock, MapPin, Download, ArrowLeft
 } from 'lucide-react'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
 import type { Cycle } from '@/lib/utils'
@@ -220,7 +221,14 @@ export default function DelegateCalendrierClient({
   }
 
   return (
-    <div className="animate-fade-in max-w-6xl mx-auto">
+    <div className="max-w-4xl mx-auto animate-fade-in">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Retour au tableau de bord
+      </Link>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">

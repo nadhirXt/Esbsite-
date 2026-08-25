@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Loader2, Sparkles } from 'lucide-react'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
@@ -12,7 +13,6 @@ import ShareButtons from '@/components/ui/ShareButtons'
 import { CourseThumbnailCard } from './CourseThumbnailCard'
 import { getCourseThumbnail } from '@/lib/course-thumbnails'
 import { useTrackReading } from './useTrackReading'
-import { QAButtons } from './DocumentQA'
 
 interface CycleDocumentsClientProps {
   cycle: string
@@ -94,6 +94,14 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
     <div className="animate-fade-in max-w-5xl">
       {/* Header */}
       <div className="mb-8">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Retour au tableau de bord
+        </Link>
+
         {selectedYear !== null ? (
           <div className="mb-4 flex items-center flex-wrap gap-2 text-sm">
             {!isNoYearCycle && (
@@ -463,7 +471,6 @@ function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document;
       </div>
 
       <div className="absolute top-2 right-2 flex items-center gap-1">
-        <QAButtons documentId={doc.id} compact />
         <ShareButtons documentTitle={doc.title} documentId={doc.id} />
         <FavoriteButton documentId={doc.id} initialIsFavorite={!!isFavorite} />
       </div>

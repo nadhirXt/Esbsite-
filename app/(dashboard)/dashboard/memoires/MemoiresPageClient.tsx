@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Lock, FileKey, CheckCircle2, ShieldAlert, Key, HelpCircle, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { Lock, FileKey, CheckCircle2, ShieldAlert, Key, HelpCircle, Loader2, ArrowLeft } from 'lucide-react'
 import CycleDocumentsClient from '@/components/dashboard/CycleDocumentsClient'
 import { useRouter } from 'next/navigation'
 import type { Document } from '@/lib/types'
@@ -110,7 +111,14 @@ export default function MemoiresPageClient({ documents, favoriteDocsIds = [] }: 
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-12 animate-fade-in">
+    <div className="max-w-3xl mx-auto py-6 animate-fade-in">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Retour au tableau de bord
+      </Link>
       <div className="bg-white rounded-3xl shadow-sm border border-[#E2E8F0] overflow-hidden">
         {/* Header */}
         <div className="bg-[#1E3A8A] px-8 py-10 text-center relative overflow-hidden">

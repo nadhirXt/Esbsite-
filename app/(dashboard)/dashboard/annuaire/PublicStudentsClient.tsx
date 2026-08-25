@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Users, User as UserIcon, GraduationCap, Building2, Filter } from 'lucide-react'
+import Link from 'next/link'
+import { Search, Users, User as UserIcon, GraduationCap, Building2, Filter, ArrowLeft } from 'lucide-react'
 import { CYCLES } from '@/lib/utils'
 import type { User } from '@/lib/types'
 
@@ -30,6 +31,13 @@ export default function PublicStudentsClient({ initialStudents }: { initialStude
   return (
     <div className="animate-fade-in max-w-5xl mx-auto">
       <div className="mb-8">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Retour au tableau de bord
+        </Link>
         <h1 className="text-2xl font-bold text-[#0F172A] flex items-center gap-3">
           <div className="w-10 h-10 bg-[#EFF6FF] text-[#1E3A8A] rounded-xl flex items-center justify-center">
             <Users className="w-5 h-5" />

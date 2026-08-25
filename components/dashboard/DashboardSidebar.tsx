@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   GraduationCap, LayoutDashboard, BookOpen, FileText, Link2,
   LogOut, ChevronRight, Settings, Shield, Menu, X, ArrowLeft, Users, Lock, Heart, BarChart2,
-  Calendar, Megaphone, Trophy
+  Calendar, Megaphone
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn, CYCLES } from '@/lib/utils'
@@ -28,7 +28,6 @@ const NAV_ITEMS = [
   { href: '/dashboard/favoris',      label: 'Mes Favoris',        icon: Heart },
   { href: '/dashboard/bibliotheque', label: 'Bibliothèque',       icon: FileText },
   { href: '/dashboard/ressources',   label: 'Ressources',         icon: Link2 },
-  { href: '/dashboard/classement',   label: 'Classement',         icon: Trophy },
   { href: '/dashboard/annuaire',     label: 'Réseau / Annuaire',  icon: Users },
   { href: '/dashboard/analytics',    label: 'Mes Stats',          icon: BarChart2 },
   { href: '/dashboard/profile',      label: 'Mon Profil',         icon: Settings },

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Megaphone, Pin, Info, AlertTriangle, CheckCircle, Zap } from 'lucide-react'
+import Link from 'next/link'
+import { Megaphone, Pin, Info, AlertTriangle, CheckCircle, Zap, ArrowLeft } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -32,6 +33,13 @@ export default async function ActualitesPage() {
     <div className="max-w-3xl mx-auto animate-fade-in">
       {/* Header */}
       <div className="mb-8">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Retour au tableau de bord
+        </Link>
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2.5 bg-amber-50 dark:bg-amber-900/30 rounded-xl">
             <Megaphone className="w-6 h-6 text-amber-600 dark:text-amber-400" />

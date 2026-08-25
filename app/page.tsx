@@ -91,6 +91,7 @@ import { createClient } from '@/lib/supabase/server'
 import { ClientImage } from '@/components/ui/ClientImage'
 import CopyEmailButton from '@/components/ui/CopyEmailButton'
 import QRCodeSection from '@/components/public/QRCodeSection'
+import AlumniFeedbacks from '@/components/public/AlumniFeedbacks'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -98,6 +99,13 @@ export default async function HomePage() {
   
   const totalUsers = stats?.[0]?.total_users || 0
   const totalDocs = stats?.[0]?.total_documents || 0
+
+  const { data: categoriesData } = await supabase
+    .from('documents')
+    .select('category')
+    .neq('title', '.keep')
+
+  const uniqueCategories = new Set(categoriesData?.map(d => d.category).filter(Boolean) || []).size
 
   return (
     <>
@@ -167,9 +175,9 @@ export default async function HomePage() {
                 </div>
                 <div className="space-y-3">
                   {[
-                    { label: 'Cours disponibles', val: totalDocs > 0 ? `${totalDocs}` : '0', color: 'bg-blue-500' },
-                    { label: 'Étudiants actifs',  val: totalUsers > 0 ? `${totalUsers}` : '0', color: 'bg-amber-500' },
-                    { label: 'Taux de réussite',  val: '92%',  color: 'bg-green-500' },
+                    { label: 'Documents disponibles', val: totalDocs > 0 ? `${totalDocs}` : '0', color: 'bg-blue-500' },
+                    { label: 'Étudiants inscrits',     val: totalUsers > 0 ? `${totalUsers}` : '0', color: 'bg-amber-500' },
+                    { label: 'Matières couvertes',    val: uniqueCategories > 0 ? `${uniqueCategories}` : '3 Cycles', color: 'bg-emerald-500' },
                   ].map((s) => (
                     <div key={s.label} className="flex items-center justify-between glass rounded-xl px-4 py-3 hover:bg-white/10 transition-colors duration-200">
                       <div className="flex items-center gap-2">
@@ -440,6 +448,9 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ── ALUMNI FEEDBACKS SECTION ───────────── */}
+        <AlumniFeedbacks />
 
         {/* ── QR CODE SECTION ────────────────────── */}
         <QRCodeSection />

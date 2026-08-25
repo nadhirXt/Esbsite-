@@ -1,7 +1,8 @@
 'use client'
 
 import { QRCodeSVG } from 'qrcode.react'
-import { Share2, Copy, Globe, MessageCircle, Mail, Check } from 'lucide-react'
+import Link from 'next/link'
+import { Share2, Copy, Globe, MessageCircle, Mail, Check, ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://esbhub.study'
@@ -18,6 +19,13 @@ export default function PartagerPage() {
 
   return (
     <div className="max-w-xl mx-auto animate-fade-in">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Retour au tableau de bord
+      </Link>
       {/* Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 mb-4 hover:scale-110 transition-transform duration-300">

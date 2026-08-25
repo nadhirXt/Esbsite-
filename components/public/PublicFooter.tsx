@@ -42,7 +42,7 @@ export default function PublicFooter() {
             <ul className="space-y-2 sm:space-y-2.5">
               {[
                 { name: 'Licence Bancaire', icon: '🎓' },
-                { name: 'DSEB (4 ans)', icon: '🏦' },
+                { name: 'DSEB', icon: '🏦' },
                 { name: 'Master', icon: '📜' }
               ].map((f) => (
                 <li key={f.name}>
