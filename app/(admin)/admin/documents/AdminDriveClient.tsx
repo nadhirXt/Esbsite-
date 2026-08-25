@@ -2,15 +2,46 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2 } from 'lucide-react'
+
+import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2, FolderInput, Scissors, ClipboardPaste } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
 import type { Document } from '@/lib/types'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import { getPresignedUploadUrl, getPresignedDownloadUrl, deleteStorageFile, deleteStorageFiles } from '@/app/actions/storage'
+import { 
+  getPresignedUploadUrl, 
+  getPresignedDownloadUrl, 
+  deleteDocumentAction, 
+  deleteFolderAction,
+  moveDocumentAction,
+  moveFolderAction 
+} from '@/app/actions/storage'
+import MoveDocumentModal from '@/components/admin/MoveDocumentModal'
+import FileConflictModal, { ConflictResolution } from '@/components/admin/FileConflictModal'
 
 import { generatePDFThumbnail } from '@/lib/pdf-thumbnail'
+
+interface ClipboardItem {
+  type: 'file' | 'folder'
+  sourceCycle: string
+  sourceYear: number | null
+  sourceCategory: string
+  doc?: Document
+  folderPath?: string
+  folderName?: string
+}
+
+function generateUniqueTitle(baseTitle: string, existingTitles: string[]): string {
+  if (!existingTitles.includes(baseTitle)) return baseTitle
+  let counter = 1
+  const match = baseTitle.match(/^(.*?)(?:\s*\((\d+)\))?$/)
+  const rootName = match ? match[1].trim() : baseTitle
+  while (existingTitles.includes(`${rootName} (${counter})`)) {
+    counter++
+  }
+  return `${rootName} (${counter})`
+}
 
 export default function AdminDriveClient({ documents: initialDocuments }: { documents: Document[] }) {
   const [documents, setDocuments] = useState(initialDocuments)
@@ -19,6 +50,17 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
   const [currentPath, setCurrentPath] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   
+  // Clipboard (Couper / Coller) State
+  const [clipboard, setClipboard] = useState<ClipboardItem | null>(null)
+
+  // Conflict Resolution State
+  const [conflictState, setConflictState] = useState<{
+    sourceDoc: Document
+    existingDoc: Document
+    targetLocation: { cycle: string, year: number | null, category: string }
+    suggestedNewTitle: string
+  } | null>(null)
+
   // Context Menu State
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean,
@@ -33,6 +75,8 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
   const [showFolderModal, setShowFolderModal] = useState(false)
   const [showRenameFolderModal, setShowRenameFolderModal] = useState<{oldPath: string} | null>(null)
   const [showRenameFileModal, setShowRenameFileModal] = useState<any | null>(null)
+  const [showMoveFileModal, setShowMoveFileModal] = useState<Document | null>(null)
+  const [showMoveFolderModal, setShowMoveFolderModal] = useState<{ folderPath: string } | null>(null)
   
   // Upload State (for drag and drop / direct upload)
   const [isDragging, setIsDragging] = useState(false)
@@ -115,6 +159,213 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     setContextMenu({ visible: true, x: e.pageX, y: e.pageY, type: 'file', targetDoc: doc })
   }
 
+  // Couper (Cut)
+  function handleCutFile(doc: Document) {
+    setClipboard({
+      type: 'file',
+      sourceCycle: doc.cycle,
+      sourceYear: doc.year ?? null,
+      sourceCategory: doc.category || 'Général',
+      doc
+    })
+    setContextMenu(null)
+  }
+
+  function handleCutFolder(folderName: string) {
+    const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
+    setClipboard({
+      type: 'folder',
+      sourceCycle: cycle,
+      sourceYear: isNoYearCycle ? null : year,
+      sourceCategory: folderPath,
+      folderPath,
+      folderName
+    })
+    setContextMenu(null)
+  }
+
+  // Coller (Paste)
+  async function handlePaste(targetCategoryParam?: string) {
+    if (!clipboard) return
+    const targetCategory = targetCategoryParam !== undefined ? targetCategoryParam : (currentPathString || 'Général')
+    const targetCycle = cycle
+    const targetYear = isNoYearCycle ? null : year
+
+    if (clipboard.type === 'file' && clipboard.doc) {
+      const sourceDoc = clipboard.doc
+      const sameLocation = 
+        clipboard.sourceCycle === targetCycle &&
+        clipboard.sourceYear === targetYear &&
+        (clipboard.sourceCategory || 'Général') === targetCategory
+
+      if (sameLocation) {
+        setClipboard(null)
+        return
+      }
+
+      // Check duplicate/conflict
+      const existingDoc = documents.find(d => 
+        d.cycle === targetCycle &&
+        (isNoYearCycle || d.year === targetYear) &&
+        (d.category || 'Général') === targetCategory &&
+        d.title.toLowerCase() === sourceDoc.title.toLowerCase() &&
+        d.id !== sourceDoc.id &&
+        d.title !== '.keep'
+      )
+
+      if (existingDoc) {
+        // Open conflict dialog
+        const existingTitles = documents
+          .filter(d => d.cycle === targetCycle && (isNoYearCycle || d.year === targetYear) && (d.category || 'Général') === targetCategory)
+          .map(d => d.title)
+        const suggestedTitle = generateUniqueTitle(sourceDoc.title, existingTitles)
+
+        setConflictState({
+          sourceDoc,
+          existingDoc,
+          targetLocation: { cycle: targetCycle, year: targetYear, category: targetCategory },
+          suggestedNewTitle: suggestedTitle
+        })
+        return
+      }
+
+      // No conflict -> move directly
+      const res = await moveDocumentAction({
+        documentId: sourceDoc.id,
+        targetCycle,
+        targetYear,
+        targetCategory,
+      })
+
+      if (res.error) {
+        alert(res.error)
+        return
+      }
+
+      setDocuments(prev => prev.map(d => d.id === sourceDoc.id ? (res.doc || {
+        ...d,
+        cycle: targetCycle,
+        year: targetYear,
+        category: targetCategory
+      }) : d))
+      setClipboard(null)
+    } else if (clipboard.type === 'folder' && clipboard.folderPath) {
+      const sourcePath = clipboard.folderPath
+      
+      // Prevent pasting folder into itself or its children
+      if (targetCategory === sourcePath || targetCategory.startsWith(`${sourcePath}/`)) {
+        alert("Impossible de déplacer un dossier dans lui-même ou dans l'un de ses sous-dossiers.")
+        return
+      }
+
+      const res = await moveFolderAction({
+        sourceCycle: clipboard.sourceCycle,
+        sourceYear: clipboard.sourceYear,
+        sourceFolderPath: sourcePath,
+        targetCycle,
+        targetYear,
+        targetCategory
+      })
+
+      if (res.error) {
+        alert(res.error)
+        return
+      }
+
+      if (res.docs && res.docs.length > 0) {
+        const updatedMap = new Map(res.docs.map((d: Document) => [d.id, d]))
+        setDocuments(prev => prev.map(d => updatedMap.get(d.id) || d))
+      } else {
+        const folderBaseName = sourcePath.split('/').pop() || sourcePath
+        const newPrefix = (!targetCategory || targetCategory === 'Général')
+          ? folderBaseName
+          : `${targetCategory}/${folderBaseName}`
+
+        setDocuments(prev => prev.map(d => {
+          const isMatch = d.cycle === clipboard.sourceCycle && 
+            (!isNoYearCycle ? d.year === clipboard.sourceYear : true) && 
+            (d.category === sourcePath || d.category?.startsWith(sourcePath + '/'))
+          
+          if (!isMatch) return d
+
+          const updatedCat = d.category === sourcePath 
+            ? newPrefix 
+            : (d.category?.startsWith(sourcePath + '/') ? d.category.replace(sourcePath + '/', newPrefix + '/') : newPrefix)
+
+          return {
+            ...d,
+            cycle: targetCycle,
+            year: targetYear,
+            category: updatedCat
+          }
+        }))
+      }
+      setClipboard(null)
+    }
+  }
+
+  // Conflict Modal Resolution
+  async function handleConflictResolve(resolution: ConflictResolution) {
+    if (!conflictState) return
+    const { sourceDoc, existingDoc, targetLocation, suggestedNewTitle } = conflictState
+    setConflictState(null)
+
+    if (resolution === 'skip') {
+      setClipboard(null)
+      return
+    }
+
+    const res = await moveDocumentAction({
+      documentId: sourceDoc.id,
+      targetCycle: targetLocation.cycle,
+      targetYear: targetLocation.year,
+      targetCategory: targetLocation.category,
+      conflictStrategy: resolution,
+      newTitle: resolution === 'rename' ? suggestedNewTitle : undefined
+    })
+
+    if (res.error) {
+      alert(res.error)
+      return
+    }
+
+    setDocuments(prev => {
+      let filtered = prev
+      if (resolution === 'replace') {
+        filtered = filtered.filter(d => d.id !== existingDoc.id)
+      }
+      return filtered.map(d => d.id === sourceDoc.id ? (res.doc || {
+        ...d,
+        title: resolution === 'rename' ? suggestedNewTitle : d.title,
+        cycle: targetLocation.cycle,
+        year: targetLocation.year,
+        category: targetLocation.category
+      }) : d)
+    })
+
+    setClipboard(null)
+  }
+
+  // Keyboard Shortcuts (Ctrl+X, Ctrl+V, Escape)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+        if (clipboard) {
+          e.preventDefault()
+          handlePaste()
+        }
+      } else if (e.key === 'Escape') {
+        if (clipboard) {
+          setClipboard(null)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [clipboard, cycle, year, currentPathString, documents, isNoYearCycle])
+
   // Actions
   async function createFolder(folderName: string) {
     if (!folderName.trim()) return
@@ -137,23 +388,23 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     if (!confirm(`Supprimer le dossier "${folderName}" et TOUT son contenu ?`)) return
     const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
     
-    // Find all documents in this folder and subfolders
-    const docsToDelete = documents.filter(doc => doc.cycle === cycle && (isNoYearCycle || doc.year === year) && (doc.category === folderPath || doc.category?.startsWith(folderPath + '/')))
-    
-    const filePathsToDelete = docsToDelete.filter(d => d.file_path !== '.keep').map(d => d.file_path)
-    const thumbPathsToDelete = docsToDelete.map(d => d.thumbnail_path).filter((p): p is string => Boolean(p))
-    const allPathsToDelete = [...filePathsToDelete, ...thumbPathsToDelete]
+    const res = await deleteFolderAction({
+      cycle,
+      year: isNoYearCycle ? null : year,
+      folderPath
+    })
 
-    if (allPathsToDelete.length > 0) {
-      await deleteStorageFiles(allPathsToDelete)
-    }
-
-    const idsToDelete = docsToDelete.map(d => d.id)
-    if (idsToDelete.length > 0) {
-      await supabase.from('documents').delete().in('id', idsToDelete)
+    if (res.error) {
+      alert('Erreur de suppression : ' + res.error)
+      return
     }
     
-    setDocuments(prev => prev.filter(doc => !idsToDelete.includes(doc.id)))
+    // Update local state immediately
+    setDocuments(prev => prev.filter(doc => {
+      const matchCycle = doc.cycle === cycle && (isNoYearCycle || doc.year === year)
+      const matchFolder = doc.category === folderPath || doc.category?.startsWith(folderPath + '/')
+      return !(matchCycle && matchFolder)
+    }))
   }
 
   async function renameFolder(oldName: string, newName: string) {
@@ -181,15 +432,12 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
   async function deleteFile(id: string, filePath: string, thumbnailPath?: string | null) {
     if (!confirm('Supprimer ce fichier ?')) return
     
-    const pathsToDelete = []
-    if (filePath !== '.keep') pathsToDelete.push(filePath)
-    if (thumbnailPath) pathsToDelete.push(thumbnailPath)
-      
-    if (pathsToDelete.length > 0) {
-      await deleteStorageFiles(pathsToDelete)
+    const res = await deleteDocumentAction(id)
+    if (res.error) {
+      alert('Erreur lors de la suppression : ' + res.error)
+      return
     }
-    
-    await supabase.from('documents').delete().eq('id', id)
+
     setDocuments(prev => prev.filter(d => d.id !== id))
   }
 
@@ -200,7 +448,79 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     setShowRenameFileModal(null)
   }
 
+  async function moveFile(targetCycle: string, targetYear: number | null, targetCategory: string) {
+    if (!showMoveFileModal) return
+    const doc = showMoveFileModal
+    const cleanCat = targetCategory.trim() || 'Général'
+    
+    const res = await moveDocumentAction({
+      documentId: doc.id,
+      targetCycle,
+      targetYear,
+      targetCategory: cleanCat
+    })
+
+    if (res.error) {
+      alert('Erreur lors du déplacement : ' + res.error)
+      throw new Error(res.error)
+    }
+
+    setDocuments(prev => prev.map(d => d.id === doc.id ? (res.doc || { ...d, cycle: targetCycle, year: targetYear, category: cleanCat }) : d))
+    setShowMoveFileModal(null)
+  }
+
+  async function moveFolder(targetCycle: string, targetYear: number | null, targetCategory: string) {
+    if (!showMoveFolderModal) return
+    const sourcePath = showMoveFolderModal.folderPath
+    
+    const res = await moveFolderAction({
+      sourceCycle: cycle,
+      sourceYear: isNoYearCycle ? null : year,
+      sourceFolderPath: sourcePath,
+      targetCycle,
+      targetYear,
+      targetCategory
+    })
+
+    if (res.error) {
+      alert('Erreur lors du déplacement du dossier : ' + res.error)
+      throw new Error(res.error)
+    }
+
+    if (res.docs && res.docs.length > 0) {
+      const updatedMap = new Map(res.docs.map((d: Document) => [d.id, d]))
+      setDocuments(prev => prev.map(d => updatedMap.get(d.id) || d))
+    } else {
+      const folderBaseName = sourcePath.split('/').pop() || sourcePath
+      const newPrefix = (!targetCategory || targetCategory === 'Général')
+        ? folderBaseName
+        : `${targetCategory}/${folderBaseName}`
+
+      setDocuments(prev => prev.map(d => {
+        const isMatch = d.cycle === cycle && 
+          (!isNoYearCycle ? d.year === year : true) && 
+          (d.category === sourcePath || d.category?.startsWith(sourcePath + '/'))
+        
+        if (!isMatch) return d
+
+        const updatedCat = d.category === sourcePath 
+          ? newPrefix 
+          : (d.category?.startsWith(sourcePath + '/') ? d.category.replace(sourcePath + '/', newPrefix + '/') : newPrefix)
+
+        return {
+          ...d,
+          cycle: targetCycle,
+          year: targetYear,
+          category: updatedCat
+        }
+      }))
+    }
+    setShowMoveFolderModal(null)
+  }
+
+
   async function handleFilesUpload(files: FileList | File[] | any[]) {
+
     if (files.length === 0) return
     setUploading(true)
     const baseCategory = currentPathString || 'Général'
@@ -512,27 +832,37 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
             <div>
               <h2 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-wider pl-2">Dossiers</h2>
               <div className="grid sm:grid-cols-3 lg:grid-cols-4 gap-5">
-                {foldersList.map(folderName => (
-                  <div
-                    key={folderName}
-                    onContextMenu={(e) => handleContextMenuFolder(e, folderName)}
-                    onClick={() => navigateTo(folderName)}
-                    className="group flex items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg p-4 hover:shadow-xl hover:border-blue-500/30 transition-all duration-300 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
-                        <Folder className="w-7 h-7 text-blue-600 dark:text-blue-400 fill-blue-100 dark:fill-blue-900/50 shrink-0" />
-                      </div>
-                      <span className="font-bold text-slate-900 dark:text-white truncate">{folderName}</span>
-                    </div>
-                    <button 
-                      onClick={(e) => handleContextMenuFolder(e, folderName)}
-                      className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+                {foldersList.map(folderName => {
+                  const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
+                  const isFolderCut = clipboard?.type === 'folder' && clipboard.folderPath === folderPath
+
+                  return (
+                    <div
+                      key={folderName}
+                      onContextMenu={(e) => handleContextMenuFolder(e, folderName)}
+                      onClick={() => navigateTo(folderName)}
+                      className={cn(
+                        "group flex items-center justify-between gap-3 rounded-2xl border bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg p-4 hover:shadow-xl transition-all duration-300 cursor-pointer",
+                        isFolderCut 
+                          ? "opacity-50 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 ring-2 ring-blue-500/20" 
+                          : "border-slate-200 dark:border-white/10 hover:border-blue-500/30"
+                      )}
                     >
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                          <Folder className="w-7 h-7 text-blue-600 dark:text-blue-400 fill-blue-100 dark:fill-blue-900/50 shrink-0" />
+                        </div>
+                        <span className="font-bold text-slate-900 dark:text-white truncate">{folderName}</span>
+                      </div>
+                      <button 
+                        onClick={(e) => handleContextMenuFolder(e, folderName)}
+                        className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
+                      >
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -541,16 +871,23 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
             <div>
               <h2 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-wider pl-2">Fichiers</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filesHere.map(doc => (
-                  <AdminDocumentCard 
-                    key={doc.id} 
-                    doc={doc} 
-                    supabase={supabase} 
-                    onContextMenu={(e) => handleContextMenuFile(e, doc)}
-                    onDelete={() => deleteFile(doc.id, doc.file_path, doc.thumbnail_path)}
-                    onRename={() => setShowRenameFileModal(doc)}
-                  />
-                ))}
+                {filesHere.map(doc => {
+                  const isFileCut = clipboard?.type === 'file' && clipboard.doc?.id === doc.id
+
+                  return (
+                    <AdminDocumentCard 
+                      key={doc.id} 
+                      doc={doc} 
+                      supabase={supabase} 
+                      isCut={isFileCut}
+                      onContextMenu={(e) => handleContextMenuFile(e, doc)}
+                      onDelete={() => deleteFile(doc.id, doc.file_path, doc.thumbnail_path)}
+                      onRename={() => setShowRenameFileModal(doc)}
+                      onMove={() => setShowMoveFileModal(doc)}
+                      onCut={() => handleCutFile(doc)}
+                    />
+                  )
+                })}
               </div>
             </div>
           )}
@@ -565,6 +902,17 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
         >
           {contextMenu.type === 'bg' && (
             <>
+              {clipboard && (
+                <>
+                  <button 
+                    className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-3 text-blue-600 dark:text-blue-400 font-semibold transition-colors" 
+                    onClick={() => handlePaste()}
+                  >
+                    <ClipboardPaste className="w-4 h-4" /> Coller ici
+                  </button>
+                  <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
+                </>
+              )}
               <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowFolderModal(true)}>
                 <Folder className="w-4 h-4 text-slate-400" /> Nouveau dossier
               </button>
@@ -581,6 +929,20 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
               <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => navigateTo(contextMenu.targetName!)}>
                 <FolderOpen className="w-4 h-4 text-slate-400" /> Ouvrir
               </button>
+              {clipboard && (
+                <button 
+                  className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-3 text-blue-600 dark:text-blue-400 font-semibold transition-colors" 
+                  onClick={() => handlePaste(currentPathString ? `${currentPathString}/${contextMenu.targetName!}` : contextMenu.targetName!)}
+                >
+                  <ClipboardPaste className="w-4 h-4" /> Coller dans ce dossier
+                </button>
+              )}
+              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => handleCutFolder(contextMenu.targetName!)}>
+                <Scissors className="w-4 h-4 text-slate-400" /> Couper
+              </button>
+              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowMoveFolderModal({ folderPath: contextMenu.targetName! })}>
+                <FolderInput className="w-4 h-4 text-slate-400" /> Déplacer...
+              </button>
               <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowRenameFolderModal({ oldPath: contextMenu.targetName! })}>
                 <Edit2 className="w-4 h-4 text-slate-400" /> Renommer
               </button>
@@ -592,7 +954,13 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
           )}
           {contextMenu.type === 'file' && (
             <>
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowRenameFileModal(contextMenu.targetDoc)}>
+              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && handleCutFile(contextMenu.targetDoc)}>
+                <Scissors className="w-4 h-4 text-slate-400" /> Couper
+              </button>
+              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && setShowMoveFileModal(contextMenu.targetDoc)}>
+                <FolderInput className="w-4 h-4 text-slate-400" /> Déplacer...
+              </button>
+              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && setShowRenameFileModal(contextMenu.targetDoc)}>
                 <Edit2 className="w-4 h-4 text-slate-400" /> Renommer
               </button>
               <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
@@ -662,6 +1030,81 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
         </Modal>
       )}
 
+      {/* Modal: Déplacer un fichier */}
+      {showMoveFileModal && (
+        <MoveDocumentModal
+          isOpen={Boolean(showMoveFileModal)}
+          onClose={() => setShowMoveFileModal(null)}
+          type="file"
+          itemTitle={showMoveFileModal.title}
+          sourceCycle={showMoveFileModal.cycle}
+          sourceYear={showMoveFileModal.year ?? null}
+          sourceCategory={showMoveFileModal.category || 'Général'}
+          allDocuments={documents}
+          onConfirmMove={moveFile}
+        />
+      )}
+
+      {/* Modal: Déplacer un dossier */}
+      {showMoveFolderModal && (
+        <MoveDocumentModal
+          isOpen={Boolean(showMoveFolderModal)}
+          onClose={() => setShowMoveFolderModal(null)}
+          type="folder"
+          itemTitle={showMoveFolderModal.folderPath.split('/').pop() || showMoveFolderModal.folderPath}
+          sourceCycle={cycle}
+          sourceYear={year}
+          sourceCategory={showMoveFolderModal.folderPath}
+          allDocuments={documents}
+          onConfirmMove={moveFolder}
+        />
+      )}
+
+      {/* Modal: Résolution de conflit (Fichier en doublon) */}
+      {conflictState && (
+        <FileConflictModal
+          isOpen={Boolean(conflictState)}
+          onClose={() => setConflictState(null)}
+          sourceDoc={conflictState.sourceDoc}
+          existingDoc={conflictState.existingDoc}
+          targetLocation={conflictState.targetLocation}
+          suggestedNewTitle={conflictState.suggestedNewTitle}
+          onResolve={handleConflictResolve}
+        />
+      )}
+
+      {/* Floating Clipboard Bar (Couper / Coller) */}
+      {clipboard && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 dark:bg-slate-800/95 text-white backdrop-blur-xl border border-white/10 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 animate-slide-up">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 bg-blue-500/20 text-blue-400 rounded-lg animate-pulse">
+              <Scissors className="w-4 h-4" />
+            </div>
+            <div className="text-xs">
+              <span className="text-slate-400 block text-[11px]">Élément coupé (prêt à coller) :</span>
+              <strong className="text-white truncate max-w-xs block font-bold">
+                {clipboard.type === 'file' ? clipboard.doc?.title : clipboard.folderName}
+              </strong>
+            </div>
+          </div>
+          <div className="h-6 w-px bg-white/10 mx-1" />
+          <button
+            onClick={() => handlePaste()}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+          >
+            <ClipboardPaste className="w-4 h-4" />
+            Coller ici
+          </button>
+          <button
+            onClick={() => setClipboard(null)}
+            className="p-1.5 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            title="Annuler (Échap)"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Global Upload Progress Toast */}
       {Object.keys(uploadProgress).length > 0 && (
         <div className="fixed bottom-6 right-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-2xl z-50 w-80 animate-slide-up">
@@ -701,7 +1144,9 @@ function Modal({ title, children, onClose }: { title: string, children: React.Re
   )
 }
 
-function AdminDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename }: { doc: Document; supabase: any, onContextMenu: (e:any) => void, onDelete: () => void, onRename: () => void }) {
+function AdminDocumentCard({ doc, supabase, isCut, onContextMenu, onDelete, onRename, onMove, onCut }: { doc: Document; supabase: any, isCut?: boolean, onContextMenu: (e:any) => void, onDelete: () => void, onRename: () => void, onMove?: () => void, onCut?: () => void }) {
+
+
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
   const [thumbUrl, setThumbUrl] = useState<string | null>(null)
@@ -754,8 +1199,17 @@ function AdminDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename }:
   }
 
   return (
-    <div onContextMenu={onContextMenu} className="group flex flex-col justify-between gap-4 rounded-3xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg p-5 hover:shadow-xl hover:border-blue-500/30 transition-all duration-300">
+    <div 
+      onContextMenu={onContextMenu} 
+      className={cn(
+        "group flex flex-col justify-between gap-4 rounded-3xl border bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg p-5 hover:shadow-xl transition-all duration-300",
+        isCut
+          ? "opacity-50 border-dashed border-blue-500 bg-blue-50/30 dark:bg-blue-900/20 ring-2 ring-blue-500/20"
+          : "border-slate-200 dark:border-white/10 hover:border-blue-500/30"
+      )}
+    >
       <div className="flex items-start gap-4 justify-between">
+
         <div className="flex items-start gap-4 min-w-0 w-full">
           {thumbUrl ? (
             <img src={thumbUrl} alt="Miniature" className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-white/10 shrink-0 group-hover:scale-105 transition-transform duration-300" />

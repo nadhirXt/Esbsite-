@@ -2,13 +2,44 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2 } from 'lucide-react'
+import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2, FolderInput, Scissors, ClipboardPaste } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
 import type { Document } from '@/lib/types'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import { getPresignedUploadUrl, getPresignedDownloadUrl, deleteStorageFile, deleteStorageFiles } from '@/app/actions/storage'
+import { 
+  getPresignedUploadUrl, 
+  getPresignedDownloadUrl, 
+  deleteDocumentAction, 
+  deleteFolderAction,
+  moveDocumentAction,
+  moveFolderAction 
+} from '@/app/actions/storage'
+import MoveDocumentModal from '@/components/admin/MoveDocumentModal'
+import FileConflictModal, { ConflictResolution } from '@/components/admin/FileConflictModal'
+import { generatePDFThumbnail } from '@/lib/pdf-thumbnail'
+
+interface ClipboardItem {
+  type: 'file' | 'folder'
+  sourceCycle: string
+  sourceYear: number | null
+  sourceCategory: string
+  doc?: Document
+  folderPath?: string
+  folderName?: string
+}
+
+function generateUniqueTitle(baseTitle: string, existingTitles: string[]): string {
+  if (!existingTitles.includes(baseTitle)) return baseTitle
+  let counter = 1
+  const match = baseTitle.match(/^(.*?)(?:\s*\((\d+)\))?$/)
+  const rootName = match ? match[1].trim() : baseTitle
+  while (existingTitles.includes(`${rootName} (${counter})`)) {
+    counter++
+  }
+  return `${rootName} (${counter})`
+}
 
 export default function DelegateDriveClient({ 
   documents: initialDocuments, 
@@ -25,6 +56,17 @@ export default function DelegateDriveClient({
   const [currentPath, setCurrentPath] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   
+  // Clipboard (Couper / Coller) State
+  const [clipboard, setClipboard] = useState<ClipboardItem | null>(null)
+
+  // Conflict Resolution State
+  const [conflictState, setConflictState] = useState<{
+    sourceDoc: Document
+    existingDoc: Document
+    targetLocation: { cycle: string, year: number | null, category: string }
+    suggestedNewTitle: string
+  } | null>(null)
+  
   // Context Menu State
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean,
@@ -39,6 +81,8 @@ export default function DelegateDriveClient({
   const [showFolderModal, setShowFolderModal] = useState(false)
   const [showRenameFolderModal, setShowRenameFolderModal] = useState<{oldPath: string} | null>(null)
   const [showRenameFileModal, setShowRenameFileModal] = useState<any | null>(null)
+  const [showMoveFileModal, setShowMoveFileModal] = useState<Document | null>(null)
+  const [showMoveFolderModal, setShowMoveFolderModal] = useState<{ folderPath: string } | null>(null)
   
   // Upload State (for drag and drop / direct upload)
   const [isDragging, setIsDragging] = useState(false)
@@ -72,7 +116,7 @@ export default function DelegateDriveClient({
   }, [contextMenu])
 
   // Process documents
-  const cycleDocuments = documents // Les documents passés en props sont déjà filtrés par la page
+  const cycleDocuments = documents 
   const currentPathString = currentPath.join('/')
 
   const subFolders = new Set<string>()
@@ -120,6 +164,199 @@ export default function DelegateDriveClient({
     setContextMenu({ visible: true, x: e.pageX, y: e.pageY, type: 'file', targetDoc: doc })
   }
 
+  // Couper (Cut)
+  function handleCutFile(doc: Document) {
+    setClipboard({
+      type: 'file',
+      sourceCycle: doc.cycle,
+      sourceYear: doc.year ?? null,
+      sourceCategory: doc.category || 'Général',
+      doc
+    })
+    setContextMenu(null)
+  }
+
+  function handleCutFolder(folderName: string) {
+    const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
+    setClipboard({
+      type: 'folder',
+      sourceCycle: delegateCycle,
+      sourceYear: delegateYear,
+      sourceCategory: folderPath,
+      folderPath,
+      folderName
+    })
+    setContextMenu(null)
+  }
+
+  // Coller (Paste)
+  async function handlePaste(targetCategoryParam?: string) {
+    if (!clipboard) return
+    const targetCategory = targetCategoryParam !== undefined ? targetCategoryParam : (currentPathString || 'Général')
+    const targetCycle = delegateCycle
+    const targetYear = delegateYear
+
+    if (clipboard.type === 'file' && clipboard.doc) {
+      const sourceDoc = clipboard.doc
+      const sameLocation = (clipboard.sourceCategory || 'Général') === targetCategory
+
+      if (sameLocation) {
+        setClipboard(null)
+        return
+      }
+
+      // Check duplicate/conflict
+      const existingDoc = documents.find(d => 
+        (d.category || 'Général') === targetCategory &&
+        d.title.toLowerCase() === sourceDoc.title.toLowerCase() &&
+        d.id !== sourceDoc.id &&
+        d.title !== '.keep'
+      )
+
+      if (existingDoc) {
+        // Open conflict dialog
+        const existingTitles = documents
+          .filter(d => (d.category || 'Général') === targetCategory)
+          .map(d => d.title)
+        const suggestedTitle = generateUniqueTitle(sourceDoc.title, existingTitles)
+
+        setConflictState({
+          sourceDoc,
+          existingDoc,
+          targetLocation: { cycle: targetCycle, year: targetYear, category: targetCategory },
+          suggestedNewTitle: suggestedTitle
+        })
+        return
+      }
+
+      // No conflict -> move directly
+      const res = await moveDocumentAction({
+        documentId: sourceDoc.id,
+        targetCycle,
+        targetYear,
+        targetCategory,
+      })
+
+      if (res.error) {
+        alert(res.error)
+        return
+      }
+
+      setDocuments(prev => prev.map(d => d.id === sourceDoc.id ? (res.doc || {
+        ...d,
+        category: targetCategory
+      }) : d))
+      setClipboard(null)
+    } else if (clipboard.type === 'folder' && clipboard.folderPath) {
+      const sourcePath = clipboard.folderPath
+      
+      // Prevent pasting folder into itself or its children
+      if (targetCategory === sourcePath || targetCategory.startsWith(`${sourcePath}/`)) {
+        alert("Impossible de déplacer un dossier dans lui-même ou dans l'un de ses sous-dossiers.")
+        return
+      }
+
+      const res = await moveFolderAction({
+        sourceCycle: clipboard.sourceCycle,
+        sourceYear: clipboard.sourceYear,
+        sourceFolderPath: sourcePath,
+        targetCycle,
+        targetYear,
+        targetCategory
+      })
+
+      if (res.error) {
+        alert(res.error)
+        return
+      }
+
+      if (res.docs && res.docs.length > 0) {
+        const updatedMap = new Map(res.docs.map((d: Document) => [d.id, d]))
+        setDocuments(prev => prev.map(d => updatedMap.get(d.id) || d))
+      } else {
+        const folderBaseName = sourcePath.split('/').pop() || sourcePath
+        const newPrefix = (!targetCategory || targetCategory === 'Général')
+          ? folderBaseName
+          : `${targetCategory}/${folderBaseName}`
+
+        setDocuments(prev => prev.map(d => {
+          const isMatch = d.category === sourcePath || d.category?.startsWith(sourcePath + '/')
+          if (!isMatch) return d
+
+          const updatedCat = d.category === sourcePath 
+            ? newPrefix 
+            : (d.category?.startsWith(sourcePath + '/') ? d.category.replace(sourcePath + '/', newPrefix + '/') : newPrefix)
+
+          return {
+            ...d,
+            category: updatedCat
+          }
+        }))
+      }
+      setClipboard(null)
+    }
+  }
+
+  // Conflict Modal Resolution
+  async function handleConflictResolve(resolution: ConflictResolution) {
+    if (!conflictState) return
+    const { sourceDoc, existingDoc, targetLocation, suggestedNewTitle } = conflictState
+    setConflictState(null)
+
+    if (resolution === 'skip') {
+      setClipboard(null)
+      return
+    }
+
+    const res = await moveDocumentAction({
+      documentId: sourceDoc.id,
+      targetCycle: targetLocation.cycle,
+      targetYear: targetLocation.year,
+      targetCategory: targetLocation.category,
+      conflictStrategy: resolution,
+      newTitle: resolution === 'rename' ? suggestedNewTitle : undefined
+    })
+
+    if (res.error) {
+      alert(res.error)
+      return
+    }
+
+    setDocuments(prev => {
+      let filtered = prev
+      if (resolution === 'replace') {
+        filtered = filtered.filter(d => d.id !== existingDoc.id)
+      }
+      return filtered.map(d => d.id === sourceDoc.id ? (res.doc || {
+        ...d,
+        title: resolution === 'rename' ? suggestedNewTitle : d.title,
+        category: targetLocation.category
+      }) : d)
+    })
+
+    setClipboard(null)
+  }
+
+  // Keyboard Shortcuts (Ctrl+X, Ctrl+V, Escape)
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+        if (clipboard) {
+          e.preventDefault()
+          handlePaste()
+        }
+      } else if (e.key === 'Escape') {
+        if (clipboard) {
+          setClipboard(null)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [clipboard, delegateCycle, delegateYear, currentPathString, documents])
+
   // Actions
   async function createFolder(folderName: string) {
     if (!folderName.trim()) return
@@ -143,20 +380,18 @@ export default function DelegateDriveClient({
     if (!confirm(`Supprimer le dossier "${folderName}" et TOUT son contenu ?`)) return
     const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
     
-    // Find all documents in this folder and subfolders
-    const docsToDelete = documents.filter(doc => (doc.category === folderPath || doc.category?.startsWith(folderPath + '/')))
-    
-    const filePathsToDelete = docsToDelete.filter(d => d.file_path !== '.keep').map(d => d.file_path)
-    if (filePathsToDelete.length > 0) {
-      await deleteStorageFiles(filePathsToDelete)
+    const res = await deleteFolderAction({
+      cycle: delegateCycle,
+      year: delegateYear,
+      folderPath
+    })
+
+    if (res.error) {
+      alert('Erreur lors de la suppression : ' + res.error)
+      return
     }
 
-    const idsToDelete = docsToDelete.map(d => d.id)
-    if (idsToDelete.length > 0) {
-      await supabase.from('documents').delete().in('id', idsToDelete)
-    }
-    
-    setDocuments(prev => prev.filter(doc => !idsToDelete.includes(doc.id)))
+    setDocuments(prev => prev.filter(doc => !(doc.category === folderPath || doc.category?.startsWith(folderPath + '/'))))
   }
 
   async function renameFolder(oldName: string, newName: string) {
@@ -181,12 +416,15 @@ export default function DelegateDriveClient({
     setShowRenameFolderModal(null)
   }
 
-  async function deleteFile(id: string, filePath: string) {
+  async function deleteFile(id: string) {
     if (!confirm('Supprimer ce fichier ?')) return
-    if (filePath !== '.keep') {
-      await deleteStorageFile(filePath)
+    
+    const res = await deleteDocumentAction(id)
+    if (res.error) {
+      alert('Erreur lors de la suppression : ' + res.error)
+      return
     }
-    await supabase.from('documents').delete().eq('id', id)
+
     setDocuments(prev => prev.filter(d => d.id !== id))
   }
 
@@ -195,6 +433,71 @@ export default function DelegateDriveClient({
     await supabase.from('documents').update({ title: newTitle }).eq('id', doc.id)
     setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, title: newTitle } : d))
     setShowRenameFileModal(null)
+  }
+
+  async function moveFile(targetCycle: string, targetYear: number | null, targetCategory: string) {
+    if (!showMoveFileModal) return
+    const doc = showMoveFileModal
+    const cleanCat = targetCategory.trim() || 'Général'
+    
+    const res = await moveDocumentAction({
+      documentId: doc.id,
+      targetCycle,
+      targetYear,
+      targetCategory: cleanCat
+    })
+
+    if (res.error) {
+      alert('Erreur lors du déplacement : ' + res.error)
+      throw new Error(res.error)
+    }
+
+    setDocuments(prev => prev.map(d => d.id === doc.id ? (res.doc || { ...d, category: cleanCat }) : d))
+    setShowMoveFileModal(null)
+  }
+
+  async function moveFolder(targetCycle: string, targetYear: number | null, targetCategory: string) {
+    if (!showMoveFolderModal) return
+    const sourcePath = showMoveFolderModal.folderPath
+    
+    const res = await moveFolderAction({
+      sourceCycle: delegateCycle,
+      sourceYear: delegateYear,
+      sourceFolderPath: sourcePath,
+      targetCycle,
+      targetYear,
+      targetCategory
+    })
+
+    if (res.error) {
+      alert('Erreur lors du déplacement du dossier : ' + res.error)
+      throw new Error(res.error)
+    }
+
+    if (res.docs && res.docs.length > 0) {
+      const updatedMap = new Map(res.docs.map((d: Document) => [d.id, d]))
+      setDocuments(prev => prev.map(d => updatedMap.get(d.id) || d))
+    } else {
+      const folderBaseName = sourcePath.split('/').pop() || sourcePath
+      const newPrefix = (!targetCategory || targetCategory === 'Général')
+        ? folderBaseName
+        : `${targetCategory}/${folderBaseName}`
+
+      setDocuments(prev => prev.map(d => {
+        const isMatch = d.category === sourcePath || d.category?.startsWith(sourcePath + '/')
+        if (!isMatch) return d
+
+        const updatedCat = d.category === sourcePath 
+          ? newPrefix 
+          : (d.category?.startsWith(sourcePath + '/') ? d.category.replace(sourcePath + '/', newPrefix + '/') : newPrefix)
+
+        return {
+          ...d,
+          category: updatedCat
+        }
+      }))
+    }
+    setShowMoveFolderModal(null)
   }
 
   async function handleFilesUpload(files: FileList | File[] | any[]) {
@@ -228,6 +531,26 @@ export default function DelegateDriveClient({
       
       const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
       
+      // 1. Generate and upload thumbnail if PDF
+      let thumbnailPath: string | null = null
+      if (file.type === 'application/pdf') {
+        const thumbBlob = await generatePDFThumbnail(file)
+        if (thumbBlob) {
+          const thumbName = `${delegateCycle}/A${delegateYear}/${Date.now()}_thumb_${safeFileName}.jpg`
+          const { url: thumbUrl } = await getPresignedUploadUrl(thumbName, 'image/jpeg')
+          if (thumbUrl) {
+            try {
+              const thumbRes = await fetch(thumbUrl, { method: 'PUT', body: thumbBlob, headers: { 'Content-Type': 'image/jpeg' } })
+              if (thumbRes.ok) {
+                thumbnailPath = thumbName
+              }
+            } catch (e) {
+              console.error('Failed to upload thumbnail', e)
+            }
+          }
+        }
+      }
+
       if (!urlError && url) {
         try {
           const success = await new Promise<boolean>((resolve) => {
@@ -260,9 +583,19 @@ export default function DelegateDriveClient({
           })
 
           if (success) {
-            const { data, error: dbError } = await supabase.from('documents').insert({
-              title: fileTitle, file_path: path, cycle: delegateCycle, year: delegateYear, category, uploader_id: uploaderId
-            }).select().single()
+            const insertData: any = {
+              title: fileTitle,
+              file_path: path,
+              cycle: delegateCycle,
+              year: delegateYear,
+              category,
+              uploader_id: uploaderId
+            }
+            if (thumbnailPath) {
+              insertData.thumbnail_path = thumbnailPath
+            }
+
+            const { data, error: dbError } = await supabase.from('documents').insert(insertData).select().single()
             
             if (data) newDocs.push(data)
           } else {
@@ -445,25 +778,35 @@ export default function DelegateDriveClient({
             <div>
               <h2 className="text-sm font-semibold text-[#64748B] mb-3 uppercase tracking-wider">Dossiers</h2>
               <div className="grid sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {foldersList.map(folderName => (
-                  <div
-                    key={folderName}
-                    onContextMenu={(e) => handleContextMenuFolder(e, folderName)}
-                    onClick={() => navigateTo(folderName)}
-                    className="group flex items-center justify-between gap-3 rounded-xl border border-[#E2E8F0] bg-white p-3 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Folder className="w-6 h-6 text-[#1E3A8A] fill-[#EFF6FF] shrink-0" />
-                      <span className="font-medium text-[#0F172A] truncate">{folderName}</span>
-                    </div>
-                    <button 
-                      onClick={(e) => handleContextMenuFolder(e, folderName)}
-                      className="p-1 rounded-md text-[#94A3B8] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+                {foldersList.map(folderName => {
+                  const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
+                  const isFolderCut = clipboard?.type === 'folder' && clipboard.folderPath === folderPath
+
+                  return (
+                    <div
+                      key={folderName}
+                      onContextMenu={(e) => handleContextMenuFolder(e, folderName)}
+                      onClick={() => navigateTo(folderName)}
+                      className={cn(
+                        "group flex items-center justify-between gap-3 rounded-xl border bg-white p-3 hover:shadow-md transition-all cursor-pointer",
+                        isFolderCut 
+                          ? "opacity-50 border-dashed border-[#1E3A8A] bg-blue-50/50 ring-2 ring-[#1E3A8A]/20" 
+                          : "border-[#E2E8F0] hover:border-[#1E3A8A]/30"
+                      )}
                     >
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Folder className="w-6 h-6 text-[#1E3A8A] fill-[#EFF6FF] shrink-0" />
+                        <span className="font-medium text-[#0F172A] truncate">{folderName}</span>
+                      </div>
+                      <button 
+                        onClick={(e) => handleContextMenuFolder(e, folderName)}
+                        className="p-1 rounded-md text-[#94A3B8] hover:bg-[#F1F5F9] hover:text-[#0F172A]"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -472,16 +815,23 @@ export default function DelegateDriveClient({
             <div>
               <h2 className="text-sm font-semibold text-[#64748B] mb-3 uppercase tracking-wider">Fichiers</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filesHere.map(doc => (
-                  <DelegateDocumentCard 
-                    key={doc.id} 
-                    doc={doc} 
-                    supabase={supabase} 
-                    onContextMenu={(e) => handleContextMenuFile(e, doc)}
-                    onDelete={() => deleteFile(doc.id, doc.file_path)}
-                    onRename={() => setShowRenameFileModal(doc)}
-                  />
-                ))}
+                {filesHere.map(doc => {
+                  const isFileCut = clipboard?.type === 'file' && clipboard.doc?.id === doc.id
+
+                  return (
+                    <DelegateDocumentCard 
+                      key={doc.id} 
+                      doc={doc} 
+                      supabase={supabase} 
+                      isCut={isFileCut}
+                      onContextMenu={(e) => handleContextMenuFile(e, doc)}
+                      onDelete={() => deleteFile(doc.id)}
+                      onRename={() => setShowRenameFileModal(doc)}
+                      onMove={() => setShowMoveFileModal(doc)}
+                      onCut={() => handleCutFile(doc)}
+                    />
+                  )
+                })}
               </div>
             </div>
           )}
@@ -491,28 +841,53 @@ export default function DelegateDriveClient({
       {/* Context Menu */}
       {contextMenu?.visible && (
         <div 
-          className="fixed z-50 bg-white border border-[#E2E8F0] rounded-xl shadow-xl py-1 w-48 text-sm"
+          className="fixed z-50 bg-white border border-[#E2E8F0] rounded-xl shadow-xl py-1 w-52 text-sm font-medium overflow-hidden"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           {contextMenu.type === 'bg' && (
             <>
-              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2" onClick={() => setShowFolderModal(true)}>
+              {clipboard && (
+                <>
+                  <button 
+                    className="w-full text-left px-4 py-2 hover:bg-[#EFF6FF] text-[#1E3A8A] font-semibold flex items-center gap-2 transition-colors" 
+                    onClick={() => handlePaste()}
+                  >
+                    <ClipboardPaste className="w-4 h-4" /> Coller ici
+                  </button>
+                  <div className="h-px bg-[#E2E8F0] my-1" />
+                </>
+              )}
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2 text-slate-700" onClick={() => setShowFolderModal(true)}>
                 <Folder className="w-4 h-4 text-[#64748B]" /> Nouveau dossier
               </button>
-              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2" onClick={() => fileInputRef.current?.click()}>
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2 text-slate-700" onClick={() => fileInputRef.current?.click()}>
                 <UploadIcon className="w-4 h-4 text-[#64748B]" /> Uploader un fichier
               </button>
-              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2" onClick={() => folderInputRef.current?.click()}>
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2 text-slate-700" onClick={() => folderInputRef.current?.click()}>
                 <FolderOpen className="w-4 h-4 text-[#64748B]" /> Uploader un dossier
               </button>
             </>
           )}
           {contextMenu.type === 'folder' && (
             <>
-              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2" onClick={() => navigateTo(contextMenu.targetName!)}>
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2 text-slate-700" onClick={() => navigateTo(contextMenu.targetName!)}>
                 <FolderOpen className="w-4 h-4 text-[#64748B]" /> Ouvrir
               </button>
-              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2" onClick={() => setShowRenameFolderModal({ oldPath: contextMenu.targetName! })}>
+              {clipboard && (
+                <button 
+                  className="w-full text-left px-4 py-2 hover:bg-[#EFF6FF] text-[#1E3A8A] font-semibold flex items-center gap-2 transition-colors" 
+                  onClick={() => handlePaste(currentPathString ? `${currentPathString}/${contextMenu.targetName!}` : contextMenu.targetName!)}
+                >
+                  <ClipboardPaste className="w-4 h-4" /> Coller dans ce dossier
+                </button>
+              )}
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2 text-slate-700" onClick={() => handleCutFolder(contextMenu.targetName!)}>
+                <Scissors className="w-4 h-4 text-[#64748B]" /> Couper
+              </button>
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2 text-slate-700" onClick={() => setShowMoveFolderModal({ folderPath: contextMenu.targetName! })}>
+                <FolderInput className="w-4 h-4 text-[#64748B]" /> Déplacer...
+              </button>
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2 text-slate-700" onClick={() => setShowRenameFolderModal({ oldPath: contextMenu.targetName! })}>
                 <Edit2 className="w-4 h-4 text-[#64748B]" /> Renommer
               </button>
               <div className="h-px bg-[#E2E8F0] my-1" />
@@ -523,11 +898,17 @@ export default function DelegateDriveClient({
           )}
           {contextMenu.type === 'file' && (
             <>
-              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2" onClick={() => setShowRenameFileModal(contextMenu.targetDoc)}>
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2 text-slate-700" onClick={() => contextMenu.targetDoc && handleCutFile(contextMenu.targetDoc)}>
+                <Scissors className="w-4 h-4 text-[#64748B]" /> Couper
+              </button>
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2 text-slate-700" onClick={() => contextMenu.targetDoc && setShowMoveFileModal(contextMenu.targetDoc)}>
+                <FolderInput className="w-4 h-4 text-[#64748B]" /> Déplacer...
+              </button>
+              <button className="w-full text-left px-4 py-2 hover:bg-[#F8FAFC] flex items-center gap-2 text-slate-700" onClick={() => contextMenu.targetDoc && setShowRenameFileModal(contextMenu.targetDoc)}>
                 <Edit2 className="w-4 h-4 text-[#64748B]" /> Renommer
               </button>
               <div className="h-px bg-[#E2E8F0] my-1" />
-              <button className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2" onClick={() => contextMenu.targetDoc && deleteFile(contextMenu.targetDoc.id, contextMenu.targetDoc.file_path)}>
+              <button className="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2" onClick={() => contextMenu.targetDoc && deleteFile(contextMenu.targetDoc.id)}>
                 <Trash2 className="w-4 h-4" /> Supprimer
               </button>
             </>
@@ -593,6 +974,83 @@ export default function DelegateDriveClient({
         </Modal>
       )}
 
+      {/* Modal: Déplacer un fichier */}
+      {showMoveFileModal && (
+        <MoveDocumentModal
+          isOpen={Boolean(showMoveFileModal)}
+          onClose={() => setShowMoveFileModal(null)}
+          type="file"
+          itemTitle={showMoveFileModal.title}
+          sourceCycle={showMoveFileModal.cycle}
+          sourceYear={showMoveFileModal.year ?? null}
+          sourceCategory={showMoveFileModal.category || 'Général'}
+          allDocuments={documents}
+          isDelegate={true}
+          onConfirmMove={moveFile}
+        />
+      )}
+
+      {/* Modal: Déplacer un dossier */}
+      {showMoveFolderModal && (
+        <MoveDocumentModal
+          isOpen={Boolean(showMoveFolderModal)}
+          onClose={() => setShowMoveFolderModal(null)}
+          type="folder"
+          itemTitle={showMoveFolderModal.folderPath.split('/').pop() || showMoveFolderModal.folderPath}
+          sourceCycle={delegateCycle}
+          sourceYear={delegateYear}
+          sourceCategory={showMoveFolderModal.folderPath}
+          allDocuments={documents}
+          isDelegate={true}
+          onConfirmMove={moveFolder}
+        />
+      )}
+
+      {/* Modal: Résolution de conflit (Fichier en doublon) */}
+      {conflictState && (
+        <FileConflictModal
+          isOpen={Boolean(conflictState)}
+          onClose={() => setConflictState(null)}
+          sourceDoc={conflictState.sourceDoc}
+          existingDoc={conflictState.existingDoc}
+          targetLocation={conflictState.targetLocation}
+          suggestedNewTitle={conflictState.suggestedNewTitle}
+          onResolve={handleConflictResolve}
+        />
+      )}
+
+      {/* Floating Clipboard Bar (Couper / Coller) */}
+      {clipboard && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white backdrop-blur-xl border border-white/10 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4 animate-slide-up">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 bg-blue-500/20 text-blue-400 rounded-lg animate-pulse">
+              <Scissors className="w-4 h-4" />
+            </div>
+            <div className="text-xs">
+              <span className="text-slate-400 block text-[11px]">Élément coupé (prêt à coller) :</span>
+              <strong className="text-white truncate max-w-xs block font-bold">
+                {clipboard.type === 'file' ? clipboard.doc?.title : clipboard.folderName}
+              </strong>
+            </div>
+          </div>
+          <div className="h-6 w-px bg-white/10 mx-1" />
+          <button
+            onClick={() => handlePaste()}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+          >
+            <ClipboardPaste className="w-4 h-4" />
+            Coller ici
+          </button>
+          <button
+            onClick={() => setClipboard(null)}
+            className="p-1.5 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            title="Annuler (Échap)"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Global Upload Progress Toast */}
       {Object.keys(uploadProgress).length > 0 && (
         <div className="fixed bottom-6 right-6 bg-white border border-[#E2E8F0] rounded-2xl p-5 shadow-2xl z-50 w-80 animate-in slide-in-from-bottom-5">
@@ -632,9 +1090,18 @@ function Modal({ title, children, onClose }: { title: string, children: React.Re
   )
 }
 
-function DelegateDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename }: { doc: Document; supabase: any, onContextMenu: (e:any) => void, onDelete: () => void, onRename: () => void }) {
+function DelegateDocumentCard({ doc, supabase, isCut, onContextMenu, onDelete, onRename, onMove, onCut }: { doc: Document; supabase: any, isCut?: boolean, onContextMenu: (e:any) => void, onDelete: () => void, onRename: () => void, onMove?: () => void, onCut?: () => void }) {
   const [isLoadingView, setIsLoadingView] = useState(false)
   const [isLoadingDownload, setIsLoadingDownload] = useState(false)
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (doc.thumbnail_path) {
+      getPresignedDownloadUrl(doc.thumbnail_path, false).then(res => {
+        if (res?.url) setThumbUrl(res.url)
+      })
+    }
+  }, [doc.thumbnail_path])
 
   const handleView = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -676,12 +1143,24 @@ function DelegateDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename
   }
 
   return (
-    <div onContextMenu={onContextMenu} className="group flex flex-col justify-between gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 hover:shadow-md hover:border-[#1E3A8A]/30 transition-all duration-200">
+    <div 
+      onContextMenu={onContextMenu} 
+      className={cn(
+        "group flex flex-col justify-between gap-3 rounded-xl border bg-white p-4 hover:shadow-md transition-all duration-200",
+        isCut
+          ? "opacity-50 border-dashed border-[#1E3A8A] bg-blue-50/20 ring-2 ring-[#1E3A8A]/20"
+          : "border-[#E2E8F0] hover:border-[#1E3A8A]/30"
+      )}
+    >
       <div className="flex items-start gap-3 justify-between">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
-            <FileText className="w-5 h-5 text-red-500" />
-          </div>
+          {thumbUrl ? (
+            <img src={thumbUrl} alt="Miniature" className="w-10 h-10 rounded-xl object-cover border border-[#E2E8F0] shrink-0 group-hover:scale-105 transition-transform duration-200" />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5 text-red-500" />
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-[#0F172A] truncate" title={doc.title}>{doc.title}</p>
             <p className="text-xs text-[#64748B] mt-0.5">{formatDate(doc.created_at)}</p>
@@ -714,3 +1193,5 @@ function DelegateDocumentCard({ doc, supabase, onContextMenu, onDelete, onRename
     </div>
   )
 }
+
+

@@ -33,9 +33,9 @@ export default async function DelegatePage() {
     .from('documents')
     .select('*')
     .eq('cycle', profile.delegate_cycle)
-    .neq('title', '.keep')
     .eq('year', profile.delegate_year)
     .order('created_at', { ascending: false })
+
 
   return (
     <div className="animate-fade-in">
