@@ -927,17 +927,40 @@ export default function DelegateDriveClient({
           ))}
         </div>
         
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center flex-wrap gap-3 w-full md:w-auto justify-end">
+          {/* Direct Paste button in Toolbar when clipboard active */}
+          {clipboard && (
+            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-300 p-1 rounded-xl shadow-sm animate-pulse">
+              <button
+                type="button"
+                onClick={() => handlePaste()}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+                title="Coller ici (Ctrl+V)"
+              >
+                <ClipboardPaste className="w-4 h-4" />
+                <span>Coller ici ({clipboard.type === 'batch' ? (clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0) : 1})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setClipboard(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-emerald-100 transition-colors cursor-pointer"
+                title="Annuler le couper (Échap)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           {(foldersList.length > 0 || filesHere.length > 0) && (
             <button
               type="button"
               onClick={selectAll}
               className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all shrink-0 cursor-pointer",
+                "flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-bold transition-all shrink-0 cursor-pointer",
                 isAllSelected
                   ? "bg-[#1E3A8A] border-[#1E3A8A] text-white shadow-sm"
                   : selectedCount > 0
-                  ? "bg-[#EFF6FF] border-[#BFDBFE] text-[#1E3A8A]"
+                  ? "bg-blue-50 border-blue-200 text-[#1E3A8A]"
                   : "bg-[#F8FAFC] border-[#E2E8F0] text-[#475569] hover:bg-[#F1F5F9]"
               )}
               title="Tout sélectionner (Ctrl+A)"
@@ -998,7 +1021,7 @@ export default function DelegateDriveClient({
                         isFolderSelected
                           ? "ring-2 ring-[#1E3A8A] border-[#1E3A8A] bg-blue-50/50"
                           : isFolderCut 
-                          ? "opacity-50 border-dashed border-[#1E3A8A] bg-blue-50/50 ring-2 ring-[#1E3A8A]/20" 
+                          ? "opacity-60 border-dashed border-2 border-amber-500 bg-amber-50/40 ring-2 ring-amber-500/30" 
                           : "border-[#E2E8F0] hover:border-[#1E3A8A]/30"
                       )}
                     >
@@ -1022,7 +1045,14 @@ export default function DelegateDriveClient({
                         </button>
 
                         <Folder className="w-6 h-6 text-[#1E3A8A] fill-[#EFF6FF] shrink-0" />
-                        <span className="font-medium text-[#0F172A] truncate">{folderName}</span>
+                        <div className="min-w-0">
+                          <span className="font-medium text-[#0F172A] truncate block">{folderName}</span>
+                          {isFolderCut && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded mt-0.5">
+                              <Scissors className="w-3 h-3" /> Coupé
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <button 
                         onClick={(e) => handleContextMenuFolder(e, folderName)}

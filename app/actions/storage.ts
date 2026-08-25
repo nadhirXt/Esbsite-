@@ -28,6 +28,22 @@ async function getAuthContext() {
   return { supabase, user, profile, isAdmin, isDelegate }
 }
 
+function revalidateDocumentPaths() {
+  revalidatePath('/admin/documents')
+  revalidatePath('/dashboard', 'layout')
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/delegate')
+  revalidatePath('/dashboard/licence')
+  revalidatePath('/dashboard/master')
+  revalidatePath('/dashboard/dseb')
+  revalidatePath('/dashboard/memoires')
+  revalidatePath('/dashboard/bibliotheque')
+  revalidatePath('/dashboard/ressources')
+  revalidatePath('/dashboard/annales')
+  revalidatePath('/')
+}
+
+
 /**
  * Nettoie une clé S3 (retire les éventuels ../ ou barres obliques en double)
  */
@@ -224,9 +240,7 @@ export async function deleteDocumentAction(documentId: string) {
       return { error: 'Erreur lors de la suppression en base de données' }
     }
 
-    revalidatePath('/admin/documents')
-    revalidatePath('/dashboard/delegate')
-    revalidatePath('/dashboard')
+    revalidateDocumentPaths()
 
     return { error: null, success: true }
   } catch (error: any) {
@@ -315,9 +329,7 @@ export async function deleteFolderAction(params: {
       }
     }
 
-    revalidatePath('/admin/documents')
-    revalidatePath('/dashboard/delegate')
-    revalidatePath('/dashboard')
+    revalidateDocumentPaths()
 
     return { error: null, success: true, count: matchingDocs.length }
   } catch (error: any) {
@@ -422,9 +434,7 @@ export async function moveDocumentAction(params: {
       return { error: 'Erreur lors de l\'enregistrement du déplacement' }
     }
 
-    revalidatePath('/admin/documents')
-    revalidatePath('/dashboard/delegate')
-    revalidatePath('/dashboard')
+    revalidateDocumentPaths()
 
     return { error: null, success: true, doc: updatedDoc }
   } catch (error: any) {
@@ -506,9 +516,7 @@ export async function moveFolderAction(params: {
         .select()
         .single()
 
-      revalidatePath('/admin/documents')
-      revalidatePath('/dashboard/delegate')
-      revalidatePath('/dashboard')
+      revalidateDocumentPaths()
 
       return { error: null, success: true, count: 1, docs: keepDoc ? [keepDoc] : [] }
     }
@@ -543,9 +551,7 @@ export async function moveFolderAction(params: {
       }
     }
 
-    revalidatePath('/admin/documents')
-    revalidatePath('/dashboard/delegate')
-    revalidatePath('/dashboard')
+    revalidateDocumentPaths()
 
     return { error: null, success: true, count: updatedDocs.length, docs: updatedDocs }
   } catch (error: any) {
@@ -622,9 +628,7 @@ export async function deleteBatchAction(params: {
       await supabase.from('documents').delete().in('id', uniqueIds)
     }
 
-    revalidatePath('/admin/documents')
-    revalidatePath('/dashboard/delegate')
-    revalidatePath('/dashboard')
+    revalidateDocumentPaths()
 
     return { error: null, success: true, count: uniqueIds.length }
   } catch (error: any) {
@@ -697,9 +701,7 @@ export async function moveBatchAction(params: {
       }
     }
 
-    revalidatePath('/admin/documents')
-    revalidatePath('/dashboard/delegate')
-    revalidatePath('/dashboard')
+    revalidateDocumentPaths()
 
     return { error: null, success: true, count: allUpdatedDocs.length, docs: allUpdatedDocs }
   } catch (error: any) {

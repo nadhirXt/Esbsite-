@@ -26,10 +26,10 @@ export async function CycleDocumentsPage({ cycle, cycleLabel }: DocPageProps) {
     .from('documents')
     .select('*')
     .eq('cycle', cycle)
-    .neq('title', '.keep')
     .order('category', { ascending: true })
     .order('created_at', { ascending: false })
 
   return <CycleDocumentsClient cycle={cycle} cycleLabel={cycleLabel} documents={documents || []} favoriteDocsIds={favoriteDocsIds} supabaseUrl={process.env.NEXT_PUBLIC_SUPABASE_URL} supabaseKey={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY} />
+
 }
 

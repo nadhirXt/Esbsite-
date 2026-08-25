@@ -982,7 +982,30 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
           ))}
         </div>
         
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center flex-wrap gap-3 w-full md:w-auto justify-end">
+          {/* Direct Paste button in Toolbar when clipboard active */}
+          {clipboard && (
+            <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/50 p-1.5 rounded-2xl shadow-sm animate-pulse">
+              <button
+                type="button"
+                onClick={() => handlePaste()}
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+                title="Coller ici (Ctrl+V)"
+              >
+                <ClipboardPaste className="w-4 h-4" />
+                <span>Coller ici ({clipboard.type === 'batch' ? (clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0) : 1})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setClipboard(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors cursor-pointer"
+                title="Annuler le couper (Échap)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           {(foldersList.length > 0 || filesHere.length > 0) && (
             <button
               type="button"
@@ -1002,7 +1025,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
             </button>
           )}
 
-          <div className="relative flex-1 md:w-72 shrink-0">
+          <div className="relative flex-1 md:w-64 shrink-0">
             <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -1053,7 +1076,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                         isFolderSelected
                           ? "ring-2 ring-blue-500 border-blue-500 bg-blue-50/60 dark:bg-blue-900/30"
                           : isFolderCut 
-                          ? "opacity-50 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 ring-2 ring-blue-500/20" 
+                          ? "opacity-60 border-dashed border-2 border-amber-500 bg-amber-50/40 dark:bg-amber-950/20 ring-2 ring-amber-500/30" 
                           : "border-slate-200 dark:border-white/10 hover:border-blue-500/30"
                       )}
                     >
@@ -1079,7 +1102,14 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                         <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl group-hover:scale-110 transition-transform duration-300 shrink-0">
                           <Folder className="w-6 h-6 text-blue-600 dark:text-blue-400 fill-blue-100 dark:fill-blue-900/50 shrink-0" />
                         </div>
-                        <span className="font-bold text-slate-900 dark:text-white truncate">{folderName}</span>
+                        <div className="min-w-0">
+                          <span className="font-bold text-slate-900 dark:text-white truncate block">{folderName}</span>
+                          {isFolderCut && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-100/80 dark:bg-amber-900/40 px-1.5 py-0.5 rounded-md mt-0.5">
+                              <Scissors className="w-3 h-3" /> Coupé
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <button 
                         onClick={(e) => handleContextMenuFolder(e, folderName)}
