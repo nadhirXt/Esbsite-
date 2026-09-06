@@ -104,38 +104,47 @@ export default function LiensPage() {
   }
 
   return (
-    <div className="animate-fade-in max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#0F172A]">Liens utiles</h1>
-        <p className="text-[#64748B] text-sm mt-1">Gérez les ressources visibles par les étudiants.</p>
+    <div className="animate-fade-in max-w-3xl mx-auto space-y-8">
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="text-[11px] font-mono text-cyan-500 dark:text-cyan-400 uppercase tracking-wider font-bold">RESOURCE_INDEX // LIENS UTILES</span>
+        </div>
+        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
+          <div className="p-2.5 bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30 rounded-2xl shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+            <Link2 className="w-7 h-7 text-amber-500 dark:text-amber-400" />
+          </div>
+          Liens Utiles & Références
+        </h1>
+        <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-2">Gérez les passerelles et ressources documentaires externes accessibles aux étudiants.</p>
       </div>
 
       {/* Add/Edit form */}
-      <form onSubmit={handleSubmit} className="bg-white border border-[#E2E8F0] rounded-2xl p-6 mb-8 space-y-4">
+      <form onSubmit={handleSubmit} className="bg-white/70 dark:bg-[#070D19]/80 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 space-y-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="font-semibold text-[#0F172A] flex items-center gap-2">
-            {editingId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {editingId ? 'Modifier le lien' : 'Ajouter un lien'}
+          <h2 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 font-mono uppercase tracking-wide">
+            {editingId ? <Edit2 className="w-4 h-4 text-amber-500" /> : <Plus className="w-4 h-4 text-amber-500" />}
+            {editingId ? 'Modifier le lien' : 'Ajouter un lien de référence'}
           </h2>
           {editingId && (
             <button
               type="button"
               onClick={cancelEdit}
-              className="text-sm text-[#64748B] hover:text-[#0F172A] transition-colors"
+              className="text-xs font-mono text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
-              Annuler
+              [ANNULER]
             </button>
           )}
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="flex items-center gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-xs font-mono text-red-500 dark:text-red-400">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
         {success && (
-          <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+          <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-mono text-emerald-500 dark:text-emerald-400">
             <CheckCircle className="w-4 h-4 shrink-0" />
             <span>{success}</span>
           </div>
@@ -162,17 +171,17 @@ export default function LiensPage() {
 
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium text-[#0F172A] mb-2">Catégorie</label>
+          <label className="block text-xs font-mono font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase">Catégorie</label>
           <div className="flex flex-wrap gap-2">
             {LINK_CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 type="button"
                 onClick={() => setCategory(cat)}
-                className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all duration-150 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all cursor-pointer ${
                   category === cat
-                    ? 'border-[#1E3A8A] bg-[#1E3A8A] text-white'
-                    : 'border-[#E2E8F0] text-[#64748B] hover:border-[#CBD5E1]'
+                    ? 'border-amber-500 bg-amber-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
+                    : 'border-slate-200/80 dark:border-white/10 bg-white/40 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
                 }`}
               >
                 {cat}
@@ -194,68 +203,77 @@ export default function LiensPage() {
           )}
         </div>
 
-        <Button type="submit" loading={loading}>
-          {editingId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          {editingId ? 'Enregistrer les modifications' : 'Ajouter le lien'}
-        </Button>
+        <div className="pt-2">
+          <Button variant="cyber-amber" type="submit" loading={loading} className="w-full justify-center">
+            {editingId ? <Edit2 className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+            {editingId ? 'Enregistrer les modifications' : 'Ajouter le lien de référence'}
+          </Button>
+        </div>
       </form>
 
       {/* Links list */}
       <div>
-        <h2 className="font-semibold text-[#0F172A] mb-4">
-          Liens existants ({links.length})
-        </h2>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <h2 className="font-mono font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            Liens Actifs ({links.length})
+          </h2>
+        </div>
         {fetching ? (
           <div className="space-y-3">
-            {[1, 2, 3].map((i) => <div key={i} className="h-14 skeleton rounded-xl" />)}
+            {[1, 2, 3].map((i) => <div key={i} className="h-14 bg-white/40 dark:bg-white/5 rounded-2xl animate-pulse" />)}
           </div>
         ) : links.length === 0 ? (
-          <div className="text-center py-12 rounded-xl border border-dashed border-[#E2E8F0]">
-            <Link2 className="w-8 h-8 text-[#CBD5E1] mx-auto mb-2" />
-            <p className="text-sm text-[#64748B]">Aucun lien ajouté.</p>
+          <div className="text-center py-12 rounded-3xl border border-dashed border-slate-200 dark:border-white/10 bg-white/40 dark:bg-[#070D19]/60">
+            <Link2 className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+            <p className="text-xs font-mono text-slate-500">AUCUN LIEN ENREGISTRÉ // NO_DATA</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {links.map((link) => (
               <div
                 key={link.id}
-                className="group flex items-center gap-3 rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 hover:shadow-sm transition-all duration-200"
+                className="group flex items-center gap-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-[#070D19]/80 backdrop-blur-xl px-4 py-3 hover:border-amber-500/40 hover:shadow-[0_0_15px_rgba(245,158,11,0.1)] transition-all"
               >
-                <Link2 className="w-4 h-4 text-[#1E3A8A] shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#0F172A] truncate">{link.title}</p>
-                  <p className="text-xs text-[#94A3B8] truncate">{link.url}</p>
+                <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 shrink-0">
+                  <Link2 className="w-4 h-4" />
                 </div>
-                <span className="text-xs text-[#64748B] hidden sm:block">{link.category}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{link.title}</p>
+                  <p className="text-xs font-mono text-slate-400 truncate">{link.url}</p>
+                </div>
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 hidden sm:block">
+                  {link.category}
+                </span>
                 <a
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1.5 text-[#94A3B8] hover:text-[#1E3A8A] transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors cursor-pointer"
                   aria-label="Ouvrir le lien"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <ExternalLink className="w-4 h-4" />
                 </a>
                 <button
                   onClick={() => handleEdit(link)}
-                  className="p-1.5 text-[#94A3B8] hover:text-[#1E3A8A] transition-colors cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 rounded-lg transition-colors cursor-pointer"
                   aria-label="Modifier"
                 >
-                  <Edit2 className="w-3.5 h-3.5" />
+                  <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(link.id)}
                   disabled={deletingId === link.id}
-                  className="p-1.5 text-[#94A3B8] hover:text-red-500 transition-colors cursor-pointer disabled:opacity-50"
+                  className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                   aria-label="Supprimer"
                 >
                   {deletingId === link.id ? (
-                    <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
                   ) : (
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   )}
                 </button>
               </div>

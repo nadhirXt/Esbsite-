@@ -78,27 +78,29 @@ export default function StudyAnalytics() {
         className="space-y-6"
       >
         {/* Top Action Banner */}
-        <div className="rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-blue-700 text-white p-6 shadow-xl relative overflow-hidden">
-          <div className="absolute -right-8 -bottom-8 w-40 h-40 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+        <div className="rounded-3xl bg-[#070D19]/90 backdrop-blur-2xl border border-cyan-500/30 text-white p-6 sm:p-7 shadow-[0_0_35px_rgba(56,189,248,0.1)] relative overflow-hidden">
+          {/* Laser line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+          <div className="absolute -right-8 -bottom-8 w-40 h-40 rounded-full bg-cyan-500/10 blur-2xl pointer-events-none" />
           <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-medium text-blue-100 mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-mono font-bold text-cyan-300 mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span>Méthode Pomodoro (25 min Focus + 5 min Pause)</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-                Statistiques de Focus & Concentration
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                Statistiques de Focus &amp; Concentration
               </h2>
-              <p className="text-sm text-blue-100/90 mt-1 max-w-xl">
-                Visualisez vos cycles d'étude, le temps investi par matière et votre constance de révision.
+              <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
+                Visualisez vos cycles d&apos;étude, le temps investi par matière et votre constance de révision.
               </p>
             </div>
             <button
               onClick={() => setIsFocusOpen(true)}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-semibold text-sm shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 shrink-0"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-mono font-bold text-xs sm:text-sm shadow-[0_0_20px_rgba(56,189,248,0.3)] hover:shadow-[0_0_30px_rgba(56,189,248,0.5)] transition-all transform hover:-translate-y-0.5 shrink-0 cursor-pointer"
             >
-              <Play className="w-4 h-4 fill-current" />
-              <span>Démarrer un Pomodoro</span>
+              <Play className="w-4 h-4 fill-current text-white" />
+              <span>DÉMARRER UN POMODORO</span>
             </button>
           </div>
         </div>
@@ -136,7 +138,7 @@ export default function StudyAnalytics() {
         </div>
 
         {/* Weekly activity chart */}
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 shadow-sm">
+        <div className="rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#070D19]/90 backdrop-blur-xl p-5 sm:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -412,33 +414,33 @@ function StatTile({
   color: 'blue' | 'emerald' | 'amber' | 'purple' | 'rose' | 'indigo'
 }) {
   const colorMap = {
-    blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-800/60',
-    emerald: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800/60',
-    amber: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-800/60',
-    purple: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-800/60',
-    rose: 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-800/60',
-    indigo: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800/60',
+    blue: 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20',
+    emerald: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+    amber: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+    purple: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
+    rose: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+    indigo: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
   }
 
   const iconBgMap = {
-    blue: 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400',
-    emerald: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400',
-    amber: 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400',
-    purple: 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400',
-    rose: 'bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400',
-    indigo: 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400',
+    blue: 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30',
+    emerald: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+    amber: 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
+    purple: 'bg-purple-500/20 text-purple-300 border border-purple-500/30',
+    rose: 'bg-rose-500/20 text-rose-300 border border-rose-500/30',
+    indigo: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30',
   }
 
   return (
     <motion.div
       whileHover={{ y: -2 }}
-      className={`rounded-2xl border ${colorMap[color]} p-4 flex items-start justify-between shadow-sm transition-all`}
+      className={`rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#070D19]/90 backdrop-blur-xl p-4 sm:p-5 flex items-start justify-between shadow-sm hover:border-cyan-400/40 transition-all`}
     >
       <div>
-        <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{value}</p>
-        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5">{label}</p>
+        <p className="text-xl sm:text-2xl font-mono font-black text-slate-900 dark:text-white tracking-tight">{value}</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mt-1">{label}</p>
         {subLabel && (
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">{subLabel}</p>
+          <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-0.5">{subLabel}</p>
         )}
       </div>
       <div className={`w-10 h-10 rounded-xl ${iconBgMap[color]} flex items-center justify-center shrink-0`}>

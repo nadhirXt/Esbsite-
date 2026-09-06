@@ -23,23 +23,44 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      const supabase = createClient()
+      const cleanEmail = email.trim()
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      })
 
-    if (error) {
-      setError(
-        error.message === 'Email not confirmed'
-          ? 'Veuillez confirmer votre email avant de vous connecter.'
-          : error.message === 'Invalid login credentials'
-          ? 'Email ou mot de passe incorrect.'
-          : error.message
-      )
+      if (signInError) {
+        setError(
+          signInError.message === 'Email not confirmed'
+            ? 'Veuillez confirmer votre email avant de vous connecter.'
+            : signInError.message === 'Invalid login credentials'
+            ? 'Email ou mot de passe incorrect.'
+            : signInError.message
+        )
+        setLoading(false)
+        return
+      }
+
+      // Check if user has admin privileges
+      const adminEmails = [
+        'benelhadjbenelhadj@gmail.com',
+        'benelhadjbenelhadj@outlook.com',
+        'mohamed-nadhir.benelhadj@etu.enp-oran.dz',
+      ]
+      const user = data?.user
+      const isAdmin = 
+        user?.user_metadata?.role === 'admin' ||
+        adminEmails.includes(cleanEmail.toLowerCase())
+
+      // Full navigation to ensure fresh session cookies are loaded cleanly
+      window.location.href = isAdmin ? '/admin' : '/dashboard'
+    } catch (err: any) {
+      console.error('Login error:', err)
+      setError(err?.message || 'Une erreur inattendue est survenue.')
       setLoading(false)
-      return
     }
-
-    router.push('/dashboard')
-    router.refresh()
   }
 
   // Animation variants
@@ -70,36 +91,42 @@ export default function LoginPage() {
       initial="hidden"
       animate="visible"
     >
-      <motion.div variants={itemVariants} className="text-center mb-10">
-        <h1 className="text-4xl font-bold text-white mb-3 tracking-tight drop-shadow-sm">Connexion</h1>
-        <p className="text-blue-100/80 text-base font-medium">
-          Accédez à votre espace étudiant ESB
+      <motion.div variants={itemVariants} className="text-center mb-8">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold tracking-wider uppercase mb-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          Terminal d&apos;Accès ESB
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 tracking-tight">Connexion</h1>
+        <p className="text-slate-400 text-sm font-medium">
+          Accédez à votre espace étudiant et bibliothèque académique
         </p>
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <Card className="shadow-2xl border-white/20 bg-white/10 backdrop-blur-xl overflow-hidden relative group">
-          {/* Subtle glow effect behind the card */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 opacity-50 z-0"></div>
+        <div className="p-7 sm:p-9 rounded-3xl bg-[#070D19]/90 backdrop-blur-2xl border border-cyan-500/30 shadow-[0_0_40px_rgba(56,189,248,0.12)] relative overflow-hidden group">
+          {/* Laser line top */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
           
-          <CardBody className="p-8 sm:p-10 relative z-10">
-            <form onSubmit={handleLogin} className="space-y-6" noValidate>
-              {/* Error banner */}
-              {error && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  className="flex items-start gap-3 rounded-xl border border-red-200/50 bg-red-500/10 backdrop-blur-md p-4 text-sm text-red-100"
-                >
-                  <AlertCircle className="w-5 h-5 mt-0.5 shrink-0 text-red-300" />
-                  <span className="font-medium">{error}</span>
-                </motion.div>
-              )}
+          <form onSubmit={handleLogin} className="space-y-5 relative z-10" noValidate>
+            {/* Error banner */}
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 backdrop-blur-md p-3.5 text-xs text-red-200"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-400" />
+                <span className="font-medium">{error}</span>
+              </motion.div>
+            )}
 
-              {/* Email */}
-              <div className="relative group/input">
-                <Input
-                  label="Adresse email"
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+                Adresse Email
+              </label>
+              <div className="relative">
+                <input
                   id="email"
                   type="email"
                   placeholder="exemple@email.com"
@@ -108,15 +135,27 @@ export default function LoginPage() {
                   required
                   autoComplete="email"
                   autoFocus
-                  className="bg-white/90 border-white/20 focus:bg-white text-slate-900 placeholder-slate-400"
+                  className="w-full h-11 px-4 pr-10 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all outline-none"
                 />
-                <Mail className="absolute right-3 top-[34px] w-5 h-5 text-slate-400 pointer-events-none group-focus-within/input:text-blue-600 transition-colors" />
+                <Mail className="absolute right-3.5 top-3 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
+            </div>
 
-              {/* Password */}
-              <div className="relative group/input">
-                <Input
-                  label="Mot de passe"
+            {/* Password */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+                  Mot de passe
+                </label>
+                <Link
+                  href="/reset-password"
+                  className="text-xs text-cyan-400 hover:text-cyan-300 font-mono transition-colors"
+                >
+                  Oublié ?
+                </Link>
+              </div>
+              <div className="relative">
+                <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
@@ -124,56 +163,46 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="bg-white/90 border-white/20 focus:bg-white text-slate-900 placeholder-slate-400"
+                  className="w-full h-11 px-4 pr-10 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-[34px] text-slate-400 hover:text-blue-600 transition-colors focus:outline-none"
+                  className="absolute right-3.5 top-3 text-slate-400 hover:text-cyan-400 transition-colors focus:outline-none cursor-pointer"
                   aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-
-              {/* Forgot password */}
-              <div className="flex justify-end pt-1">
-                <Link
-                  href="/reset-password"
-                  className="text-sm text-blue-200 hover:text-white font-medium transition-colors"
-                >
-                  Mot de passe oublié ?
-                </Link>
-              </div>
-
-              {/* Submit */}
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  loading={loading}
-                  className="w-full shadow-xl shadow-blue-900/20 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 text-white border-0 py-6 text-lg font-semibold"
-                >
-                  {loading ? 'Connexion...' : 'Se connecter'}
-                </Button>
-              </motion.div>
-            </form>
-
-            {/* Register link */}
-            <div className="mt-8 pt-6 border-t border-white/10 text-center">
-              <p className="text-sm text-blue-100/70">
-                Pas encore de compte ?{' '}
-                <Link
-                  href="/register"
-                  className="font-bold text-white hover:text-blue-200 transition-colors drop-shadow-sm"
-                >
-                  S&apos;inscrire
-                </Link>
-              </p>
             </div>
-          </CardBody>
-        </Card>
+
+            {/* Submit */}
+            <div className="pt-2">
+              <Button
+                type="submit"
+                variant="cyber-glow"
+                size="lg"
+                loading={loading}
+                className="w-full py-3.5 text-sm font-black font-mono tracking-wider cursor-pointer"
+              >
+                {loading ? 'Connexion en cours...' : 'OUVRIR LA SESSION'}
+              </Button>
+            </div>
+          </form>
+
+          {/* Register link */}
+          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+            <p className="text-xs text-slate-400">
+              Pas encore de compte étudiant ?{' '}
+              <Link
+                href="/register"
+                className="font-bold text-amber-400 hover:text-amber-300 transition-colors"
+              >
+                S&apos;inscrire
+              </Link>
+            </p>
+          </div>
+        </div>
       </motion.div>
     </motion.div>
   )

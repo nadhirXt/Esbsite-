@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Lock, FileKey, CheckCircle2, ShieldAlert, Key, HelpCircle, Loader2, ArrowLeft } from 'lucide-react'
-import CycleDocumentsClient from '@/components/dashboard/CycleDocumentsClient'
+import CycleDocumentsClient from '@/components/dashboard/CycleDocumentsGrid'
 import { useRouter } from 'next/navigation'
 import type { Document } from '@/lib/types'
 

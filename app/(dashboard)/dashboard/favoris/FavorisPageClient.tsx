@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Heart, ArrowLeft } from 'lucide-react'
-import CycleDocumentsClient from '@/components/dashboard/CycleDocumentsClient'
+import CycleDocumentsClient from '@/components/dashboard/CycleDocumentsGrid'
 import type { Document } from '@/lib/types'
 
 export default function FavorisPageClient({ documents, favoriteDocsIds }: { documents: Document[], favoriteDocsIds: string[] }) {

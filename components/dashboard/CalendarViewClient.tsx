@@ -20,14 +20,7 @@ interface EventWithTimes extends Event {
   end_time?: string
 }
 
-const EVENT_TYPES = {
-  exam:          { label: 'Examen',         color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',     icon: AlertCircle, dot: 'bg-red-500' },
-  ds:            { label: 'Devoir Surveillé', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', dot: 'bg-orange-500' },
-  examen_final:  { label: 'Examen Final',   color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',  icon: AlertCircle, dot: 'bg-rose-500' },
-  rattrapage:    { label: 'Rattrapage',     color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400', dot: 'bg-amber-500' },
-  holiday:       { label: 'Congé',          color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',  icon: Sparkles, dot: 'bg-green-500' },
-  autre:         { label: 'Événement',      color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', icon: GraduationCap, dot: 'bg-purple-500' },
-}
+import { EVENT_TYPES } from '@/lib/calendar-events'
 
 const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
 const DAYS_FR   = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
@@ -236,24 +229,24 @@ export default function CalendarViewClient({ events }: { events: Event[] }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
+        <div className="lg:col-span-2 bg-white dark:bg-[#070D19]/90 backdrop-blur-2xl rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
           {/* Month navigation */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-white/10 no-print">
-            <button onClick={prevMonth} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors">
+            <button onClick={prevMonth} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors cursor-pointer">
               <ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
             </button>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white font-mono tracking-tight">
               {MONTHS_FR[month]} {year}
             </h2>
-            <button onClick={nextMonth} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors">
+            <button onClick={nextMonth} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors cursor-pointer">
               <ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-400" />
             </button>
           </div>
 
           {/* Day headers */}
-          <div className="grid grid-cols-7 border-b border-slate-100 dark:border-white/10 no-print">
+          <div className="grid grid-cols-7 border-b border-slate-100 dark:border-white/10 no-print bg-slate-50/50 dark:bg-white/[0.02]">
             {DAYS_FR.map(d => (
-              <div key={d} className="py-2 text-center text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              <div key={d} className="py-2.5 text-center text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                 {d}
               </div>
             ))}
@@ -263,7 +256,7 @@ export default function CalendarViewClient({ events }: { events: Event[] }) {
           <div className="grid grid-cols-7">
             {/* Empty cells for offset */}
             {Array.from({ length: startOffset }).map((_, i) => (
-              <div key={`empty-${i}`} className="h-14 border-b border-r border-slate-50 dark:border-white/5 last:border-r-0" />
+              <div key={`empty-${i}`} className="h-16 border-b border-r border-slate-50 dark:border-white/5 last:border-r-0" />
             ))}
 
             {/* Day cells */}
@@ -279,26 +272,26 @@ export default function CalendarViewClient({ events }: { events: Event[] }) {
                 <div
                   key={day}
                   onClick={() => setSelectedDate(isSelected ? null : dateStr)}
-                  className={`min-h-14 p-1.5 border-b border-r border-slate-50 dark:border-white/5 cursor-pointer transition-colors no-print
+                  className={`min-h-16 p-2 border-b border-r border-slate-50 dark:border-white/5 cursor-pointer transition-all no-print
                     ${colIndex === 6 ? 'border-r-0' : ''}
-                    ${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-slate-50 dark:hover:bg-white/5'}
+                    ${isSelected ? 'bg-cyan-500/10 border-cyan-400/30' : 'hover:bg-slate-50 dark:hover:bg-white/5'}
                   `}
                 >
-                  <div className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium mb-1
-                    ${isToday ? 'bg-blue-600 text-white' : 'text-slate-700 dark:text-slate-300'}
+                  <div className={`w-7 h-7 flex items-center justify-center rounded-xl text-xs font-mono font-bold mb-1.5 transition-all
+                    ${isToday ? 'bg-cyan-500 text-slate-950 font-black shadow-[0_0_12px_rgba(56,189,248,0.4)]' : 'text-slate-700 dark:text-slate-300'}
                   `}>
                     {day}
                   </div>
-                  <div className="flex flex-wrap gap-0.5">
+                  <div className="flex flex-wrap gap-1">
                     {dayEvents.slice(0, 2).map((ev, idx) => (
                       <span
                         key={idx}
-                        className={`w-2 h-2 rounded-full ${EVENT_TYPES[ev.type as keyof typeof EVENT_TYPES]?.dot || 'bg-slate-400'}`}
+                        className={`w-2 h-2 rounded-full ${EVENT_TYPES[ev.type as keyof typeof EVENT_TYPES]?.dot || 'bg-cyan-400'}`}
                         title={ev.title}
                       />
                     ))}
                     {dayEvents.length > 2 && (
-                      <span className="text-xs text-slate-400">+{dayEvents.length - 2}</span>
+                      <span className="text-[10px] font-mono text-slate-400">+{dayEvents.length - 2}</span>
                     )}
                   </div>
                 </div>
@@ -311,18 +304,21 @@ export default function CalendarViewClient({ events }: { events: Event[] }) {
         <div className="space-y-4">
           {/* Countdown Timer */}
           {nextEvent && (
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-sm p-4 text-white no-print">
-              <div className="flex items-center gap-2 mb-2">
-                <Timer className="w-5 h-5" />
-                <h3 className="text-sm font-bold">Prochain examen/DS</h3>
+            <div className="bg-[#070D19]/90 backdrop-blur-2xl rounded-3xl border border-cyan-500/30 shadow-[0_0_25px_rgba(56,189,248,0.15)] p-5 text-white no-print relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+              <div className="flex items-center gap-2 mb-2 text-cyan-300">
+                <Timer className="w-4 h-4 text-cyan-400 animate-pulse" />
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider">Prochain examen / DS</h3>
               </div>
-              <p className="text-lg font-bold mb-1 truncate">{nextEvent.title}</p>
+              <p className="text-base font-black mb-2 truncate text-white">{nextEvent.title}</p>
               <div className="flex items-center justify-between">
-                <span className="text-xs opacity-90">
+                <span className="text-xs font-mono text-slate-400">
                   {new Date(nextEvent.event_date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                   {nextEvent.event_time ? ` · ${nextEvent.event_time.slice(0, 5)}` : ''}
                 </span>
-                <CountdownTimer targetDate={nextEvent.event_date} targetTime={nextEvent.event_time} />
+                <div className="px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold">
+                  <CountdownTimer targetDate={nextEvent.event_date} targetTime={nextEvent.event_time} />
+                </div>
               </div>
               {nextEvent.location && (
                 <div className="flex items-center gap-1 mt-2 text-xs opacity-90">

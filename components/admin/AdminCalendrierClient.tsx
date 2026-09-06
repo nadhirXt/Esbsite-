@@ -8,29 +8,7 @@ import {
 } from 'lucide-react'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
 import type { Cycle } from '@/lib/utils'
-
-interface CalendarEvent {
-  id: string
-  title: string
-  description?: string
-  event_date: string
-  event_time?: string
-  end_time?: string
-  type: string
-  cycle?: string | null
-  year?: number | null
-  location?: string | null
-  created_by?: string | null
-}
-
-const EVENT_TYPES: Record<string, { label: string, color: string, dot: string, bg: string }> = {
-  exam:          { label: 'Examen',         color: 'text-red-700 dark:text-red-400',     dot: 'bg-red-500',     bg: 'bg-red-100 dark:bg-red-900/30' },
-  ds:            { label: 'Devoir Surveillé', color: 'text-orange-700 dark:text-orange-400', dot: 'bg-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/30' },
-  examen_final:  { label: 'Examen Final',   color: 'text-rose-700 dark:text-rose-400',   dot: 'bg-rose-500',    bg: 'bg-rose-100 dark:bg-rose-900/30' },
-  rattrapage:    { label: 'Rattrapage',     color: 'text-amber-700 dark:text-amber-400', dot: 'bg-amber-500',   bg: 'bg-amber-100 dark:bg-amber-900/30' },
-  holiday:       { label: 'Congé',          color: 'text-green-700 dark:text-green-400', dot: 'bg-green-500',   bg: 'bg-green-100 dark:bg-green-900/30' },
-  autre:         { label: 'Autre',          color: 'text-purple-700 dark:text-purple-400', dot: 'bg-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/30' },
-}
+import { EVENT_TYPES, type CalendarEvent } from '@/lib/calendar-events'
 
 const CYCLE_KEYS = Object.keys(CYCLES) as Cycle[]
 const YEARS = [1, 2, 3, 4, 5]
@@ -211,21 +189,27 @@ export default function AdminCalendrierClient({ initialEvents }: { initialEvents
   }
 
   return (
-    <div className="animate-fade-in max-w-6xl mx-auto">
+    <div className="animate-fade-in max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
-            <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-[11px] font-mono text-amber-500 dark:text-amber-400 uppercase tracking-wider font-bold">SCHEDULE_CONTROL // GESTION DU CALENDRIER</span>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Calendrier des Examens</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Gérez les examens et événements de l'ESB</p>
-          </div>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
+            <div className="p-2.5 bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30 rounded-2xl shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+              <Calendar className="w-7 h-7 text-amber-500 dark:text-amber-400" />
+            </div>
+            Calendrier des Examens & Sessions
+          </h1>
+          <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-2">
+            Programmation temporelle, gestion des créneaux d'examens et détection de conflits de salles.
+          </p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-sm transition-colors shadow-sm"
+          className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Nouvel événement
@@ -233,22 +217,22 @@ export default function AdminCalendrierClient({ initialEvents }: { initialEvents
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-white/10 p-4 mb-6 shadow-sm">
+      <div className="bg-white/70 dark:bg-[#070D19]/80 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Rechercher..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+              className="w-full pl-10 pr-3 py-2 text-xs border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
             />
           </div>
           <select
             value={filterCycle}
             onChange={(e) => setFilterCycle(e.target.value)}
-            className="px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            className="px-3 py-2 text-xs font-mono border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
           >
             <option value="">Tous les cycles</option>
             {CYCLE_KEYS.map(c => (
@@ -258,7 +242,7 @@ export default function AdminCalendrierClient({ initialEvents }: { initialEvents
           <select
             value={filterYear}
             onChange={(e) => setFilterYear(e.target.value)}
-            className="px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            className="px-3 py-2 text-xs font-mono border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
           >
             <option value="">Toutes les années</option>
             {YEARS.map(y => (
@@ -268,7 +252,7 @@ export default function AdminCalendrierClient({ initialEvents }: { initialEvents
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            className="px-3 py-2 text-xs font-mono border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
           >
             <option value="">Tous les types</option>
             {Object.entries(EVENT_TYPES).map(([key, val]) => (
@@ -280,61 +264,61 @@ export default function AdminCalendrierClient({ initialEvents }: { initialEvents
 
       {/* Events List */}
       {filteredEvents.length === 0 ? (
-        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-white/10 p-12 text-center">
+        <div className="bg-white/70 dark:bg-[#070D19]/80 backdrop-blur-xl rounded-3xl border border-dashed border-slate-200 dark:border-white/10 p-12 text-center">
           <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Aucun événement trouvé</p>
+          <p className="text-slate-500 dark:text-slate-400 font-mono text-xs uppercase">AUCUN ÉVÉNEMENT TROUVÉ // NO_EVENTS</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
+        <div className="bg-white/70 dark:bg-[#070D19]/80 backdrop-blur-xl rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
           <div className="divide-y divide-slate-100 dark:divide-white/5">
             {filteredEvents.map(ev => {
               const typeInfo = EVENT_TYPES[ev.type] || EVENT_TYPES.autre
               return (
-                <div key={ev.id} className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                  <div className={cn("w-1.5 h-12 rounded-full shrink-0", typeInfo.dot)} />
+                <div key={ev.id} className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                  <div className={cn("w-1.5 h-12 rounded-full shrink-0 shadow-[0_0_8px_currentColor]", typeInfo.dot)} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-slate-900 dark:text-white truncate">{ev.title}</p>
-                      <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", typeInfo.bg, typeInfo.color)}>
+                      <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{ev.title}</p>
+                      <span className={cn("px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold", typeInfo.bg, typeInfo.color)}>
                         {typeInfo.label}
                       </span>
                       {ev.cycle && (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10">
                           {CYCLES[ev.cycle as Cycle]?.label || ev.cycle}{ev.year ? ` · A${ev.year}` : ''}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-4 mt-1.5 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
+                    <div className="flex items-center gap-4 mt-1.5 text-xs text-slate-500 dark:text-slate-400 flex-wrap font-mono">
+                      <span className="flex items-center gap-1.5 text-slate-400">
+                        <Calendar className="w-3.5 h-3.5 text-cyan-400" />
                         {new Date(ev.event_date + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </span>
                       {ev.event_time && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {ev.event_time.slice(0, 5)}{ev.location ? '' : ''}
+                        <span className="flex items-center gap-1.5 text-slate-400">
+                          <Clock className="w-3.5 h-3.5 text-amber-400" />
+                          {ev.event_time.slice(0, 5)}
                           {(ev as any).end_time ? ` - ${(ev as any).end_time.slice(0, 5)}` : ''}
                         </span>
                       )}
                       {ev.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
+                        <span className="flex items-center gap-1.5 text-slate-400">
+                          <MapPin className="w-3.5 h-3.5 text-rose-400" />
                           {ev.location}
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => openEdit(ev)}
-                      className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                      className="p-2 rounded-xl text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
                       title="Modifier"
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(ev.id)}
-                      className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      className="p-2 rounded-xl text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                       title="Supprimer"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -349,23 +333,24 @@ export default function AdminCalendrierClient({ initialEvents }: { initialEvents
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-          <div className="bg-white dark:bg-[#0F172A] rounded-2xl shadow-xl w-full max-w-lg p-6 relative my-8">
-            <button onClick={closeForm} className="absolute right-4 top-4 text-slate-400 hover:text-slate-700 dark:hover:text-white">
-              <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in overflow-y-auto">
+          <div className="bg-white dark:bg-[#070D19] rounded-3xl shadow-2xl w-full max-w-lg p-6 relative my-8 border border-slate-200/80 dark:border-white/10">
+            <button onClick={closeForm} className="absolute right-4 top-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer transition-colors">
+              <X className="w-4 h-4" />
             </button>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-5">
-              {editingId ? 'Modifier l\'événement' : 'Nouvel événement'}
+            <h2 className="text-base font-bold font-sans text-slate-900 dark:text-white mb-5 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-amber-500" />
+              {editingId ? 'Modifier l\'événement' : 'Nouvel événement académique'}
             </h2>
 
             {/* Conflict Warning */}
             {conflicts.length > 0 && (
-              <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 flex items-start gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                <div className="text-sm text-red-700 dark:text-red-400">
-                  <p className="font-semibold">Conflit d'horaire détecté !</p>
-                  <p className="mt-1">Cette salle est déjà occupée à la même période :</p>
-                  <ul className="mt-1 list-disc list-inside">
+              <div className="mb-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-start gap-2.5 text-xs font-mono text-red-500 dark:text-red-400">
+                <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold uppercase">Conflit d'horaire détecté !</p>
+                  <p className="mt-0.5">Cette salle est déjà occupée sur ce créneau :</p>
+                  <ul className="mt-1 list-disc list-inside space-y-0.5">
                     {conflicts.map(c => (
                       <li key={c.id}>{c.title} ({c.event_time || 'horaire non défini'})</li>
                     ))}
@@ -374,47 +359,47 @@ export default function AdminCalendrierClient({ initialEvents }: { initialEvents
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Titre *</label>
+                <label className="block font-mono font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase">Titre de l'événement *</label>
                 <input
                   type="text"
                   required
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  className="w-full px-3 py-2 border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
                   placeholder="Ex: Examen Comptabilité S1"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
+                <label className="block font-mono font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase">Description</label>
                 <textarea
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  className="w-full px-3 py-2 border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
                   placeholder="Détails de l'événement..."
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date *</label>
+                  <label className="block font-mono font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase">Date *</label>
                   <input
                     type="date"
                     required
                     value={form.event_date}
                     onChange={(e) => setForm({ ...form, event_date: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    className="w-full px-3 py-2 font-mono border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
+                  <label className="block font-mono font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase">Type</label>
                   <select
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    className="w-full px-3 py-2 font-mono border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
                   >
                     {Object.entries(EVENT_TYPES).map(([key, val]) => (
                       <option key={key} value={key}>{val.label}</option>
@@ -423,45 +408,45 @@ export default function AdminCalendrierClient({ initialEvents }: { initialEvents
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Heure début</label>
+                  <label className="block font-mono font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase">Heure début</label>
                   <input
                     type="time"
                     value={form.event_time}
                     onChange={(e) => setForm({ ...form, event_time: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    className="w-full px-3 py-2 font-mono border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Heure fin</label>
+                  <label className="block font-mono font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase">Heure fin</label>
                   <input
                     type="time"
                     value={form.end_time}
                     onChange={(e) => setForm({ ...form, end_time: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    className="w-full px-3 py-2 font-mono border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Salle / Lieu</label>
+                <label className="block font-mono font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase">Salle / Lieu</label>
                 <input
                   type="text"
                   value={form.location}
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  className="w-full px-3 py-2 border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
                   placeholder="Ex: Salle A101"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cycle</label>
+                  <label className="block font-mono font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase">Cycle</label>
                   <select
                     value={form.cycle}
                     onChange={(e) => setForm({ ...form, cycle: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    className="w-full px-3 py-2 font-mono border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
                   >
                     <option value="">Tous les cycles</option>
                     {CYCLE_KEYS.map(c => (
@@ -470,11 +455,11 @@ export default function AdminCalendrierClient({ initialEvents }: { initialEvents
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Année</label>
+                  <label className="block font-mono font-bold text-slate-700 dark:text-slate-300 mb-1 uppercase">Année</label>
                   <select
                     value={form.year}
                     onChange={(e) => setForm({ ...form, year: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-white/10 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    className="w-full px-3 py-2 font-mono border border-slate-200/80 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-white focus:outline-none focus:border-amber-500/50"
                   >
                     <option value="">Toutes les années</option>
                     {YEARS.map(y => (
@@ -484,18 +469,18 @@ export default function AdminCalendrierClient({ initialEvents }: { initialEvents
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2 pt-3">
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-mono font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2 text-xs font-mono font-bold uppercase tracking-wider bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)] disabled:opacity-50 cursor-pointer"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   {editingId ? 'Enregistrer' : 'Créer'}

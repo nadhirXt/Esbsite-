@@ -83,33 +83,33 @@ function StatCard({
 
   const colorClasses = {
     blue: {
-      bg: 'bg-blue-50 dark:bg-blue-900/30',
-      text: 'text-blue-600 dark:text-blue-400',
-      border: 'border-blue-100 dark:border-blue-800',
-      gradient: 'from-blue-500 to-indigo-600'
+      bg: 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20',
+      text: 'text-cyan-600 dark:text-cyan-400',
+      border: 'border-slate-200 dark:border-white/10 hover:border-cyan-400/40',
+      gradient: 'from-cyan-500 to-blue-600'
     },
     emerald: {
-      bg: 'bg-emerald-50 dark:bg-emerald-900/30',
+      bg: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
       text: 'text-emerald-600 dark:text-emerald-400',
-      border: 'border-emerald-100 dark:border-emerald-800',
+      border: 'border-slate-200 dark:border-white/10 hover:border-emerald-400/40',
       gradient: 'from-emerald-500 to-teal-600'
     },
     amber: {
-      bg: 'bg-amber-50 dark:bg-amber-900/30',
+      bg: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
       text: 'text-amber-600 dark:text-amber-400',
-      border: 'border-amber-100 dark:border-amber-800',
+      border: 'border-slate-200 dark:border-white/10 hover:border-amber-400/40',
       gradient: 'from-amber-500 to-orange-600'
     },
     rose: {
-      bg: 'bg-rose-50 dark:bg-rose-900/30',
+      bg: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
       text: 'text-rose-600 dark:text-rose-400',
-      border: 'border-rose-100 dark:border-rose-800',
+      border: 'border-slate-200 dark:border-white/10 hover:border-rose-400/40',
       gradient: 'from-rose-500 to-pink-600'
     },
     purple: {
-      bg: 'bg-purple-50 dark:bg-purple-900/30',
+      bg: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
       text: 'text-purple-600 dark:text-purple-400',
-      border: 'border-purple-100 dark:border-purple-800',
+      border: 'border-slate-200 dark:border-white/10 hover:border-purple-400/40',
       gradient: 'from-purple-500 to-violet-600'
     }
   }
@@ -122,27 +122,27 @@ function StatCard({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.02, y: -2 }}
-        className={`relative overflow-hidden rounded-xl border ${colors.border} bg-white dark:bg-[#111827] p-4 hover:shadow-md transition-all duration-300 cursor-pointer group`}
+        className={`relative overflow-hidden rounded-2xl border ${colors.border} bg-white dark:bg-[#070D19]/90 backdrop-blur-xl p-4 sm:p-5 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-300 cursor-pointer group`}
       >
         <div className="flex items-start justify-between">
           <div>
             <motion.p
-              className={`text-3xl font-bold ${colors.text}`}
+              className={`text-2xl sm:text-3xl font-mono font-black ${colors.text} tracking-tight`}
               initial={{ scale: 0.5 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 200 }}
             >
               {displayValue}
             </motion.p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{label}</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">{label}</p>
           </div>
-          <div className={`w-10 h-10 rounded-lg ${colors.bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-            <Icon className={`w-5 h-5 ${colors.text}`} />
+          <div className={`w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+            <Icon className="w-5 h-5" />
           </div>
         </div>
 
-        {/* Subtle gradient line at bottom */}
-        <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${colors.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
+        {/* Laser bottom line */}
+        <div className={`absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r ${colors.gradient} opacity-0 group-hover:opacity-100 transition-opacity`} />
       </motion.div>
     </Link>
   )
@@ -156,21 +156,21 @@ export function QuickActions({ cycle }: { cycle: string }) {
       description: 'Accédez à vos documents',
       icon: FolderOpen,
       href: `/dashboard/${cycle}`,
-      color: 'from-blue-500 to-indigo-600'
+      color: 'from-cyan-500 to-blue-600'
     },
     {
       label: 'Bibliothèque',
       description: 'Explorez tous les documents',
       icon: FileText,
       href: '/dashboard/bibliotheque',
-      color: 'from-emerald-500 to-teal-600'
+      color: 'from-amber-500 to-amber-600'
     },
     {
       label: 'Favoris',
       description: 'Vos documents sauvegardés',
       icon: Star,
       href: '/dashboard/favoris',
-      color: 'from-amber-500 to-orange-600'
+      color: 'from-purple-500 to-pink-600'
     }
   ]
 
@@ -185,20 +185,20 @@ export function QuickActions({ cycle }: { cycle: string }) {
         >
           <Link
             href={action.href}
-            className="group relative flex items-center gap-4 p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] hover:shadow-lg hover:shadow-blue-900/5 hover:border-blue-400/50 hover:-translate-y-1 transition-all duration-300"
+            className="group relative flex items-center gap-4 p-5 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#070D19]/90 backdrop-blur-xl hover:border-cyan-400/40 hover:shadow-[0_0_20px_rgba(56,189,248,0.1)] hover:-translate-y-1 transition-all duration-300"
           >
-            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg`}>
+            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-md`}>
               <action.icon className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-cyan-400 transition-colors">
                 {action.label}
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                 {action.description}
               </p>
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
           </Link>
         </motion.div>
       ))}

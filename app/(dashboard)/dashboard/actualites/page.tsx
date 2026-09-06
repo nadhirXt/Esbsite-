@@ -52,10 +52,10 @@ export default async function ActualitesPage() {
       </div>
 
       {announcements?.length === 0 ? (
-        <div className="text-center py-20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111827]">
-          <Megaphone className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto mb-3" />
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Aucune actualité pour le moment</p>
-          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">Revenez bientôt !</p>
+        <div className="text-center py-20 rounded-3xl border border-dashed border-slate-200 dark:border-white/10 bg-white dark:bg-[#070D19]/90 backdrop-blur-xl">
+          <Megaphone className="w-10 h-10 text-slate-300 dark:text-slate-700 mx-auto mb-3" />
+          <p className="text-slate-500 dark:text-slate-400 font-bold">Aucune actualité pour le moment</p>
+          <p className="text-slate-400 dark:text-slate-500 text-xs font-mono mt-1">Revenez bientôt !</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -63,30 +63,30 @@ export default async function ActualitesPage() {
           {pinned.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Pin className="w-4 h-4 text-amber-500" />
-                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Épinglées</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                <span className="text-xs font-mono font-bold text-amber-500 dark:text-amber-400 uppercase tracking-widest">Épinglées</span>
               </div>
               {pinned.map(announcement => {
                 const config = TYPE_CONFIG[announcement.type as keyof typeof TYPE_CONFIG] || TYPE_CONFIG.info
                 const Icon = config.icon
                 return (
-                  <div key={announcement.id} className={`relative rounded-2xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10 p-5 shadow-sm`}>
-                    <div className="absolute top-4 right-4">
+                  <div key={announcement.id} className="relative rounded-3xl border border-amber-500/30 bg-[#070D19]/95 backdrop-blur-xl p-5 sm:p-6 shadow-[0_0_25px_rgba(245,158,11,0.12)]">
+                    <div className="absolute top-5 right-5">
                       <Pin className="w-4 h-4 text-amber-400" />
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-xl ${config.color} shrink-0`}>
-                        <Icon className={`w-4 h-4 ${config.iconColor}`} />
+                    <div className="flex items-start gap-4">
+                      <div className="p-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 shrink-0">
+                        <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0 pr-6">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <h2 className="text-base font-bold text-slate-900 dark:text-white">{announcement.title}</h2>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${config.color} ${config.iconColor}`}>
+                        <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
+                          <h2 className="text-base font-black text-white">{announcement.title}</h2>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-md font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 uppercase">
                             {config.label}
                           </span>
                         </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-line">{announcement.content}</p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+                        <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{announcement.content}</p>
+                        <p className="text-xs font-mono text-slate-500 mt-3">
                           {formatDate(announcement.created_at)}
                         </p>
                       </div>
@@ -102,29 +102,30 @@ export default async function ActualitesPage() {
             <div className="space-y-3">
               {pinned.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Toutes les annonces</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                  <span className="text-xs font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Flux d&apos;informations</span>
                 </div>
               )}
               {regular.map(announcement => {
                 const config = TYPE_CONFIG[announcement.type as keyof typeof TYPE_CONFIG] || TYPE_CONFIG.info
                 const Icon = config.icon
                 return (
-                  <div key={announcement.id} className={`rounded-2xl border ${config.color} p-5 shadow-sm hover:shadow-md transition-shadow`}>
-                    <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-xl bg-white dark:bg-black/20 shrink-0`}>
-                        <Icon className={`w-4 h-4 ${config.iconColor}`} />
+                  <div key={announcement.id} className="rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#070D19]/90 backdrop-blur-xl p-5 sm:p-6 shadow-sm hover:border-cyan-400/40 hover:shadow-[0_0_20px_rgba(56,189,248,0.1)] transition-all">
+                    <div className="flex items-start gap-4">
+                      <div className="p-2.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 shrink-0">
+                        <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <h2 className="text-base font-bold text-slate-900 dark:text-white">{announcement.title}</h2>
+                        <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
+                          <h2 className="text-base font-black text-slate-900 dark:text-white">{announcement.title}</h2>
                           {announcement.cycle_target && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-cyan-300 font-bold uppercase">
                               {announcement.cycle_target}
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-line">{announcement.content}</p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
+                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">{announcement.content}</p>
+                        <p className="text-xs font-mono text-slate-400 dark:text-slate-500 mt-3">
                           {formatDate(announcement.created_at)}
                         </p>
                       </div>

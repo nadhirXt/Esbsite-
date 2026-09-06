@@ -116,6 +116,31 @@ export async function getPresignedDownloadUrl(filePath: string, download: boolea
 }
 
 /**
+ * Génère une URL présignée publique pour les documents de concours (Master & DSEB)
+ * Permet aux candidats et visiteurs de consulter/télécharger en libre accès sans login
+ */
+export async function getPublicConcoursDownloadUrl(filePath: string, download: boolean = false) {
+  try {
+    const safeKey = sanitizeS3Key(filePath)
+    if (!safeKey || safeKey === '.keep' || !safeKey.startsWith('concours/')) {
+      return { url: null, error: 'Accès non autorisé ou fichier introuvable' }
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: safeKey,
+      ResponseContentDisposition: download ? 'attachment' : 'inline',
+    })
+    
+    const signedUrl = await getSignedUrl(b2, command, { expiresIn: 3600 })
+    return { url: signedUrl, error: null }
+  } catch (error: any) {
+    console.error('Error generating public concours download url:', error)
+    return { url: null, error: 'Erreur lors de la génération du lien de téléchargement' }
+  }
+}
+
+/**
  * Supprime un fichier individuel directement et définitivement sur Backblaze B2 (incluant toutes ses versions)
  */
 export async function deleteStorageFile(filePath: string) {

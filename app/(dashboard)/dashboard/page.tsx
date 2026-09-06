@@ -5,11 +5,11 @@ import { CYCLES } from '@/lib/utils'
 import { ensureProfile } from '@/lib/ensure-profile'
 import { getUserBadges } from '@/lib/badges'
 import BadgeList from '@/components/ui/BadgeList'
-import { getPresignedDownloadUrl } from '@/app/actions/storage'
 
 import WelcomeBanner from '@/components/dashboard/WelcomeBanner'
 import PopularDocuments from '@/components/dashboard/PopularDocuments'
 import ContinueLearning from '@/components/dashboard/ContinueLearning'
+import StudyAnalytics from '@/components/dashboard/StudyAnalytics'
 import { StatsOverview, QuickActions } from '@/components/dashboard/InteractiveStatsCard'
 
 export default async function DashboardPage() {
@@ -85,6 +85,11 @@ export default async function DashboardPage() {
 
       {/* Recommandations "Reprendre là où vous étiez" */}
       <ContinueLearning />
+
+      {/* Gamification & Rythme d'études (Study Streak & Pomodoro) */}
+      <div className="mb-8">
+        <StudyAnalytics />
+      </div>
 
       {/* Stats Overview */}
       <StatsOverview

@@ -33,12 +33,12 @@ export function CourseThumbnailCard({
     >
       <Link
         href={`/dashboard/${cycle}/${encodeURIComponent(categoryPath)}`}
-        className="group block relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-900/10 transition-all duration-300"
+        className="group block relative overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#070D19]/90 backdrop-blur-xl hover:border-cyan-400/50 hover:shadow-[0_0_25px_rgba(56,189,248,0.15)] transition-all duration-300"
       >
         {/* Thumbnail Header with Gradient */}
         <div className={`relative h-28 bg-gradient-to-br ${thumbnail.gradient} dark:bg-gradient-to-br dark:${thumbnail.gradientDark} overflow-hidden`}>
           {/* Animated pattern overlay */}
-          <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 opacity-25">
             <PatternOverlay pattern={thumbnail.pattern} />
           </div>
 
@@ -55,7 +55,7 @@ export function CourseThumbnailCard({
               }}
               className="relative"
             >
-              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 shadow-lg">
+              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                 <Icon className="w-8 h-8 text-white" />
               </div>
 
@@ -78,15 +78,15 @@ export function CourseThumbnailCard({
           </div>
 
           {/* Course count badge */}
-          <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-semibold flex items-center gap-1">
-            <FileText className="w-3 h-3" />
+          <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white text-xs font-mono font-bold flex items-center gap-1.5">
+            <FileText className="w-3 h-3 text-cyan-300" />
             {documentsCount}
           </div>
         </div>
 
         {/* Content */}
         <div className="p-4">
-          <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm mb-1 truncate">
+          <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-cyan-400 transition-colors text-sm mb-1 truncate">
             {courseName}
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-3 truncate">
@@ -94,11 +94,11 @@ export function CourseThumbnailCard({
           </p>
 
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium uppercase tracking-wide">
+            <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
               {thumbnail.label}
             </span>
-            <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50 transition-colors">
-              <ChevronRight className="w-4 h-4 text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform" />
+            <div className="w-7 h-7 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-slate-950 transition-colors">
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </div>
           </div>
         </div>

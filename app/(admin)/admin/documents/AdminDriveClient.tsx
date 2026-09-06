@@ -10,7 +10,6 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { 
   getPresignedUploadUrl, 
-  getPresignedDownloadUrl, 
   deleteDocumentAction, 
   deleteFolderAction,
   moveDocumentAction,
@@ -857,11 +856,11 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     >
       {/* Drop zone overlay */}
       {isDragging && (
-        <div className="absolute inset-0 z-50 bg-blue-600/10 dark:bg-blue-400/10 border-4 border-dashed border-blue-600 dark:border-blue-400 rounded-3xl flex items-center justify-center backdrop-blur-sm transition-all duration-300">
-          <div className="text-center text-blue-600 dark:text-blue-400">
-            <UploadIcon className="w-16 h-16 mx-auto mb-4 animate-bounce" />
-            <p className="text-2xl font-bold">Lâchez pour uploader ici</p>
-            <p className="mt-2 text-sm opacity-80">Dans : {currentPathString || 'Racine'}</p>
+        <div className="absolute inset-0 z-50 bg-cyan-950/40 border-2 border-dashed border-cyan-400 rounded-3xl flex items-center justify-center backdrop-blur-md transition-all duration-300 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
+          <div className="text-center text-cyan-400">
+            <UploadIcon className="w-16 h-16 mx-auto mb-4 animate-bounce filter drop-shadow-[0_0_15px_rgba(6,182,212,0.6)]" />
+            <p className="text-2xl font-mono font-bold tracking-tight">DÉPÔT EN COURS // DROP FILES HERE</p>
+            <p className="mt-2 text-sm font-mono opacity-80">Destination : {currentPathString || 'Racine'}</p>
           </div>
         </div>
       )}
@@ -871,19 +870,19 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
         <div>
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-4 transition-colors font-medium"
+            className="inline-flex items-center gap-1.5 text-xs font-mono text-slate-500 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 mb-4 transition-colors font-medium"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            Retour à l&apos;administration
+            SYS_ADMIN // RETOUR CONSOLE
           </Link>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-              <FolderOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-5 flex items-center gap-3">
+            <div className="p-2.5 bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30 rounded-2xl shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+              <FolderOpen className="w-7 h-7 text-amber-500 dark:text-amber-400" />
             </div>
-            Explorateur (Drive)
+            Explorateur Documentaire <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 font-mono text-xl uppercase tracking-wider">(Drive)</span>
           </h1>
           <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5 p-1.5 bg-white/40 dark:bg-[#070D19]/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-2xl w-fit">
               {Object.entries(CYCLES).map(([cValue, cData]) => (
                 <button
                   key={cValue}
@@ -895,8 +894,10 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                     setSearchQuery(''); 
                   }}
                   className={cn(
-                    "px-4 py-2.5 rounded-xl border text-sm font-bold transition-all duration-300",
-                    cycle === cValue ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/30" : "bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    "px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer",
+                    cycle === cValue 
+                      ? "bg-amber-500 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.35)]" 
+                      : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
                   )}
                 >
                   {cData.label}
@@ -910,8 +911,10 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                     key={y}
                     onClick={() => { setYear(y); setCurrentPath([]); setSearchQuery('') }}
                     className={cn(
-                      "px-3 py-1.5 rounded-lg border text-xs font-bold transition-all duration-300",
-                      year === y ? "bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-500/30" : "bg-white/40 dark:bg-slate-800/40 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+                      "px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all duration-300 cursor-pointer",
+                      year === y 
+                        ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]" 
+                        : "bg-white/40 dark:bg-[#070D19]/40 border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5"
                     )}
                   >
                     Année {y}
@@ -923,32 +926,32 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
         </div>
 
         {uploading && (
-          <div className="flex items-center gap-3 text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-500/20 px-5 py-3 rounded-xl font-bold animate-pulse shadow-sm">
-            <UploadIcon className="w-5 h-5" />
-            Upload en cours...
+          <div className="flex items-center gap-3 text-xs font-mono text-cyan-500 dark:text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 px-5 py-3 rounded-2xl font-bold animate-pulse shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+            <UploadIcon className="w-4 h-4 animate-bounce" />
+            TRANSFERT_EN_COURS // UPLOAD ACTIF...
           </div>
         )}
       </div>
 
       {/* Search & Breadcrumbs & Selection Toolbar */}
-      <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-white/10 p-5 rounded-3xl mb-8 flex flex-col md:flex-row gap-5 justify-between items-center shadow-sm">
+      <div className="bg-white/70 dark:bg-[#070D19]/80 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 p-5 rounded-3xl mb-8 flex flex-col md:flex-row gap-5 justify-between items-center shadow-sm">
 
-        <div className="flex items-center flex-wrap gap-2 text-sm font-bold w-full md:w-auto">
+        <div className="flex items-center flex-wrap gap-2 text-xs font-mono font-bold w-full md:w-auto">
           <button 
             onClick={() => setCurrentPath([])}
-            className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5"
+            className="text-slate-500 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 transition-colors flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5"
           >
-            <FolderOpen className="w-4 h-4" />
+            <FolderOpen className="w-4 h-4 text-amber-400" />
             {CYCLES[cycle as keyof typeof CYCLES]?.label}
           </button>
           {currentPath.map((crumb, index) => (
             <div key={index} className="flex items-center gap-2">
-              <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600" />
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
               <button
                 onClick={() => navigateToCrumb(index)}
                 className={cn(
-                  "transition-colors px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5",
-                  index === currentPath.length - 1 ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+                  "transition-colors px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5",
+                  index === currentPath.length - 1 ? "text-amber-500 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20" : "text-slate-500 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400"
                 )}
               >
                 {crumb}
@@ -960,20 +963,20 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
         <div className="flex items-center flex-wrap gap-3 w-full md:w-auto justify-end">
           {/* Direct Paste button in Toolbar when clipboard active */}
           {clipboard && (
-            <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/50 p-1.5 rounded-2xl shadow-sm animate-pulse">
+            <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 p-1.5 rounded-2xl shadow-[0_0_15px_rgba(16,185,129,0.15)] animate-pulse">
               <button
                 type="button"
                 onClick={() => handlePaste()}
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold transition-all shadow-md cursor-pointer"
                 title="Coller ici (Ctrl+V)"
               >
                 <ClipboardPaste className="w-4 h-4" />
-                <span>Coller ici ({clipboard.type === 'batch' ? (clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0) : 1})</span>
+                <span>COLLER ({clipboard.type === 'batch' ? (clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0) : 1})</span>
               </button>
               <button
                 type="button"
                 onClick={() => setClipboard(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-emerald-500/20 transition-colors cursor-pointer"
                 title="Annuler le couper (Échap)"
               >
                 <X className="w-4 h-4" />
@@ -986,28 +989,28 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
               type="button"
               onClick={selectAll}
               className={cn(
-                "flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer",
+                "flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-xs font-mono font-bold transition-all shrink-0 cursor-pointer",
                 isAllSelected
-                  ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                  ? "bg-amber-500 border-amber-500 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
                   : selectedCount > 0
-                  ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400"
-                  : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-500 dark:text-amber-400 shadow-sm"
+                  : "bg-white/40 dark:bg-[#070D19]/60 border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
               )}
               title="Tout sélectionner (Ctrl+A)"
             >
               {isAllSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-              <span>{isAllSelected ? "Tout désélectionner" : "Tout sélectionner"}</span>
+              <span>{isAllSelected ? "Désélectionner tout" : "Tout sélectionner"}</span>
             </button>
           )}
 
           <div className="relative flex-1 md:w-64 shrink-0">
-            <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Rechercher un document..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-xl text-xs focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
             />
           </div>
         </div>
@@ -1015,19 +1018,24 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
 
       {/* Main Content Area */}
       {foldersList.length === 0 && filesHere.length === 0 ? (
-        <div className="text-center py-20 rounded-3xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm">
-          <FolderOpen className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mb-1">Ce dossier est vide.</p>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mb-6">Clic droit pour créer un dossier ou uploader des fichiers.</p>
-          <Button variant="outline" size="sm" onClick={() => setShowFolderModal(true)}>
-            <Plus className="w-4 h-4 mr-1" /> Nouveau dossier
+        <div className="relative overflow-hidden text-center py-20 rounded-3xl border border-dashed border-amber-500/20 dark:border-white/10 bg-white/40 dark:bg-[#070D19]/60 backdrop-blur-xl">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto mb-4 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+            <FolderOpen className="w-8 h-8" />
+          </div>
+          <p className="text-slate-700 dark:text-slate-300 font-bold text-lg mb-1">Ce dossier est vide.</p>
+          <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mb-6">SYS_INFO // Clic droit pour créer un dossier ou uploader des fichiers.</p>
+          <Button variant="cyber-amber" size="sm" onClick={() => setShowFolderModal(true)}>
+            <Plus className="w-4 h-4 mr-1.5" /> Nouveau dossier
           </Button>
         </div>
       ) : (
         <div className="space-y-10">
           {foldersList.length > 0 && (
             <div>
-              <h2 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-wider pl-2">Dossiers</h2>
+              <div className="flex items-center gap-2 mb-4 pl-2">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <h2 className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Répertoires // Dossiers ({foldersList.length})</h2>
+              </div>
               <div className="grid sm:grid-cols-3 lg:grid-cols-4 gap-5">
                 {foldersList.map(folderName => {
                   const folderPath = currentPathString ? `${currentPathString}/${folderName}` : folderName
@@ -1047,15 +1055,15 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                         }
                       }}
                       className={cn(
-                        "group relative flex items-center justify-between gap-3 rounded-2xl border bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg p-4 hover:shadow-xl transition-all duration-300 cursor-pointer",
+                        "group relative flex items-center justify-between gap-3 rounded-2xl border bg-white/70 dark:bg-[#070D19]/80 backdrop-blur-xl p-4 transition-all duration-300 cursor-pointer shadow-sm",
                         isFolderSelected
-                          ? "ring-2 ring-blue-500 border-blue-500 bg-blue-50/60 dark:bg-blue-900/30"
+                          ? "ring-2 ring-amber-500 border-amber-500 bg-amber-500/10 shadow-[0_0_20px_rgba(245,158,11,0.2)]"
                           : isFolderCut 
-                          ? "opacity-60 border-dashed border-2 border-amber-500 bg-amber-50/40 dark:bg-amber-950/20 ring-2 ring-amber-500/30" 
-                          : "border-slate-200 dark:border-white/10 hover:border-blue-500/30"
+                          ? "opacity-60 border-dashed border-2 border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/30" 
+                          : "border-slate-200/80 dark:border-white/10 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.12)] hover:-translate-y-0.5"
                       )}
                     >
-                      <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
                         {/* Checkbox button */}
                         <button
                           type="button"
@@ -1066,31 +1074,31 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                           className={cn(
                             "w-5 h-5 rounded-lg border flex items-center justify-center transition-all cursor-pointer shrink-0",
                             isFolderSelected
-                              ? "bg-blue-600 border-blue-600 text-white shadow-sm"
-                              : "border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800 opacity-0 group-hover:opacity-100",
+                              ? "bg-amber-500 border-amber-500 text-slate-950 shadow-sm"
+                              : "border-slate-300 dark:border-white/20 bg-white/80 dark:bg-white/5 opacity-0 group-hover:opacity-100",
                             selectedCount > 0 && "opacity-100"
                           )}
                         >
                           {isFolderSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                         </button>
 
-                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl group-hover:scale-110 transition-transform duration-300 shrink-0">
-                          <Folder className="w-6 h-6 text-blue-600 dark:text-blue-400 fill-blue-100 dark:fill-blue-900/50 shrink-0" />
+                        <div className="p-2.5 bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/20 rounded-xl group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.1)]">
+                          <Folder className="w-5 h-5 text-amber-500 dark:text-amber-400 fill-amber-500/20 shrink-0" />
                         </div>
                         <div className="min-w-0">
-                          <span className="font-bold text-slate-900 dark:text-white truncate block">{folderName}</span>
+                          <span className="font-bold text-sm text-slate-900 dark:text-white truncate block">{folderName}</span>
                           {isFolderCut && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-100/80 dark:bg-amber-900/40 px-1.5 py-0.5 rounded-md mt-0.5">
-                              <Scissors className="w-3 h-3" /> Coupé
+                            <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded mt-0.5">
+                              <Scissors className="w-3 h-3" /> CUT
                             </span>
                           )}
                         </div>
                       </div>
                       <button 
                         onClick={(e) => handleContextMenuFolder(e, folderName)}
-                        className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0"
+                        className="p-1.5 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0"
                       >
-                        <MoreVertical className="w-5 h-5" />
+                        <MoreVertical className="w-4 h-4" />
                       </button>
                     </div>
                   )
@@ -1101,7 +1109,10 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
 
           {filesHere.length > 0 && (
             <div>
-              <h2 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-wider pl-2">Fichiers</h2>
+              <div className="flex items-center gap-2 mb-4 pl-2">
+                <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                <h2 className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fichiers & Documents ({filesHere.length})</h2>
+              </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filesHere.map(doc => {
                   const isFileCut = (clipboard?.type === 'file' && clipboard.doc?.id === doc.id) ||
@@ -1134,7 +1145,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
       {/* Context Menu */}
       {contextMenu?.visible && (
         <div 
-          className="fixed z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl py-2 w-60 text-sm font-medium overflow-hidden"
+          className="fixed z-50 bg-slate-900/95 dark:bg-[#070D19]/95 backdrop-blur-2xl border border-amber-500/20 dark:border-white/15 rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.5)] py-2 w-64 text-xs font-mono overflow-hidden"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           {contextMenu.type === 'bg' && (
@@ -1142,22 +1153,22 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
               {clipboard && (
                 <>
                   <button 
-                    className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-3 text-blue-600 dark:text-blue-400 font-semibold transition-colors" 
+                    className="w-full text-left px-4 py-2.5 hover:bg-emerald-500/10 flex items-center gap-3 text-emerald-400 font-bold transition-colors cursor-pointer" 
                     onClick={() => handlePaste()}
                   >
-                    <ClipboardPaste className="w-4 h-4" /> Coller ici {clipboard.type === 'batch' ? `(${(clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0)})` : ''}
+                    <ClipboardPaste className="w-4 h-4 text-emerald-400" /> COLLER ICI {clipboard.type === 'batch' ? `(${(clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0)})` : ''}
                   </button>
                   <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
                 </>
               )}
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowFolderModal(true)}>
-                <Folder className="w-4 h-4 text-slate-400" /> Nouveau dossier
+              <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => setShowFolderModal(true)}>
+                <Folder className="w-4 h-4 text-amber-400" /> Nouveau dossier
               </button>
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => fileInputRef.current?.click()}>
-                <UploadIcon className="w-4 h-4 text-slate-400" /> Uploader un fichier
+              <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <UploadIcon className="w-4 h-4 text-cyan-400" /> Uploader un fichier
               </button>
-              <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => folderInputRef.current?.click()}>
-                <FolderOpen className="w-4 h-4 text-slate-400" /> Uploader un dossier
+              <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => folderInputRef.current?.click()}>
+                <FolderOpen className="w-4 h-4 text-cyan-400" /> Uploader un dossier
               </button>
             </>
           )}
@@ -1165,42 +1176,42 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
             <>
               {selectedCount > 0 && selectedFolderNames.includes(contextMenu.targetName!) ? (
                 <>
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={handleCutSelection}>
-                    <Scissors className="w-4 h-4 text-blue-500" /> Couper la sélection ({selectedCount})
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-amber-400 transition-colors cursor-pointer" onClick={handleCutSelection}>
+                    <Scissors className="w-4 h-4 text-amber-400" /> Couper la sélection ({selectedCount})
                   </button>
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => { setContextMenu(null); setShowMoveBatchModal(true); }}>
-                    <FolderInput className="w-4 h-4 text-emerald-500" /> Déplacer la sélection ({selectedCount})...
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-cyan-400 transition-colors cursor-pointer" onClick={() => { setContextMenu(null); setShowMoveBatchModal(true); }}>
+                    <FolderInput className="w-4 h-4 text-cyan-400" /> Déplacer la sélection ({selectedCount})...
                   </button>
                   <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => { setContextMenu(null); handleDeleteSelection(); }}>
-                    <Trash2 className="w-4 h-4" /> Supprimer la sélection ({selectedCount})
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-500/10 text-red-400 flex items-center gap-3 transition-colors cursor-pointer" onClick={() => { setContextMenu(null); handleDeleteSelection(); }}>
+                    <Trash2 className="w-4 h-4 text-red-400" /> Supprimer la sélection ({selectedCount})
                   </button>
                 </>
               ) : (
                 <>
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => navigateTo(contextMenu.targetName!)}>
-                    <FolderOpen className="w-4 h-4 text-slate-400" /> Ouvrir
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => navigateTo(contextMenu.targetName!)}>
+                    <FolderOpen className="w-4 h-4 text-amber-400" /> Ouvrir le dossier
                   </button>
                   {clipboard && (
                     <button 
-                      className="w-full text-left px-4 py-2.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-3 text-blue-600 dark:text-blue-400 font-semibold transition-colors" 
+                      className="w-full text-left px-4 py-2.5 hover:bg-emerald-500/10 flex items-center gap-3 text-emerald-400 font-bold transition-colors cursor-pointer" 
                       onClick={() => handlePaste(currentPathString ? `${currentPathString}/${contextMenu.targetName!}` : contextMenu.targetName!)}
                     >
-                      <ClipboardPaste className="w-4 h-4" /> Coller dans ce dossier {clipboard.type === 'batch' ? `(${(clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0)})` : ''}
+                      <ClipboardPaste className="w-4 h-4 text-emerald-400" /> Coller dans ce dossier {clipboard.type === 'batch' ? `(${(clipboard.batchDocs?.length || 0) + (clipboard.batchFolders?.length || 0)})` : ''}
                     </button>
                   )}
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => handleCutFolder(contextMenu.targetName!)}>
-                    <Scissors className="w-4 h-4 text-slate-400" /> Couper
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => handleCutFolder(contextMenu.targetName!)}>
+                    <Scissors className="w-4 h-4 text-amber-400" /> Couper
                   </button>
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowMoveFolderModal({ folderPath: contextMenu.targetName! })}>
-                    <FolderInput className="w-4 h-4 text-slate-400" /> Déplacer...
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => setShowMoveFolderModal({ folderPath: contextMenu.targetName! })}>
+                    <FolderInput className="w-4 h-4 text-cyan-400" /> Déplacer...
                   </button>
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => setShowRenameFolderModal({ oldPath: contextMenu.targetName! })}>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => setShowRenameFolderModal({ oldPath: contextMenu.targetName! })}>
                     <Edit2 className="w-4 h-4 text-slate-400" /> Renommer
                   </button>
                   <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => deleteFolder(contextMenu.targetName!)}>
-                    <Trash2 className="w-4 h-4" /> Supprimer
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-500/10 text-red-400 flex items-center gap-3 transition-colors cursor-pointer" onClick={() => deleteFolder(contextMenu.targetName!)}>
+                    <Trash2 className="w-4 h-4 text-red-400" /> Supprimer
                   </button>
                 </>
               )}
@@ -1210,31 +1221,31 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
             <>
               {selectedCount > 0 && contextMenu.targetDoc && selectedFileIds.includes(contextMenu.targetDoc.id) ? (
                 <>
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={handleCutSelection}>
-                    <Scissors className="w-4 h-4 text-blue-500" /> Couper la sélection ({selectedCount})
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-amber-400 transition-colors cursor-pointer" onClick={handleCutSelection}>
+                    <Scissors className="w-4 h-4 text-amber-400" /> Couper la sélection ({selectedCount})
                   </button>
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => { setContextMenu(null); setShowMoveBatchModal(true); }}>
-                    <FolderInput className="w-4 h-4 text-emerald-500" /> Déplacer la sélection ({selectedCount})...
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-cyan-400 transition-colors cursor-pointer" onClick={() => { setContextMenu(null); setShowMoveBatchModal(true); }}>
+                    <FolderInput className="w-4 h-4 text-cyan-400" /> Déplacer la sélection ({selectedCount})...
                   </button>
                   <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => { setContextMenu(null); handleDeleteSelection(); }}>
-                    <Trash2 className="w-4 h-4" /> Supprimer la sélection ({selectedCount})
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-500/10 text-red-400 flex items-center gap-3 transition-colors cursor-pointer" onClick={() => { setContextMenu(null); handleDeleteSelection(); }}>
+                    <Trash2 className="w-4 h-4 text-red-400" /> Supprimer la sélection ({selectedCount})
                   </button>
                 </>
               ) : (
                 <>
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && handleCutFile(contextMenu.targetDoc)}>
-                    <Scissors className="w-4 h-4 text-slate-400" /> Couper
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => contextMenu.targetDoc && handleCutFile(contextMenu.targetDoc)}>
+                    <Scissors className="w-4 h-4 text-amber-400" /> Couper
                   </button>
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && setShowMoveFileModal(contextMenu.targetDoc)}>
-                    <FolderInput className="w-4 h-4 text-slate-400" /> Déplacer...
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => contextMenu.targetDoc && setShowMoveFileModal(contextMenu.targetDoc)}>
+                    <FolderInput className="w-4 h-4 text-cyan-400" /> Déplacer...
                   </button>
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 flex items-center gap-3 text-slate-700 dark:text-slate-300 transition-colors" onClick={() => contextMenu.targetDoc && setShowRenameFileModal(contextMenu.targetDoc)}>
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => contextMenu.targetDoc && setShowRenameFileModal(contextMenu.targetDoc)}>
                     <Edit2 className="w-4 h-4 text-slate-400" /> Renommer
                   </button>
                   <div className="h-px bg-slate-200 dark:bg-white/10 my-1" />
-                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors" onClick={() => contextMenu.targetDoc && deleteFile(contextMenu.targetDoc.id, contextMenu.targetDoc.file_path, contextMenu.targetDoc.thumbnail_path)}>
-                    <Trash2 className="w-4 h-4" /> Supprimer
+                  <button className="w-full text-left px-4 py-2.5 hover:bg-red-500/10 text-red-400 flex items-center gap-3 transition-colors cursor-pointer" onClick={() => contextMenu.targetDoc && deleteFile(contextMenu.targetDoc.id, contextMenu.targetDoc.file_path, contextMenu.targetDoc.thumbnail_path)}>
+                    <Trash2 className="w-4 h-4 text-red-400" /> Supprimer
                   </button>
                 </>
               )}
@@ -1515,46 +1526,23 @@ function AdminDocumentCard({
   onMove?: () => void
   onCut?: () => void 
 }) {
-  const [isLoadingView, setIsLoadingView] = useState(false)
-  const [isLoadingDownload, setIsLoadingDownload] = useState(false)
-
-  const handleView = async (e: React.MouseEvent) => {
+  const handleView = (e: React.MouseEvent) => {
     e.preventDefault()
-    if (isLoadingView) return
-    setIsLoadingView(true)
-    try {
-      const pData = await getPresignedDownloadUrl(doc.file_path, false)
-      if (pData?.url) {
-        const ext = doc.file_path.split('.').pop()?.toLowerCase()
-        const officeExts = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx']
-        if (officeExts.includes(ext || '')) {
-          window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.url)}`, '_blank')
-        } else {
-          window.open(pData.url, '_blank')
-        }
-      }
-    } finally {
-      setIsLoadingView(false)
-    }
+    const ext = doc.file_path.split('.').pop()?.toLowerCase() || 'pdf'
+    const safeTitle = (doc.title || 'document').replace(/[/\\?%*:|"<>]/g, '_')
+    window.open(`/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}`, '_blank')
   }
 
-  const handleDownload = async (e: React.MouseEvent) => {
+  const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault()
-    if (isLoadingDownload) return
-    setIsLoadingDownload(true)
-    try {
-      const dData = await getPresignedDownloadUrl(doc.file_path, true)
-      if (dData?.url) {
-        const a = document.createElement('a')
-        a.href = dData.url
-        a.style.display = 'none'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-      }
-    } finally {
-      setIsLoadingDownload(false)
-    }
+    const ext = doc.file_path.split('.').pop()?.toLowerCase() || 'pdf'
+    const safeTitle = (doc.title || 'document').replace(/[/\\?%*:|"<>]/g, '_')
+    const a = document.createElement('a')
+    a.href = `/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}?download=1`
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   return (
@@ -1566,12 +1554,12 @@ function AdminDocumentCard({
         }
       }}
       className={cn(
-        "group relative flex flex-col justify-between gap-4 rounded-3xl border bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg p-5 hover:shadow-xl transition-all duration-300",
+        "group relative flex flex-col justify-between gap-4 rounded-3xl border bg-white/70 dark:bg-[#070D19]/80 backdrop-blur-xl p-5 transition-all duration-300 shadow-sm",
         isSelected
-          ? "ring-2 ring-blue-500 border-blue-500 bg-blue-50/60 dark:bg-blue-900/30"
+          ? "ring-2 ring-cyan-500 border-cyan-500 bg-cyan-500/10 shadow-[0_0_25px_rgba(6,182,212,0.2)]"
           : isCut
-          ? "opacity-50 border-dashed border-blue-500 bg-blue-50/30 dark:bg-blue-900/20 ring-2 ring-blue-500/20"
-          : "border-slate-200 dark:border-white/10 hover:border-blue-500/30"
+          ? "opacity-50 border-dashed border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20"
+          : "border-slate-200/80 dark:border-white/10 hover:border-cyan-500/40 hover:shadow-[0_0_20px_rgba(6,182,212,0.12)] hover:-translate-y-0.5"
       )}
     >
       <div className="flex items-start gap-3 justify-between">
@@ -1586,44 +1574,42 @@ function AdminDocumentCard({
             className={cn(
               "w-5 h-5 rounded-lg border flex items-center justify-center transition-all cursor-pointer shrink-0 mt-3",
               isSelected
-                ? "bg-blue-600 border-blue-600 text-white shadow-sm"
-                : "border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800 opacity-0 group-hover:opacity-100",
+                ? "bg-cyan-500 border-cyan-500 text-slate-950 shadow-sm"
+                : "border-slate-300 dark:border-white/20 bg-white/80 dark:bg-white/5 opacity-0 group-hover:opacity-100",
               showCheckbox && "opacity-100"
             )}
           >
             {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
           </button>
 
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/10 border border-red-200 dark:border-red-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
-            <FileText className="w-6 h-6 text-red-500 dark:text-red-400" />
+          <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-[0_0_12px_rgba(244,63,94,0.15)]">
+            <FileText className="w-6 h-6 text-rose-500 dark:text-rose-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-base font-bold text-slate-900 dark:text-white truncate" title={doc.title}>{doc.title}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatDate(doc.created_at)}</p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white truncate" title={doc.title}>{doc.title}</p>
+            <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mt-1">{formatDate(doc.created_at)}</p>
           </div>
         </div>
-        <button onClick={onContextMenu} className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white shrink-0 transition-colors">
-          <MoreVertical className="w-5 h-5" />
+        <button onClick={onContextMenu} className="p-1.5 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white shrink-0 transition-colors">
+          <MoreVertical className="w-4 h-4" />
         </button>
       </div>
       
       <div className="flex items-center gap-2 mt-2 pt-4 border-t border-slate-100 dark:border-white/5">
         <button 
           onClick={handleView}
-          disabled={isLoadingView}
-          className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all text-xs font-mono font-bold cursor-pointer shadow-sm"
         >
-          {isLoadingView ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-          Voir
+          <Eye className="w-3.5 h-3.5" />
+          VOIR
         </button>
         
         <button
           onClick={handleDownload}
-          disabled={isLoadingDownload}
-          className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-amber-500 dark:hover:text-amber-400 hover:border-amber-500/30 transition-all text-xs font-mono font-bold cursor-pointer"
         >
-          {isLoadingDownload ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-          Télécharger
+          <Download className="w-3.5 h-3.5" />
+          TÉLÉCHARGER
         </button>
       </div>
     </div>

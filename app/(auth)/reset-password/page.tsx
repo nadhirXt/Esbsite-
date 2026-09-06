@@ -128,22 +128,19 @@ function ResetPasswordContent() {
         animate="visible"
       >
         <motion.div variants={itemVariants}>
-          <Card className="shadow-2xl border-white/20 bg-white/10 backdrop-blur-xl overflow-hidden relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 opacity-50 z-0"></div>
-            <CardBody className="p-8 sm:p-10 relative z-10 flex flex-col items-center">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-5 ring-1 ring-green-500/50">
-                <ShieldCheck className="w-8 h-8 text-green-300" />
-              </div>
-              <h2 className="text-xl font-bold text-white mb-3">Mot de passe mis à jour !</h2>
-              <p className="text-blue-100/80 text-sm leading-relaxed mb-2">
-                Votre mot de passe a été réinitialisé avec succès.
-              </p>
-              <p className="text-blue-200/50 text-xs mb-6">Redirection automatique vers la connexion...</p>
-              <Link href="/login" className="text-sm font-semibold text-white hover:text-blue-200 transition-colors">
-                Se connecter maintenant →
-              </Link>
-            </CardBody>
-          </Card>
+          <div className="p-8 sm:p-10 rounded-3xl bg-[#070D19]/90 backdrop-blur-2xl border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.15)] relative overflow-hidden flex flex-col items-center">
+            <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center mb-5 border border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+              <ShieldCheck className="w-8 h-8 text-emerald-400" />
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">Mot de passe mis à jour !</h2>
+            <p className="text-slate-300 text-sm leading-relaxed mb-2">
+              Votre mot de passe a été réinitialisé avec succès.
+            </p>
+            <p className="text-slate-500 text-xs font-mono mb-6">Redirection automatique vers la connexion...</p>
+            <Link href="/login" className="text-xs font-mono font-bold text-cyan-400 hover:text-cyan-300 transition-colors">
+              Se connecter maintenant →
+            </Link>
+          </div>
         </motion.div>
       </motion.div>
     )
@@ -158,31 +155,37 @@ function ResetPasswordContent() {
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={itemVariants} className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-white mb-3 tracking-tight drop-shadow-sm">Nouveau mot de passe</h1>
-          <p className="text-blue-100/80 text-sm font-medium">Choisissez un mot de passe sécurisé</p>
+        <motion.div variants={itemVariants} className="text-center mb-8">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold tracking-wider uppercase mb-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            Récupération Sécurisée
+          </div>
+          <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Nouveau mot de passe</h1>
+          <p className="text-slate-400 text-sm font-medium">Choisissez un mot de passe robuste</p>
         </motion.div>
         
         <motion.div variants={itemVariants}>
-          <Card className="shadow-2xl border-white/20 bg-white/10 backdrop-blur-xl overflow-hidden relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 opacity-50 z-0"></div>
-            <CardBody className="p-8 sm:p-10 relative z-10">
-              <form onSubmit={handleSetPassword} className="space-y-6" noValidate>
-                {error && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    className="flex items-start gap-3 rounded-xl border border-red-200/50 bg-red-500/10 backdrop-blur-md p-4 text-sm text-red-100"
-                  >
-                    <AlertCircle className="w-5 h-5 mt-0.5 shrink-0 text-red-300" />
-                    <span className="font-medium">{error}</span>
-                  </motion.div>
-                )}
+          <div className="p-7 sm:p-9 rounded-3xl bg-[#070D19]/90 backdrop-blur-2xl border border-cyan-500/30 shadow-[0_0_40px_rgba(56,189,248,0.12)] relative overflow-hidden group">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+            <form onSubmit={handleSetPassword} className="space-y-5 relative z-10" noValidate>
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 backdrop-blur-md p-3.5 text-xs text-red-200"
+                >
+                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-400" />
+                  <span className="font-medium">{error}</span>
+                </motion.div>
+              )}
 
-                {/* Nouveau mot de passe */}
-                <div className="relative group/input">
-                  <Input
-                    label="Nouveau mot de passe"
+              {/* Nouveau mot de passe */}
+              <div className="space-y-1.5">
+                <label htmlFor="new_password" className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+                  Nouveau mot de passe
+                </label>
+                <div className="relative">
+                  <input
                     id="new_password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Minimum 8 caractères"
@@ -190,71 +193,81 @@ function ResetPasswordContent() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     autoFocus
-                    className="bg-white/90 border-white/20 focus:bg-white text-slate-900 placeholder-slate-400"
+                    className="w-full h-11 px-4 pr-10 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-[34px] text-slate-400 hover:text-blue-600 transition-colors focus:outline-none"
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-cyan-400 transition-colors focus:outline-none cursor-pointer"
                     aria-label="Afficher/masquer le mot de passe"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+              </div>
 
-                {/* Confirmer mot de passe */}
-                <div className="relative group/input">
-                  <Input
-                    label="Confirmer le mot de passe"
+              {/* Confirmer mot de passe */}
+              <div className="space-y-1.5">
+                <label htmlFor="confirm_password" className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+                  Confirmer le mot de passe
+                </label>
+                <div className="relative">
+                  <input
                     id="confirm_password"
                     type={showConfirm ? 'text' : 'password'}
                     placeholder="Répétez le mot de passe"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="bg-white/90 border-white/20 focus:bg-white text-slate-900 placeholder-slate-400"
+                    className="w-full h-11 px-4 pr-10 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-3 top-[34px] text-slate-400 hover:text-blue-600 transition-colors focus:outline-none"
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-cyan-400 transition-colors focus:outline-none cursor-pointer"
                     aria-label="Afficher/masquer la confirmation"
                   >
-                    {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+              </div>
 
-                {/* Indicateur de force (simple) */}
-                {password.length > 0 && (
-                  <div className="space-y-1.5 pt-1">
-                    <div className="flex gap-1.5">
-                      {[...Array(4)].map((_, i) => (
-                        <div
-                          key={i}
-                          className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
-                            password.length >= (i + 1) * 3
-                              ? password.length >= 12 ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]'
-                              : password.length >= 8 ? 'bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.5)]'
-                              : 'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.5)]'
-                              : 'bg-white/20'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-xs text-blue-200/70 font-medium">
-                      {password.length < 8 ? 'Trop court' : password.length < 12 ? 'Acceptable' : 'Fort ✓'}
-                    </p>
+              {/* Indicateur de force */}
+              {password.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex gap-1.5">
+                    {[...Array(4)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                          password.length >= (i + 1) * 3
+                            ? password.length >= 12 ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]'
+                            : password.length >= 8 ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]'
+                            : 'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.5)]'
+                            : 'bg-white/10'
+                        }`}
+                      />
+                    ))}
                   </div>
-                )}
+                  <p className="text-[11px] font-mono text-slate-400">
+                    {password.length < 8 ? 'Trop court' : password.length < 12 ? 'Acceptable' : 'Fort ✓'}
+                  </p>
+                </div>
+              )}
 
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button type="submit" size="lg" loading={loading} className="w-full shadow-xl shadow-blue-900/20 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 text-white border-0 py-6 text-lg font-semibold">
-                    {loading ? 'Mise à jour...' : 'Mettre à jour'}
-                  </Button>
-                </motion.div>
-              </form>
-            </CardBody>
-          </Card>
+              <div className="pt-2">
+                <Button 
+                  type="submit" 
+                  variant="cyber-glow"
+                  size="lg" 
+                  loading={loading} 
+                  className="w-full py-3.5 text-sm font-black font-mono tracking-wider cursor-pointer"
+                >
+                  {loading ? 'Mise à jour...' : 'METTRE À JOUR'}
+                </Button>
+              </div>
+            </form>
+          </div>
         </motion.div>
       </motion.div>
     )
@@ -270,31 +283,28 @@ function ResetPasswordContent() {
         animate="visible"
       >
         <motion.div variants={itemVariants}>
-          <Card className="shadow-2xl border-white/20 bg-white/10 backdrop-blur-xl overflow-hidden relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 opacity-50 z-0"></div>
-            <CardBody className="p-8 sm:p-10 relative z-10 flex flex-col items-center">
-              <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-5 ring-1 ring-blue-500/50">
-                <CheckCircle className="w-8 h-8 text-blue-300" />
-              </div>
-              <h2 className="text-xl font-bold text-white mb-3">Email envoyé !</h2>
-              <p className="text-blue-100/80 text-sm leading-relaxed mb-2">
-                Un lien de réinitialisation a été envoyé à{' '}
-                <strong className="text-white bg-white/10 px-2 py-0.5 rounded">{email}</strong>
-              </p>
-              <p className="text-blue-200/60 text-xs mb-8">
-                Vérifiez votre boîte mail et vos spams. Le lien expire dans <strong>1 heure</strong>.
-              </p>
-              <button
-                onClick={() => { setEmailSent(false); setEmail('') }}
-                className="text-sm font-medium text-blue-200 hover:text-white underline underline-offset-4 decoration-white/30 hover:decoration-white/100 mb-6 transition-all"
-              >
-                Renvoyer avec un autre email
-              </button>
-              <Link href="/login" className="text-sm font-bold text-white hover:text-blue-200 transition-colors">
-                Retour à la connexion
-              </Link>
-            </CardBody>
-          </Card>
+          <div className="p-8 sm:p-10 rounded-3xl bg-[#070D19]/90 backdrop-blur-2xl border border-cyan-500/30 shadow-[0_0_40px_rgba(56,189,248,0.15)] relative overflow-hidden flex flex-col items-center">
+            <div className="w-16 h-16 bg-cyan-500/20 rounded-2xl flex items-center justify-center mb-5 border border-cyan-500/40 shadow-[0_0_20px_rgba(56,189,248,0.3)]">
+              <CheckCircle className="w-8 h-8 text-cyan-300" />
+            </div>
+            <h2 className="text-xl font-bold text-white mb-3">Email envoyé !</h2>
+            <p className="text-slate-300 text-sm leading-relaxed mb-2">
+              Un lien de réinitialisation a été envoyé à{' '}
+              <strong className="text-white bg-white/10 px-2 py-0.5 rounded font-mono">{email}</strong>
+            </p>
+            <p className="text-slate-400 text-xs mb-8">
+              Vérifiez votre boîte mail et vos spams. Le lien expire dans <strong>1 heure</strong>.
+            </p>
+            <button
+              onClick={() => { setEmailSent(false); setEmail('') }}
+              className="text-xs font-mono text-cyan-400 hover:text-cyan-300 underline underline-offset-4 mb-6 transition-all cursor-pointer"
+            >
+              Renvoyer avec un autre email
+            </button>
+            <Link href="/login" className="text-xs font-mono font-bold text-white hover:text-cyan-300 transition-colors">
+              Retour à la connexion
+            </Link>
+          </div>
         </motion.div>
       </motion.div>
     )
@@ -308,32 +318,38 @@ function ResetPasswordContent() {
       initial="hidden"
       animate="visible"
     >
-      <motion.div variants={itemVariants} className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-white mb-3 tracking-tight drop-shadow-sm">Mot de passe oublié ?</h1>
-        <p className="text-blue-100/80 text-sm font-medium">
+      <motion.div variants={itemVariants} className="text-center mb-8">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold tracking-wider uppercase mb-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          Récupération d&apos;Accès
+        </div>
+        <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Mot de passe oublié ?</h1>
+        <p className="text-slate-400 text-sm font-medium">
           Entrez votre email pour recevoir un lien de réinitialisation
         </p>
       </motion.div>
       
       <motion.div variants={itemVariants}>
-        <Card className="shadow-2xl border-white/20 bg-white/10 backdrop-blur-xl overflow-hidden relative group">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 opacity-50 z-0"></div>
-          <CardBody className="p-8 sm:p-10 relative z-10">
-            <form onSubmit={handleRequestReset} className="space-y-6" noValidate>
-              {error && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  className="flex items-start gap-3 rounded-xl border border-red-200/50 bg-red-500/10 backdrop-blur-md p-4 text-sm text-red-100"
-                >
-                  <AlertCircle className="w-5 h-5 mt-0.5 shrink-0 text-red-300" />
-                  <span className="font-medium">{error}</span>
-                </motion.div>
-              )}
+        <div className="p-7 sm:p-9 rounded-3xl bg-[#070D19]/90 backdrop-blur-2xl border border-cyan-500/30 shadow-[0_0_40px_rgba(56,189,248,0.12)] relative overflow-hidden group">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+          <form onSubmit={handleRequestReset} className="space-y-5 relative z-10" noValidate>
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 backdrop-blur-md p-3.5 text-xs text-red-200"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-400" />
+                <span className="font-medium">{error}</span>
+              </motion.div>
+            )}
 
-              <div className="relative group/input">
-                <Input
-                  label="Adresse email"
+            <div className="space-y-1.5">
+              <label htmlFor="reset_email" className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+                Adresse email
+              </label>
+              <div className="relative">
+                <input
                   id="reset_email"
                   type="email"
                   placeholder="exemple@email.com"
@@ -342,29 +358,35 @@ function ResetPasswordContent() {
                   required
                   autoFocus
                   autoComplete="email"
-                  className="bg-white/90 border-white/20 focus:bg-white text-slate-900 placeholder-slate-400"
+                  className="w-full h-11 px-4 pr-10 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all outline-none"
                 />
-                <Mail className="absolute right-3 top-[34px] w-5 h-5 text-slate-400 pointer-events-none group-focus-within/input:text-blue-600 transition-colors" />
+                <Mail className="absolute right-3.5 top-3 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
-
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button type="submit" size="lg" loading={loading} className="w-full shadow-xl shadow-blue-900/20 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 text-white border-0 py-6 text-lg font-semibold">
-                  {loading ? 'Envoi en cours...' : 'Envoyer le lien'}
-                </Button>
-              </motion.div>
-            </form>
-
-            <div className="mt-8 pt-6 border-t border-white/10 text-center">
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center gap-2 text-sm font-medium text-blue-100/70 hover:text-white transition-colors group/link"
-              >
-                <ArrowLeft className="w-4 h-4 group-hover/link:-translate-x-1 transition-transform" />
-                Retour à la connexion
-              </Link>
             </div>
-          </CardBody>
-        </Card>
+
+            <div className="pt-2">
+              <Button 
+                type="submit" 
+                variant="cyber-glow"
+                size="lg" 
+                loading={loading} 
+                className="w-full py-3.5 text-sm font-black font-mono tracking-wider cursor-pointer"
+              >
+                {loading ? 'Envoi en cours...' : 'ENVOYER LE LIEN'}
+              </Button>
+            </div>
+          </form>
+
+          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center gap-2 text-xs font-mono text-slate-400 hover:text-white transition-colors group/link"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 group-hover/link:-translate-x-1 transition-transform" />
+              Retour à la connexion
+            </Link>
+          </div>
+        </div>
       </motion.div>
     </motion.div>
   )

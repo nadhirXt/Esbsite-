@@ -12,17 +12,17 @@ import { cn } from '@/lib/utils'
 import { motion, Variants } from 'framer-motion'
 
 const CYCLES = [
-  { value: 'licence', label: 'Licence Bancaire', desc: '3 ans' },
-  { value: 'dseb',    label: 'DSEB',             desc: '4 ans' },
-  { value: 'master',  label: 'Master',            desc: '2 ans' },
+  { value: 'licence', label: 'Licence en Management et Banque', desc: '3 ans (6 semestres) — 2 340h' },
+  { value: 'dseb',    label: 'DSEB — Diplôme Supérieur d\'Études Bancaires', desc: '4 ans — Formation des cadres' },
+  { value: 'master',  label: 'Master en Monnaie et Banque', desc: '2 ans — Régime mixte & immersion' },
 ]
 
 const USER_TYPES = [
-  { value: 'etudiant_esb',   label: 'Étudiant à l\'ESB' },
-  { value: 'autre_etudiant', label: 'Autre étudiant' },
-  { value: 'professeur',     label: 'Professeur' },
-  { value: 'ancien',         label: 'Ancien ESBiste' },
-  { value: 'metier',         label: 'Professionnel' },
+  { value: 'etudiant_esb',   label: 'Étudiant(e) à l\'ESB' },
+  { value: 'autre_etudiant', label: 'Étudiant(e) d\'une autre institution' },
+  { value: 'professeur',     label: 'Enseignant / Intervenant' },
+  { value: 'ancien',         label: 'Alumni / Diplômé de l\'ESB' },
+  { value: 'metier',         label: 'Cadre du secteur bancaire' },
 ]
 
 export default function RegisterPage() {
@@ -159,30 +159,37 @@ export default function RegisterPage() {
       animate="visible"
     >
       <motion.div variants={itemVariants} className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-white mb-3 tracking-tight drop-shadow-sm">Créer un compte</h1>
-        <p className="text-blue-100/80 text-base font-medium">Rejoignez le portail ESB</p>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold tracking-wider uppercase mb-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          Enregistrement Portail ESB
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 tracking-tight">Créer un compte</h1>
+        <p className="text-slate-400 text-sm font-medium">Rejoignez l&apos;écosystème d&apos;excellence académique</p>
       </motion.div>
 
       <motion.div variants={itemVariants}>
-        <Card className="shadow-2xl border-white/20 bg-white/10 backdrop-blur-xl overflow-hidden relative group">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/5 opacity-50 z-0"></div>
-          <CardBody className="p-8 sm:p-10 relative z-10">
-            <form onSubmit={handleRegister} className="space-y-6" noValidate>
-              {error && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  className="flex items-start gap-3 rounded-xl border border-red-200/50 bg-red-500/10 backdrop-blur-md p-4 text-sm text-red-100"
-                >
-                  <AlertCircle className="w-5 h-5 mt-0.5 shrink-0 text-red-300" />
-                  <span className="font-medium">{error}</span>
-                </motion.div>
-              )}
+        <div className="p-7 sm:p-9 rounded-3xl bg-[#070D19]/90 backdrop-blur-2xl border border-cyan-500/30 shadow-[0_0_40px_rgba(56,189,248,0.12)] relative overflow-hidden group">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+          
+          <form onSubmit={handleRegister} className="space-y-5 relative z-10" noValidate>
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 backdrop-blur-md p-3.5 text-xs text-red-200"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-red-400" />
+                <span className="font-medium">{error}</span>
+              </motion.div>
+            )}
 
-              {/* Full name */}
-              <div className="relative group/input">
-                <Input
-                  label="Nom complet"
+            {/* Full name */}
+            <div className="space-y-1.5">
+              <label htmlFor="full_name" className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+                Nom complet
+              </label>
+              <div className="relative">
+                <input
                   id="full_name"
                   type="text"
                   placeholder="Prénom Nom"
@@ -190,15 +197,19 @@ export default function RegisterPage() {
                   onChange={(e) => setFullName(e.target.value)}
                   required
                   autoFocus
-                  className="bg-white/90 border-white/20 focus:bg-white text-slate-900 placeholder-slate-400"
+                  className="w-full h-11 px-4 pr-10 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all outline-none"
                 />
-                <User className="absolute right-3 top-[34px] w-5 h-5 text-slate-400 pointer-events-none group-focus-within/input:text-blue-600 transition-colors" />
+                <User className="absolute right-3.5 top-3 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
+            </div>
 
-              {/* Email */}
-              <div className="relative group/input">
-                <Input
-                  label="Adresse email"
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+                Adresse email
+              </label>
+              <div className="relative">
+                <input
                   id="email"
                   type="email"
                   placeholder="exemple@email.com"
@@ -206,15 +217,22 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="bg-white/90 border-white/20 focus:bg-white text-slate-900 placeholder-slate-400"
+                  className="w-full h-11 px-4 pr-10 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all outline-none"
                 />
-                <Mail className="absolute right-3 top-[34px] w-5 h-5 text-slate-400 pointer-events-none group-focus-within/input:text-blue-600 transition-colors" />
+                <Mail className="absolute right-3.5 top-3 w-4 h-4 text-slate-400 pointer-events-none" />
               </div>
+            </div>
 
-              {/* Password */}
-              <div className="relative group/input">
-                <Input
-                  label="Mot de passe"
+            {/* Password */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+                  Mot de passe
+                </label>
+                <span className="text-[11px] font-mono text-slate-400">Min. 8 caractères</span>
+              </div>
+              <div className="relative">
+                <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Minimum 8 caractères"
@@ -222,112 +240,132 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="new-password"
-                  hint="Au moins 8 caractères"
-                  className="bg-white/90 border-white/20 focus:bg-white text-slate-900 placeholder-slate-400"
+                  className="w-full h-11 px-4 pr-10 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-[34px] text-slate-400 hover:text-blue-600 transition-colors focus:outline-none"
+                  className="absolute right-3.5 top-3 text-slate-400 hover:text-cyan-400 transition-colors focus:outline-none cursor-pointer"
                   aria-label="Afficher/masquer le mot de passe"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+            </div>
 
-              {/* User Type selection */}
-              <div>
-                <label className="block text-sm font-medium text-white mb-3 drop-shadow-sm">
-                  Je suis...
+            {/* User Type selection */}
+            <div className="space-y-2">
+              <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+                Profil académique
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {USER_TYPES.map((u) => (
+                  <button
+                    key={u.value}
+                    type="button"
+                    onClick={() => setUserType(u.value)}
+                    className={cn(
+                      'px-3.5 py-2 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer flex-grow border backdrop-blur-sm',
+                      userType === u.value
+                        ? 'border-cyan-400 bg-cyan-500/20 text-cyan-200 shadow-[0_0_15px_rgba(56,189,248,0.3)]'
+                        : 'border-white/10 bg-slate-900/60 hover:bg-slate-900 text-slate-300 hover:text-white'
+                    )}
+                  >
+                    {u.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Institution Name for other students */}
+            {userType === 'autre_etudiant' && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
+                <label className="block text-[11px] font-mono font-bold text-cyan-300 uppercase tracking-wider">
+                  Suggestions rapides :
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {USER_TYPES.map((u) => (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {['HEC Alger', 'IHEC Alger', 'ENSSEA', 'EHEC', 'Alger 3 (FSE)', 'ESC Kolea'].map((school) => (
                     <button
-                      key={u.value}
+                      key={school}
                       type="button"
-                      onClick={() => setUserType(u.value)}
+                      onClick={() => setInstitutionName(school)}
                       className={cn(
-                        'px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer flex-grow border backdrop-blur-sm',
-                        userType === u.value
-                          ? 'border-blue-400/50 bg-blue-500/20 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]'
-                          : 'border-white/10 bg-white/5 hover:bg-white/10 text-blue-100/70 hover:text-white'
+                        'text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer',
+                        institutionName === school
+                          ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow-sm'
+                          : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10'
                       )}
                     >
-                      {u.label}
+                      {school}
                     </button>
                   ))}
                 </div>
-              </div>
-
-              {/* Institution Name for other students */}
-              {userType === 'autre_etudiant' && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="relative group/input">
-                  <Input
-                    label="Université ou École Supérieure"
+                <div className="space-y-1.5">
+                  <input
                     id="institution_name"
                     type="text"
                     placeholder="Ex: HEC Alger, ESC, Université d'Oran..."
                     value={institutionName}
                     onChange={(e) => setInstitutionName(e.target.value)}
                     required
-                    className="bg-white/90 border-white/20 focus:bg-white text-slate-900 placeholder-slate-400"
+                    className="w-full h-11 px-4 rounded-xl bg-slate-900/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all outline-none"
                   />
-                </motion.div>
-              )}
-
-              {/* Cycle selection for ESB students / Alumni */}
-              {(userType === 'etudiant_esb' || userType === 'ancien') && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-                  <label className="block text-sm font-medium text-white mb-3 drop-shadow-sm">
-                    Cycle de formation (ESB)
-                  </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {CYCLES.map((c) => (
-                      <button
-                        key={c.value}
-                        type="button"
-                        onClick={() => setCycle(c.value)}
-                        className={cn(
-                          'flex flex-col items-center justify-center gap-1 rounded-xl border p-3 text-center transition-all duration-200 cursor-pointer backdrop-blur-sm',
-                          cycle === c.value
-                            ? 'border-blue-400/50 bg-blue-500/20 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]'
-                            : 'border-white/10 bg-white/5 hover:bg-white/10 text-blue-100/70 hover:text-white'
-                        )}
-                      >
-                        <span className="text-sm font-bold">{c.label}</span>
-                        <span className="text-xs opacity-80">{c.desc}</span>
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="pt-2">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  loading={loading}
-                  className="w-full shadow-xl shadow-blue-900/20 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 text-white border-0 py-6 text-lg font-semibold"
-                >
-                  {loading ? 'Création du compte...' : 'Créer mon compte'}
-                </Button>
+                </div>
               </motion.div>
-            </form>
+            )}
 
-            <div className="mt-8 pt-6 border-t border-white/10 text-center">
-              <p className="text-sm text-blue-100/70">
-                Déjà un compte ?{' '}
-                <Link
-                  href="/login"
-                  className="font-bold text-white hover:text-blue-200 transition-colors drop-shadow-sm"
-                >
-                  Se connecter
-                </Link>
-              </p>
+            {/* Cycle selection for ESB students / Alumni */}
+            {(userType === 'etudiant_esb' || userType === 'ancien') && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
+                <label className="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider">
+                  Cycle de formation (ESB)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {CYCLES.map((c) => (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setCycle(c.value)}
+                      className={cn(
+                        'flex flex-col items-start sm:items-center justify-center gap-1 rounded-xl border p-3 text-left sm:text-center transition-all duration-200 cursor-pointer backdrop-blur-sm',
+                        cycle === c.value
+                          ? 'border-cyan-400 bg-cyan-500/20 text-cyan-200 shadow-[0_0_15px_rgba(56,189,248,0.3)]'
+                          : 'border-white/10 bg-slate-900/60 hover:bg-slate-900 text-slate-300 hover:text-white'
+                      )}
+                    >
+                      <span className="text-xs font-bold">{c.label}</span>
+                      <span className="text-[10px] text-slate-400">{c.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            <div className="pt-2">
+              <Button
+                type="submit"
+                variant="cyber-amber"
+                size="lg"
+                loading={loading}
+                className="w-full py-3.5 text-sm font-black font-mono tracking-wider cursor-pointer"
+              >
+                {loading ? 'Création du compte...' : 'CRÉER MON COMPTE ÉTUDIANT'}
+              </Button>
             </div>
-          </CardBody>
-        </Card>
+          </form>
+
+          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+            <p className="text-xs text-slate-400">
+              Déjà un compte ?{' '}
+              <Link
+                href="/login"
+                className="font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
+              >
+                Se connecter
+              </Link>
+            </p>
+          </div>
+        </div>
       </motion.div>
     </motion.div>
   )

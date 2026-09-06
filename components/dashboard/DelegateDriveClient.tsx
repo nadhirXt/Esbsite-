@@ -10,7 +10,6 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { 
   getPresignedUploadUrl, 
-  getPresignedDownloadUrl, 
   deleteDocumentAction, 
   deleteFolderAction,
   moveDocumentAction,
@@ -1462,46 +1461,23 @@ function DelegateDocumentCard({
   onMove?: () => void
   onCut?: () => void 
 }) {
-  const [isLoadingView, setIsLoadingView] = useState(false)
-  const [isLoadingDownload, setIsLoadingDownload] = useState(false)
-
-  const handleView = async (e: React.MouseEvent) => {
+  const handleView = (e: React.MouseEvent) => {
     e.preventDefault()
-    if (isLoadingView) return
-    setIsLoadingView(true)
-    try {
-      const pData = await getPresignedDownloadUrl(doc.file_path, false)
-      if (pData?.url) {
-        const ext = doc.file_path.split('.').pop()?.toLowerCase()
-        const officeExts = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx']
-        if (officeExts.includes(ext || '')) {
-          window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.url)}`, '_blank')
-        } else {
-          window.open(pData.url, '_blank')
-        }
-      }
-    } finally {
-      setIsLoadingView(false)
-    }
+    const ext = doc.file_path.split('.').pop()?.toLowerCase() || 'pdf'
+    const safeTitle = (doc.title || 'document').replace(/[/\\?%*:|"<>]/g, '_')
+    window.open(`/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}`, '_blank')
   }
 
-  const handleDownload = async (e: React.MouseEvent) => {
+  const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault()
-    if (isLoadingDownload) return
-    setIsLoadingDownload(true)
-    try {
-      const dData = await getPresignedDownloadUrl(doc.file_path, true)
-      if (dData?.url) {
-        const a = document.createElement('a')
-        a.href = dData.url
-        a.style.display = 'none'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-      }
-    } finally {
-      setIsLoadingDownload(false)
-    }
+    const ext = doc.file_path.split('.').pop()?.toLowerCase() || 'pdf'
+    const safeTitle = (doc.title || 'document').replace(/[/\\?%*:|"<>]/g, '_')
+    const a = document.createElement('a')
+    a.href = `/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}?download=1`
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   return (
@@ -1557,19 +1533,17 @@ function DelegateDocumentCard({
       <div className="flex items-center gap-2 mt-1 pt-3 border-t border-[#F1F5F9]">
         <button 
           onClick={handleView}
-          disabled={isLoadingView}
-          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-[#EFF6FF] text-[#1E3A8A] hover:bg-[#DBEAFE] transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-[#EFF6FF] text-[#1E3A8A] hover:bg-[#DBEAFE] transition-colors text-xs font-medium cursor-pointer"
         >
-          {isLoadingView ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+          <Eye className="w-3.5 h-3.5" />
           Voir
         </button>
         
         <button
           onClick={handleDownload}
-          disabled={isLoadingDownload}
-          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg border border-[#E2E8F0] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A] transition-colors text-xs font-medium cursor-pointer"
         >
-          {isLoadingDownload ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+          <Download className="w-3.5 h-3.5" />
           Télécharger
         </button>
       </div>

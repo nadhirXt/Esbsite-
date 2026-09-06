@@ -4,7 +4,6 @@ import { FileText, TrendingUp, ArrowRight, Eye, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { formatDate, CYCLES } from '@/lib/utils'
-import { getPresignedDownloadUrl } from '@/app/actions/storage'
 import { useTrackReading } from './useTrackReading'
 
 interface Document {
@@ -53,24 +52,11 @@ function PopularDocCard({ doc }: { doc: Document }) {
   const cycleBadge = CYCLES[doc.cycle as keyof typeof CYCLES]
   const { trackView } = useTrackReading(doc.id)
 
-  const handleView = async () => {
-    if (isLoading) return
-    setIsLoading(true)
+  const handleView = () => {
     trackView() // ← Analytics
-    try {
-      const pData = await getPresignedDownloadUrl(doc.file_path, false)
-      if (pData?.url) {
-        const ext = doc.file_path.split('.').pop()?.toLowerCase()
-        const officeExts = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx']
-        if (officeExts.includes(ext || '')) {
-          window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.url)}`, '_blank')
-        } else {
-          window.open(pData.url, '_blank')
-        }
-      }
-    } finally {
-      setIsLoading(false)
-    }
+    const ext = doc.file_path.split('.').pop()?.toLowerCase() || 'pdf'
+    const safeTitle = (doc.title || 'document').replace(/[/\\?%*:|"<>]/g, '_')
+    window.open(`/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}`, '_blank')
   }
 
   return (

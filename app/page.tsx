@@ -1,482 +1,615 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import PublicHeader from '@/components/public/PublicHeader'
 import PublicFooter from '@/components/public/PublicFooter'
-import {
-  GraduationCap, TrendingUp, Users, Award, BookOpen,
-  ArrowRight, CheckCircle, Building2, Star, Mail
-} from 'lucide-react'
-
-export const metadata: Metadata = {
-  title: 'ESB Hub — École Supérieure de Banque',
-  description: 'Découvrez l\'École Supérieure de Banque (ESB). Formations Licence, DSEB et Master en banque et finance en Algérie.',
-}
-
-const STATS = [
-  { value: '30+',   label: 'Années d\'excellence', icon: Award },
-  { value: '900+',  label: 'Diplômés',            icon: Users },
-  { value: '3',     label: 'Cycles de formation',  icon: BookOpen },
-  { value: '95%',   label: 'Taux d\'insertion',    icon: TrendingUp },
-]
-
-const FORMATIONS = [
-  {
-    id: 'licence',
-    title: 'Licence en Management et Banque',
-    cycle: 'Licence',
-    duration: '3 ans (6 semestres) — 2340 heures',
-    badge: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800',
-    accent: 'bg-[#1E3A8A]',
-    objectives: [
-      "Qualifications techniques et professionnelles requises pour répondre aux attentes du marché du travail.",
-      "Capacité d'analyse et de synthèse pour mieux appréhender diverses situations professionnelles.",
-      "Possibilité d'accéder au cycle de Master « Monnaie et Banque » au sein de l'école."
-    ],
-    programDesc: "Le programme combine une forte orientation professionnelle et une base académique solide, incluant cours théoriques, techniques, professionnels et séminaires.",
-    outcomes: [
-      "Compréhension théorique des différents métiers de la banque.",
-      "Connaissance approfondie des marchés financiers, monétaires et de change.",
-      "Expertise dans l'identification et la réduction des risques bancaires.",
-      "Maîtrise des outils d'analyse, d'audit et de contrôle des activités bancaires."
-    ]
-  },
-  {
-    id: 'master',
-    title: 'Master en Monnaie et Banque',
-    cycle: 'Master',
-    duration: '2 ans (M1, M2) — Régime mixte',
-    badge: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800',
-    accent: 'bg-[#581C87]',
-    objectives: [
-      "Former les candidats à l'exercice des métiers de la banque.",
-      "Apprendre les fondements essentiels de la finance.",
-      "Maîtriser la microéconomie et la macroéconomie."
-    ],
-    programDesc: "La formation est organisée selon un régime d'études mixte associant cours théoriques, travaux pratiques et stages immersifs en milieu professionnel.",
-    outcomes: []
-  },
-  {
-    id: 'dseb',
-    title: 'Diplôme Supérieur des Études Bancaires',
-    cycle: 'DSEB',
-    duration: '4 ans (enseignements et stages)',
-    badge: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800',
-    accent: 'bg-[#A16207]',
-    objectives: [
-      "Développer un fort potentiel technique et managérial pour devenir un acteur du changement.",
-      "Acquérir une haute qualification technique et professionnelle.",
-      "Renforcer les capacités d'analyse et de synthèse des candidats."
-    ],
-    programDesc: "Le programme combine harmonieusement une forte orientation professionnelle et un ancrage académique solide, réalisé avec les services opérationnels du secteur.",
-    outcomes: [
-      "Approche stratégique des métiers de la banque.",
-      "Compétences techniques dans les principales activités bancaires.",
-      "Connaissance des rôles des marchés (financier, monétaire, change).",
-      "Expertise dans l'identification des risques et les techniques de couverture.",
-      "Maîtrise des outils d'analyse, d'audit et de contrôle."
-    ]
-  }
-]
-
-const WHY_ESB = [
-  'Corps professoral issu du secteur bancaire algérien',
-  'Partenariats avec les grandes banques nationales',
-  'Programme aligné sur les standards internationaux',
-  'Stages professionnels intégrés au cursus',
-  'Bibliothèque spécialisée en finance et droit',
-  'Réseau alumni actif à travers tout le territoire',
-]
-
+import FormationsExplorer from '@/components/public/FormationsExplorer'
+import FutursEtudiantsSection from '@/components/public/FutursEtudiantsSection'
+import InterEcolesSection from '@/components/public/InterEcolesSection'
+import QRCodeSection from '@/components/public/QRCodeSection'
+import AlumniFeedbacks from '@/components/public/AlumniFeedbacks'
+import HeroSection from '@/components/public/HeroSection'
 import { createClient } from '@/lib/supabase/server'
 import { ClientImage } from '@/components/ui/ClientImage'
 import CopyEmailButton from '@/components/ui/CopyEmailButton'
-import QRCodeSection from '@/components/public/QRCodeSection'
-import AlumniFeedbacks from '@/components/public/AlumniFeedbacks'
+import {
+  GraduationCap, TrendingUp, Users, Award, BookOpen,
+  ArrowRight, CheckCircle, Building2, ShieldCheck, 
+  MapPin, Library, Search, FileText, Sparkles, 
+  ExternalLink, Mail, CheckCircle2, ChevronRight, Trees
+} from 'lucide-react'
+
+export const metadata: Metadata = {
+  title: 'ESB Hub — École Supérieure de Banque d\'Algérie | Portail Académique Officiel',
+  description: 'Portail académique de l\'École Supérieure de Banque (Direction Générale de la Banque d\'Algérie). Formations d\'élite Licence, DSEB et Master en monnaie, banque et finance à Alger. Annales de concours et mémoires de référence pour les grandes écoles de commerce.',
+  keywords: [
+    'École Supérieure de Banque',
+    'ESB Alger',
+    'Banque d\'Algérie',
+    'Concours ESB 2026–2027',
+    'HEC Alger annales',
+    'IHEC Alger',
+    'ENSSEA',
+    'Licence Management et Banque',
+    'DSEB',
+    'Master Monnaie et Banque',
+    'Mémoires banque Algérie',
+    'Finance bancaire Algérie'
+  ],
+  openGraph: {
+    title: 'ESB Hub — École Supérieure de Banque d\'Algérie',
+    description: 'Portail d\'élite de l\'École Supérieure de Banque : Formations certifiées, bibliothèque virtuelle et annales nationales.',
+    url: 'https://esbhub.study',
+    type: 'website',
+  }
+}
+
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'EducationalOrganization',
+  name: "École Supérieure de Banque d'Algérie",
+  alternateName: 'ESB Hub',
+  url: 'https://esbhub.study',
+  logo: 'https://esbhub.study/images/esb-logo.jpg',
+  description: "Portail officiel de l'École Supérieure de Banque (Banque d'Algérie). Formations d'élite Licence, DSEB et Master, annales de concours et mémoires de référence pour les étudiants en économie et finance en Algérie.",
+  parentOrganization: {
+    '@type': 'GovernmentOrganization',
+    name: "Banque d'Algérie",
+    url: 'https://www.bank-of-algeria.dz'
+  },
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Forêt de Baïnem, Bouzaréah',
+    addressLocality: 'Alger',
+    addressRegion: 'Alger',
+    addressCountry: 'DZ'
+  },
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Formations Bancaires Supérieures',
+    itemListElement: [
+      {
+        '@type': 'Course',
+        name: 'Licence en Management et Banque (LMB)',
+        description: 'Cursus certifié de 3 ans formant aux métiers opérationnels et analytiques de la banque.'
+      },
+      {
+        '@type': 'Course',
+        name: "Diplôme Supérieur d'Études Bancaires (DSEB)",
+        description: 'Programme supérieur de 4 ans dédié aux cadres dirigeants et analystes du secteur financier.'
+      },
+      {
+        '@type': 'Course',
+        name: 'Master Professionnel en Monnaie et Banque (M2B)',
+        description: "Cursus d'élite en 2 ans axé sur la macroéconomie monétaire, les marchés financiers et la régulation prudentielle."
+      }
+    ]
+  }
+}
+
+const STATS_DATA = [
+  { value: '30+',  label: 'Années d\'excellence', sub: 'Fondée en janvier 1995', icon: Award },
+  { value: '100%', label: 'Tutelle Banque d\'Algérie', sub: 'Direction Générale dédiée', icon: ShieldCheck },
+  { value: '3',    label: 'Cycles de formation', sub: 'Licence, DSEB & Master', icon: BookOpen },
+  { value: '95%',  label: 'Taux d\'insertion', sub: 'Dans les banques partenaires', icon: TrendingUp },
+]
+
+const PARTNER_BANKS = [
+  'Banque d\'Algérie',
+  'BNA',
+  'BEA',
+  'BDL',
+  'CPA',
+  'CNEP-Banque',
+  'BADR',
+  'BNP Paribas El Djazaïr',
+  'Société Générale Algérie',
+  'Al Baraka Bank'
+]
+
+const LIBRARY_DISCIPLINES = [
+  { 
+    name: 'Comptabilité Financière & Normes SCF', 
+    count: '76+ documents', 
+    tag: 'Fonds Réel',
+    detail: 'Exemples réels : "Comptabilité et audit bancaires" (546 p.), "CONTENU DES RUBRIQUES DE BILAN ET CR", "Toutes les séries corrgiées" (26 p.)'
+  },
+  { 
+    name: 'Analyse Financière & Diagnostic PME', 
+    count: '44+ documents', 
+    tag: 'Fonds Réel',
+    detail: 'Exemples réels : "Les ratios qui comptent" (254 p.), "Chapitre 4 CAF NOUVEAU SCF DEC 2025" (4 p.), "Les ratios de délais ESB"'
+  },
+  { 
+    name: 'Mathématiques Financières & Actuariat', 
+    count: '189+ polycopiés', 
+    tag: 'Fonds Réel',
+    detail: 'Exemples réels : "Stat-Et-Proba-Cours-Et-Exos-Corrigees-J-P-LECOUTRE" (317 p.), "Optimisation et analyse convexe" (355 p.)'
+  },
+  { 
+    name: 'Gestion des Risques & Bâle II / Bâle III', 
+    count: '154+ dossiers', 
+    tag: 'Fonds Réel',
+    detail: 'Exemples réels : "Risk Management _ Financial Institutions - J. C. Hull" (830 p.), "GLOBAL" (269 p.), "Risque credit"'
+  },
+  { 
+    name: 'Macroéconomie Monétaire & Marchés', 
+    count: '83+ synthèses', 
+    tag: 'Fonds Réel',
+    detail: 'Exemples réels : "Système Comptable National 2008" (751 p.), "toaz.info-macroeconomie" (159 p.), "cours de macroéconomie"'
+  },
+  { 
+    name: 'Sujets d\'Examens & Annales Officielles', 
+    count: '259+ épreuves', 
+    tag: 'Fonds Réel',
+    detail: 'Exemples réels : "Examens S2 D27 ( 1st year)" (12 p.), "Interrogations S2 D27" (3 p.), "Examen S1 DSEB 27 Comptabilité" (2 p.)'
+  },
+]
+
+const CAMPUS_PILLARS = [
+  {
+    title: 'Cadre Préservé de Baïnem',
+    desc: 'Implantée sur les hauteurs de Bouzaréah, à l\'orée de la forêt de Baïnem, l\'ESB offre un environnement calme et verdoyant propice aux hautes études et à la concentration.',
+    icon: Trees,
+    accent: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+  },
+  {
+    title: 'Infrastructures Pédagogiques',
+    desc: 'Amphithéâtres équipés, salles de séminaires, laboratoires informatiques et espaces de travail collaboratif configurés selon les exigences académiques modernes.',
+    icon: Building2,
+    accent: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200 dark:border-blue-800'
+  },
+  {
+    title: 'Bibliothèque Spécialisée',
+    desc: 'Un riche fonds documentaire physique et numérique regroupant les monographies économiques, traités de droit bancaire, revues financières et archives monétaires.',
+    icon: Library,
+    accent: 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+  },
+  {
+    title: 'Synergie avec la Banque Centrale',
+    desc: 'Des interventions régulières assurées par les directeurs, cadres supérieurs de la Banque d\'Algérie et praticiens de renom du système bancaire national.',
+    icon: ShieldCheck,
+    accent: 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800'
+  }
+]
+
+export const revalidate = 300 // Revalidate cached metrics every 5 minutes
 
 export default async function HomePage() {
   const supabase = await createClient()
-  const { data: stats } = await supabase.rpc('get_platform_stats')
+
+  // Parallel fast execution
+  const [statsRes, categoriesRes, concoursRes] = await Promise.all([
+    supabase.rpc('get_platform_stats'),
+    supabase.from('documents').select('category').neq('title', '.keep').limit(150),
+    supabase.from('documents').select('*').eq('cycle', 'concours').order('created_at', { ascending: false })
+  ])
   
-  const totalUsers = stats?.[0]?.total_users || 0
-  const totalDocs = stats?.[0]?.total_documents || 0
-
-  const { data: categoriesData } = await supabase
-    .from('documents')
-    .select('category')
-    .neq('title', '.keep')
-
-  const uniqueCategories = new Set(categoriesData?.map(d => d.category).filter(Boolean) || []).size
+  const totalUsers = statsRes.data?.[0]?.total_users || 0
+  const totalDocs = statsRes.data?.[0]?.total_documents || 0
+  const uniqueCategories = new Set(categoriesRes.data?.map((d: any) => d.category).filter(Boolean) || []).size
+  const concoursDocs = concoursRes.data || []
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+      />
       <PublicHeader />
-      <main className="overflow-x-hidden">
-        {/* ── HERO ─────────────────────────────────── */}
-        <section className="relative min-h-[100dvh] flex items-center bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#0F172A] dark:from-[#020617] dark:via-[#0F172A] dark:to-[#020617]">
-          {/* Dot pattern */}
-          <div
-            className="absolute inset-0 opacity-5"
-            style={{ backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`, backgroundSize: '32px 32px' }}
-          />
-          {/* Gold accent line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#A16207] to-transparent" />
+      <main className="overflow-x-hidden pt-16 sm:pt-20">
+        
+        {/* ── 1. HERO SECTION INSTITUTIONNELLE ─────── */}
+        <HeroSection totalDocs={totalDocs} totalUsers={totalUsers} uniqueCategories={uniqueCategories} />
 
-          {/* Gradient orbs for premium effect */}
-          <div className="gradient-orb gradient-orb-gold w-96 h-96 -top-48 -right-48 animate-glow" />
-          <div className="gradient-orb gradient-orb-blue w-80 h-80 bottom-20 -left-40 animate-glow" style={{ animationDelay: '1s' }} />
-
-          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 md:py-32 grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-            <div className="animate-fade-in-up">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-blue-200 mb-8 backdrop-blur-sm">
-                <Star className="w-3.5 h-3.5 text-[#FCD34D]" />
-                <span>École d&apos;excellence en Algérie</span>
-              </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 sm:mb-6">
-                Formez les{' '}
-                <span className="text-[#FCD34D]">experts bancaires</span>{' '}
-                de demain.
-              </h1>
-              <div className="text-sm sm:text-base md:text-lg text-blue-200 mb-6 sm:mb-10 leading-relaxed max-w-xl space-y-3 sm:space-y-4">
-                <p>
-                  L&apos;École Supérieure de Banque propose des formations d&apos;excellence en Licence, DSEB et Master pour préparer les cadres du secteur financier algérien.
-                </p>
-                <p>
-                  L&apos;École Supérieure de Banque est une Direction Générale de la Banque d&apos;Algérie, créée en janvier 1995 en vue de former des cadres dans les domaines de la banque.
-                </p>
-                <p>
-                  Le siège de l&apos;École se trouve sur les hauteurs d&apos;Alger, à Bouzaréah, à proximité de la forêt de Baïnem. L&apos;École est dotée d&apos;infrastructures modernes situées dans un site verdoyant et calme, propice aux études et à la réflexion.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-4">
-                <a href="#formations">
-                  <button className="inline-flex items-center gap-2 h-12 px-7 rounded-xl bg-[#A16207] hover:bg-[#854d0e] text-white font-semibold transition-all duration-200 shadow-lg shadow-amber-900/30 hover:-translate-y-0.5 cursor-pointer">
-                    Découvrir les formations <ArrowRight className="w-4 h-4" />
-                  </button>
-                </a>
-                <Link href="/login">
-                  <button className="inline-flex items-center gap-2 h-12 px-7 rounded-xl border border-white/20 hover:bg-white/10 text-white font-medium transition-all duration-200 cursor-pointer backdrop-blur-sm">
-                    <GraduationCap className="w-4 h-4" /> Espace Étudiant
-                  </button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Stats Card — Glassmorphism */}
-            <div className="animate-fade-in-up animate-delay-200 mt-8 md:mt-0 w-full max-w-md mx-auto md:max-w-none">
-              <div className="glass-card p-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-[#A16207] rounded-xl flex items-center justify-center shadow-lg shadow-amber-900/30">
-                    <Building2 className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-white">ESB Hub</p>
-                    <p className="text-xs text-blue-300">Portail étudiant</p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {[
-                    { label: 'Documents disponibles', val: totalDocs > 0 ? `${totalDocs}` : '0', color: 'bg-blue-500' },
-                    { label: 'Étudiants inscrits',     val: totalUsers > 0 ? `${totalUsers}` : '0', color: 'bg-amber-500' },
-                    { label: 'Matières couvertes',    val: uniqueCategories > 0 ? `${uniqueCategories}` : '3 Cycles', color: 'bg-emerald-500' },
-                  ].map((s) => (
-                    <div key={s.label} className="flex items-center justify-between glass rounded-xl px-4 py-3 hover:bg-white/10 transition-colors duration-200">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${s.color} animate-pulse-soft`} />
-                        <span className="text-sm text-blue-200">{s.label}</span>
-                      </div>
-                      <span className="font-bold text-white">{s.val}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+        {/* ── 2. TRUST STRIP : BANQUES PARTENAIRES (Infinite Marquee) ─── */}
+        <section className="bg-[#F8FAFC] dark:bg-[#030712] py-6 border-b border-slate-200/80 dark:border-white/10 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-4 text-center">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Écosystème bancaire algérien — Partenaires de stages &amp; d&apos;insertion
+            </p>
           </div>
-
-          <div className="absolute bottom-0 left-0 right-0">
-            <svg viewBox="0 0 1440 60" className="w-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0,60 C360,0 1080,0 1440,60 L1440,60 L0,60 Z" className="fill-[#F8FAFC] dark:fill-[#0B1120]" />
-            </svg>
-          </div>
-        </section>
-
-        {/* ── STATS ──────────────────────────────── */}
-        <section id="chiffres" className="bg-[#F8FAFC] dark:bg-[#0B1120] py-10 sm:py-16">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-              {STATS.map((stat) => (
-                <div key={stat.label} className="text-center group">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#EFF6FF] dark:bg-[#1E3A8A]/20 text-[#1E3A8A] dark:text-blue-400 mb-3 group-hover:bg-[#1E3A8A] group-hover:text-white dark:group-hover:bg-blue-600 transition-all duration-300">
-                    <stat.icon className="w-5 h-5" />
-                  </div>
-                  <p className="text-3xl font-bold text-[#0F172A] dark:text-white mb-1">{stat.value}</p>
-                  <p className="text-sm text-[#64748B] dark:text-slate-400">{stat.label}</p>
-                </div>
+          <div className="relative flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]">
+            <div className="flex gap-4 animate-marquee whitespace-nowrap">
+              {[...PARTNER_BANKS, ...PARTNER_BANKS].map((bank, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 px-4 py-2 rounded-xl bg-white/80 dark:bg-[#070D19]/80 backdrop-blur-md border border-slate-200/80 dark:border-white/10 shadow-sm shrink-0 hover:border-cyan-400/40 transition-colors"
+                >
+                  {bank}
+                </span>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── FORMATIONS ─────────────────────────── */}
-        <section id="formations" className="bg-slate-50 dark:bg-[#0B1120] py-14 sm:py-20 md:py-24">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <div className="text-center mb-10 sm:mb-16 md:mb-20">
-              <p className="text-sm font-semibold text-[#A16207] dark:text-amber-400 uppercase tracking-wider mb-3">Nos cycles de formation</p>
-              <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] dark:text-white mb-4">Découvrez nos programmes d&apos;excellence</h2>
-              <p className="text-[#64748B] dark:text-slate-400 max-w-2xl mx-auto">Des formations structurées et adaptées pour répondre aux plus hautes exigences du secteur bancaire et financier.</p>
+        {/* ── 3. CHIFFRES CLÉS & IDENTITÉ ───────────── */}
+        <section id="chiffres" className="bg-[#F8FAFC] dark:bg-[#040814] py-14 sm:py-20 relative overflow-hidden">
+          <div className="absolute inset-0 cyber-grid-pattern opacity-10 pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                Piliers d&apos;Excellence
+              </span>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">
+                L&apos;institution en chiffres clés
+              </h2>
             </div>
-            
-            <div className="space-y-12">
-              {FORMATIONS.map((f) => (
-                <div key={f.id} className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden hover:shadow-lg dark:hover:shadow-2xl dark:hover:shadow-blue-900/10 transition-all duration-300">
-                  <div className={`h-1.5 sm:h-2 w-full ${f.accent}`} />
-                  <div className="p-4 sm:p-6 md:p-8 lg:p-10">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 pb-8 border-b border-slate-100 dark:border-slate-800">
-                      <div>
-                        <div className="flex items-center gap-3 mb-4">
-                          <span className={`inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-bold ${f.badge}`}>
-                            {f.cycle}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {STATS_DATA.map((s, idx) => {
+                const Icon = s.icon
+                return (
+                  <div 
+                    key={idx} 
+                    className="p-6 sm:p-7 rounded-3xl bg-white/90 dark:bg-[#070D19]/90 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 shadow-sm hover:shadow-xl hover:border-cyan-400/40 transition-all duration-300 group"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-cyan-500/10 text-blue-600 dark:text-cyan-400 flex items-center justify-center mb-5 border border-blue-100 dark:border-cyan-500/20 group-hover:scale-105 transition-transform duration-300">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <p className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-1 font-mono">
+                      {s.value}
+                    </p>
+                    <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                      {s.label}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      {s.sub}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── 4. ESPACE FUTURS ÉTUDIANTS & GUIDE DU CONCOURS ── */}
+        <FutursEtudiantsSection initialDocs={concoursDocs} />
+
+        {/* ── 5. OFFRE DE FORMATION COMPLÈTE ───────── */}
+        <section id="formations" className="bg-white dark:bg-[#070D19] py-16 sm:py-24 border-t border-slate-200/80 dark:border-white/10 relative">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                Offre Académique &amp; Diplômes Certifiés
+              </span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white mt-2 tracking-tight">
+                Nos Programmes d&apos;Élite Bancaire
+              </h2>
+              <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                Trois cursus d&apos;excellence conçus en symbiose directe avec les besoins opérationnels de la Banque d&apos;Algérie et des banques nationales.
+              </p>
+            </div>
+
+            {/* Interactive Tabbed Component */}
+            <FormationsExplorer />
+          </div>
+        </section>
+
+        {/* ── 6. OUVERTURE INTER-ÉCOLES & ACCÈS NATIONAL ── */}
+        <InterEcolesSection />
+
+        {/* ── 7. BIBLIOTHÈQUE VIRTUELLE & RECHERCHE ─── */}
+        <section id="bibliotheque" className="bg-slate-50/70 dark:bg-[#030712] py-16 sm:py-24 border-t border-slate-200/80 dark:border-white/10 relative overflow-hidden">
+          <div className="absolute inset-0 cyber-grid-pattern opacity-10 pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+            <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+              
+              {/* Left Info */}
+              <div className="lg:col-span-5 space-y-6">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 dark:bg-sky-500/10 border border-blue-200 dark:border-sky-500/20 text-blue-700 dark:text-sky-300 text-xs font-mono font-bold uppercase tracking-wider">
+                  <Library className="w-3.5 h-3.5 text-sky-400" />
+                  <span>Fonds Documentaire Réel &bull; Entraide Inter-Écoles</span>
+                </div>
+
+                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+                  La Bibliothèque Virtuelle &amp; Ressources Partagées
+                </h2>
+
+                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                  Conçu dans une démarche d&apos;ouverture et d&apos;entraide académique, le portail ESB Hub met à disposition des étudiants de l&apos;ESB et de nos camarades des autres grandes écoles (HEC Alger, IHEC, ENSSEA, ESC Kolea, Facultés des Sciences Économiques) un patrimoine de <strong>plus de 865 documents réels</strong> : cours magistraux officiels, travaux dirigés corrigés, polycopiés et annales complètes d&apos;examens.
+                </p>
+
+                <div className="space-y-3 text-xs sm:text-sm text-slate-700 dark:text-slate-200">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>865+ documents académiques réels classés par cycle et discipline</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>Séries de TD avec corrigés types, bilans SCF et cas pratiques PME</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>Prévisualisation intégrée sécurisée (PDF &amp; Office) en libre consultation</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <Link 
+                    href="/login"
+                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 border border-cyan-400/30 transition-all hover:scale-[1.02] cursor-pointer"
+                  >
+                    <span>Explorer la Bibliothèque</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl border border-slate-300 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors"
+                  >
+                    <span>Inscription Visiteur</span>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right Disciplines Grid */}
+              <div className="lg:col-span-7">
+                <div className="p-6 sm:p-8 rounded-3xl bg-white/90 dark:bg-[#070D19]/90 backdrop-blur-2xl border border-slate-200 dark:border-white/10 shadow-2xl space-y-5">
+                  
+                  {/* Fake Search Header */}
+                  <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-100/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-xs text-slate-400">
+                    <Search className="w-4 h-4 text-amber-500" />
+                    <span className="font-mono">Ex : Bilan SCF, Ratio de solvabilité Bâle, Diagnostic PME, Probabilités...</span>
+                  </div>
+
+                  {/* Thematic Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {LIBRARY_DISCIPLINES.map((item, idx) => (
+                      <div 
+                        key={idx}
+                        className="p-4 rounded-2xl bg-slate-50/90 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 hover:border-sky-500/30 transition-all duration-200"
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-blue-500/10 text-blue-700 dark:bg-sky-500/10 dark:text-sky-300 border border-blue-500/10 dark:border-sky-500/20">
+                            {item.tag}
                           </span>
-                          <span className="text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                            <BookOpen className="w-4 h-4" /> {f.duration}
+                          <span className="text-xs font-mono font-semibold text-slate-400">
+                            {item.count}
                           </span>
                         </div>
-                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{f.title}</h3>
+                        <p className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">
+                          {item.name}
+                        </p>
+                        <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                          {item.detail}
+                        </p>
                       </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-12">
-                      {/* Objectifs */}
-                      <div>
-                        <h4 className="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-white mb-4">
-                          <TrendingUp className="w-5 h-5 text-[#A16207]" /> Objectifs de la formation
-                        </h4>
-                        <ul className="space-y-3">
-                          {f.objectives.map((obj, idx) => (
-                            <li key={idx} className="flex items-start gap-3">
-                              <div className="w-1.5 h-1.5 rounded-full bg-[#A16207] mt-2.5 shrink-0" />
-                              <span className="text-slate-600 dark:text-slate-300 leading-relaxed">{obj}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Programme / Compétences */}
-                      <div>
-                        <h4 className="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-white mb-4">
-                          <Award className="w-5 h-5 text-[#1E3A8A] dark:text-blue-400" /> Programme et Compétences
-                        </h4>
-                        <p className="text-slate-600 dark:text-slate-300 mb-5 leading-relaxed">{f.programDesc}</p>
-                        
-                        {f.outcomes.length > 0 && (
-                          <ul className="space-y-3">
-                            {f.outcomes.map((out, idx) => (
-                              <li key={idx} className="flex items-start gap-3">
-                                <CheckCircle className="w-4 h-4 text-[#1E3A8A] dark:text-blue-400 mt-1 shrink-0" />
-                                <span className="text-slate-600 dark:text-slate-300 text-sm">{out}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* ── WHY ESB ────────────────────────────── */}
-        <section id="presentation" className="bg-[#0F172A] dark:bg-[#020617] py-14 sm:py-20 md:py-24 text-white">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 grid md:grid-cols-2 gap-8 md:gap-14 items-center">
-            <div>
-              <p className="text-sm font-semibold text-[#FCD34D] uppercase tracking-wider mb-3">Pourquoi choisir l&apos;ESB ?</p>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">Une institution au service de l&apos;excellence financière</h2>
-              <p className="text-slate-400 leading-relaxed">Depuis plus de 30 ans, l&apos;ESB forme les professionnels qui façonnent le secteur bancaire algérien. Nos diplômés occupent aujourd&apos;hui des postes de direction dans les plus grandes institutions financières du pays.</p>
-            </div>
-            <div className="grid grid-cols-1 gap-3">
-              {WHY_ESB.map((item, i) => (
-                <div key={i} className="flex items-start gap-3 glass rounded-xl px-5 py-3.5 hover:bg-white/10 transition-colors duration-200">
-                  <CheckCircle className="w-4 h-4 text-[#A16207] mt-0.5 shrink-0" />
-                  <span className="text-sm text-slate-300">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── A PROPOS ────────────────────────────────── */}
-        <section id="apropos" className="bg-white dark:bg-[#0B1120] py-16 md:py-24">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6">
-            <div className="mb-8 md:mb-12 text-center">
-              <p className="text-sm font-semibold text-[#A16207] dark:text-amber-400 uppercase tracking-wider mb-3">L&apos;histoire derrière le projet</p>
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#0F172A] dark:text-white">À propos</h2>
-            </div>
-            
-            <div className="bg-slate-50 dark:bg-[#111827] rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
-              <div className="absolute -top-12 -right-12 p-8 opacity-[0.03] rotate-12 hidden sm:block">
-                <GraduationCap className="w-64 h-64 text-[#1E3A8A]" />
-              </div>
-              
-              <div className="relative z-10 space-y-8 md:space-y-10 text-slate-600 dark:text-slate-300 leading-relaxed">
-                {/* Profile Card */}
-                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 bg-white dark:bg-[#1E293B] rounded-2xl p-5 sm:p-6 border border-slate-100 dark:border-slate-700 shadow-sm">
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-[#1E3A8A] via-[#3B82F6] to-[#0F172A] flex items-center justify-center shrink-0 shadow-[0_0_40px_rgba(30,58,138,0.3)] overflow-hidden relative group ring-4 ring-white dark:ring-[#1E293B]">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-20 mix-blend-overlay"></div>
-                    <ClientImage src="/images/nadhir.jpg" alt="Mohamed Nadhir Benelhadj" className="w-full h-full object-cover absolute inset-0 z-10 group-hover:scale-110 transition-transform duration-700 ease-out" />
-                    <span className="text-3xl sm:text-4xl font-bold text-white relative z-0">MN</span>
-                  </div>
-                  <div className="text-center sm:text-left flex-1 min-w-0">
-                    <h3 className="text-xl sm:text-2xl font-bold text-[#0F172A] dark:text-white">Mohamed Nadhir Benelhadj</h3>
-                    <p className="text-[#A16207] dark:text-amber-400 font-medium mt-1 text-sm sm:text-base">Étudiant DSEB 2ème année · École Supérieure de Banque</p>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1">Alger, Algérie · Ex-ENPO (École Nationale Polytechnique d&apos;Oran)</p>
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-4">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium border border-blue-100 dark:border-blue-800">Finance & Banque</span>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium border border-amber-100 dark:border-amber-800">Développement Web</span>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-medium border border-purple-100 dark:border-purple-800">Data & Analyse</span>
-                    </div>
-                    <div className="mt-5 flex flex-wrap gap-3 justify-center sm:justify-start">
-                      <a
-                        href="https://www.linkedin.com/in/mohamed-nadhir-benelhadj-833a32349/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="linkedin-btn inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md hover:-translate-y-0.5 transition-transform"
-                      >
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                        LinkedIn
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-base sm:text-lg text-slate-800 dark:text-white font-medium mb-3 sm:mb-4">
-                    Bonjour et bienvenue ! Je suis Mohamed Nadhir Benelhadj, étudiant en 2ème année DSEB (Diplôme Supérieur d&apos;Études Bancaires) et créateur de cet espace.
-                  </p>
-                  <p className="text-sm sm:text-base">
-                    Si ce site existe aujourd&apos;hui, c&apos;est avant tout à cause de mon propre parcours et des obstacles que j&apos;ai dû surmonter.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 dark:text-white mb-3 sm:mb-4">
-                    <span className="text-xl sm:text-2xl">🔄</span> De l&apos;ingénierie à l&apos;économie : Un grand saut
-                  </h3>
-                  <p className="mb-3 sm:mb-4 text-sm sm:text-base">
-                    Avant d&apos;intégrer l&apos;École Supérieure de Banque (ESB), j&apos;étais étudiant à l&apos;École Nationale Polytechnique d&apos;Oran (ENPO). J&apos;ai fait le choix de changer de voie, passant d&apos;un domaine purement technique à l&apos;univers complexe de l&apos;économie et de la finance.
-                  </p>
-                  <p className="text-sm sm:text-base">
-                    Cette transition n&apos;a pas été facile. À mes débuts, j&apos;ai rencontré beaucoup de difficultés pour m&apos;adapter : le vocabulaire était différent, la logique académique changeait, et surtout, il était très difficile de trouver les bons cours et les bonnes ressources pour rattraper mon retard. C&apos;est cette période de doute et d&apos;adaptation intense qui a fait germer l&apos;idée de ce projet.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 dark:text-white mb-3 sm:mb-4">
-                    <span className="text-xl sm:text-2xl">🎯</span> Pourquoi cette plateforme ?
-                  </h3>
-                  <p className="mb-4 sm:mb-6 text-sm sm:text-base">
-                    Ayant déjà pris l&apos;habitude de structurer et centraliser les dossiers numériques et les ressources académiques pour notre promotion afin de nous entraider, j&apos;ai ressenti le besoin de créer un outil plus grand et plus pérenne. J&apos;ai conçu ce site avec trois objectifs précis en tête :
-                  </p>
-                  <ul className="space-y-4 sm:space-y-6">
-                    <li className="flex items-start gap-3 sm:gap-4 bg-white dark:bg-[#1E293B] p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#A16207]" />
-                      </div>
-                      <div>
-                        <strong className="text-slate-800 dark:text-white block mb-1 text-sm sm:text-base">Faciliter le quotidien étudiant</strong>
-                        <span className="text-xs sm:text-sm">Centraliser les cours, les ressources et les outils pour que les étudiants de l&apos;ESB ne perdent plus de temps à chercher l&apos;information.</span>
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-3 sm:gap-4 bg-white dark:bg-[#1E293B] p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#A16207]" />
-                      </div>
-                      <div>
-                        <strong className="text-slate-800 dark:text-white block mb-1 text-sm sm:text-base">Créer un pont</strong>
-                        <span className="text-xs sm:text-sm">Aider les étudiants d&apos;autres écoles ou universités équivalentes qui suivent des formations similaires en économie et en banque.</span>
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-3 sm:gap-4 bg-white dark:bg-[#1E293B] p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#A16207]" />
-                      </div>
-                      <div>
-                        <strong className="text-slate-800 dark:text-white block mb-1 text-sm sm:text-base">Offrir de la visibilité</strong>
-                        <span className="text-xs sm:text-sm">Donner un coup d&apos;œil concret et transparent sur notre formation à tous ceux qui sont curieux, aux futurs bacheliers, ou à ceux qui, comme moi, envisagent une reconversion.</span>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="flex items-center gap-3 text-lg sm:text-xl font-bold text-slate-800 dark:text-white mb-3 sm:mb-4">
-                    <span className="text-xl sm:text-2xl">🤝</span> Avancer ensemble
-                  </h3>
-                  <p className="mb-4 sm:mb-6 text-sm sm:text-base">
-                    Je sais ce que c&apos;est que de se sentir perdu face à de nouvelles matières. Ce site est ma façon de m&apos;assurer que les futurs étudiants auront un point de repère solide dès leur premier jour. J&apos;espère que cette plateforme vous fera gagner un temps précieux et facilitera votre réussite.
-                  </p>
-                  <div className="pt-4 sm:pt-6 border-t border-slate-200 dark:border-slate-700">
-                    <p className="font-medium text-slate-800 dark:text-white mb-2 text-sm sm:text-base">Excellente navigation à toutes et à tous !</p>
-                    <p className="text-[#A16207] dark:text-amber-400 font-bold signature">— Mohamed Nadhir Benelhadj</p>
-                  </div>
-                </div>
-
-                {/* ── NOUVELLE BOÎTE DE CONTACT ── */}
-                <div className="mt-8 sm:mt-12 bg-gradient-to-br from-[#0F172A] to-[#1E3A8A] dark:from-[#020617] dark:to-[#0F172A] rounded-3xl p-8 sm:p-10 relative overflow-hidden shadow-2xl border border-blue-900/50 group hover:shadow-blue-900/20 transition-all duration-500">
-                  <div className="absolute -top-10 -right-10 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-700 group-hover:rotate-12 pointer-events-none">
-                    <Mail className="w-48 h-48 text-white" />
-                  </div>
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#A16207] to-transparent opacity-50" />
-                  <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                    <div className="text-center md:text-left">
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-blue-100 text-xs font-semibold mb-4 backdrop-blur-sm shadow-sm">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                        </span>
-                        Disponible pour échanger
-                      </div>
-                      <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">Restons en contact</h3>
-                      <p className="text-blue-100/90 text-sm sm:text-base max-w-md leading-relaxed">
-                        Une question sur la plateforme, une suggestion d&apos;amélioration ou simplement envie d&apos;échanger ? N&apos;hésitez pas à m&apos;écrire directement.
-                      </p>
-                    </div>
-                    <CopyEmailButton email="info@esbhub.study" />
+                  <div className="pt-2 text-center">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Ressources en accès libre partagé pour les étudiants de l&apos;ESB, de HEC, de l&apos;ENSSEA et des facultés partenaires.
+                    </p>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </section>
 
-        {/* ── ALUMNI FEEDBACKS SECTION ───────────── */}
+        {/* ── 8. RETOURS ALUMNI & AVIS LINKEDIN (Preuve Sociale Élevée) ── */}
         <AlumniFeedbacks />
 
-        {/* ── QR CODE SECTION ────────────────────── */}
+        {/* ── 6. CAMPUS DE BOUZARÉAH & CADRE DE VIE ─── */}
+        <section id="campus" className="bg-white dark:bg-[#070D19] py-16 sm:py-24 border-t border-slate-200/80 dark:border-white/10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="text-center max-w-3xl mx-auto mb-14 sm:mb-18">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                Localisation &amp; Environnement
+              </span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 dark:text-white mt-2 tracking-tight">
+                Un Campus d&apos;Exception sur les Hauteurs d&apos;Alger
+              </h2>
+              <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                Le siège de l&apos;École Supérieure de Banque est niché à Bouzaréah, à l&apos;orée de la forêt de Baïnem, offrant un environnement serein et stimulant propice à la haute réflexion académique.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {CAMPUS_PILLARS.map((col, idx) => {
+                const Icon = col.icon
+                return (
+                  <div 
+                    key={idx} 
+                    className="p-6 sm:p-7 rounded-3xl bg-slate-50/80 dark:bg-[#0B1326]/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 shadow-sm hover:shadow-xl hover:border-cyan-400/30 transition-all duration-300 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-5 border ${col.accent}`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                        {col.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        {col.desc}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── 7. GENÈSE DU PROJET & INITIATEUR ──────── */}
+        <section id="apropos" className="bg-slate-50/80 dark:bg-[#030712] py-16 sm:py-24 border-t border-slate-200/80 dark:border-white/10 relative overflow-hidden">
+          <div className="absolute inset-0 cyber-grid-pattern opacity-10 pointer-events-none" />
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
+            <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                Note d&apos;Initiative Académique
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">
+                La Genèse d&apos;ESB Hub
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-300">
+                Une démarche d&apos;innovation collaborative portée par un étudiant au service de toute la communauté bancaire.
+              </p>
+            </div>
+
+            <div className="bg-white/95 dark:bg-[#070D19]/90 backdrop-blur-2xl rounded-3xl p-6 sm:p-10 md:p-14 border border-slate-200/90 dark:border-white/10 shadow-2xl space-y-10">
+              
+              {/* Profile Card Header */}
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden shrink-0 shadow-lg border-2 border-white dark:border-slate-700 bg-gradient-to-br from-[#1E3A8A] to-[#0F172A]">
+                  <ClientImage
+                    src="/images/nadhir.jpg"
+                    alt="Mohamed Nadhir Benelhadj"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="text-center sm:text-left flex-1">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-[#A16207] dark:text-amber-300 text-xs font-bold mb-2">
+                    <span>Créateur & Développeur du Portail</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                    Mohamed Nadhir Benelhadj
+                  </h3>
+                  <p className="text-sm font-semibold text-[#1E3A8A] dark:text-blue-400 mt-0.5">
+                    Étudiant en 2ème année DSEB · École Supérieure de Banque (ESB)
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Ex-Étudiant à l&apos;École Nationale Polytechnique d&apos;Oran (ENPO) · Alger, Algérie
+                  </p>
+                  
+                  <div className="mt-4 flex flex-wrap gap-2.5 justify-center sm:justify-start">
+                    <a
+                      href="https://www.linkedin.com/in/mohamed-nadhir-benelhadj-833a32349/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0077B5] hover:bg-[#005E93] text-white text-xs font-semibold shadow-md transition-transform hover:-translate-y-0.5"
+                    >
+                      <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                      <span>Profil LinkedIn Vérifié</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Narrative Content */}
+              <div className="space-y-6 text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
+                <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 text-[#0F172A] dark:text-blue-100 font-medium italic">
+                  « Passer des sciences pour l&apos;ingénieur (ENPO) à la finance bancaire (ESB) a été un défi formateur. Face à la dispersion des supports et à la densité des programmes, j&apos;ai souhaité offrir aux promotions actuelles et futures l&apos;outil que j&apos;aurais rêvé avoir dès mon premier jour. »
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Trois Engagements au Service de la Communauté
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-[#A16207] dark:text-amber-400 flex items-center justify-center font-bold text-xs mb-3">
+                        01
+                      </div>
+                      <p className="font-bold text-sm text-slate-900 dark:text-white mb-1">
+                        Centralisation Intégrale
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Mettre un terme à l&apos;éparpillement des polycopiés et mémoires pour concentrer tout le savoir en un point unique.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                      <div className="w-8 h-8 rounded-xl bg-blue-500/15 text-[#1E3A8A] dark:text-blue-400 flex items-center justify-center font-bold text-xs mb-3">
+                        02
+                      </div>
+                      <p className="font-bold text-sm text-slate-900 dark:text-white mb-1">
+                        Passerelle Académique
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Aider les étudiants issus d&apos;autres parcours à acquérir avec fluidité le vocabulaire et les méthodes bancaires.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs mb-3">
+                        03
+                      </div>
+                      <p className="font-bold text-sm text-slate-900 dark:text-white mb-1">
+                        Rayonnement National
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        Offrir une vitrine d&apos;excellence à l&apos;École Supérieure de Banque pour les futurs bacheliers et partenaires bancaires.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  Ce portail est une initiative académique bénévole, conçue pour soutenir l&apos;effort pédagogique de l&apos;ESB et de la Banque d&apos;Algérie.
+                </p>
+              </div>
+
+              {/* Contact Dialogue Module */}
+              <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#0F172A] to-[#1E3A8A] text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-emerald-300 text-xs font-semibold mb-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Canal de Dialogue Direct</span>
+                  </div>
+                  <h4 className="text-xl font-bold text-white mb-1">
+                    Échanger avec l&apos;initiateur du projet
+                  </h4>
+                  <p className="text-xs sm:text-sm text-blue-200 max-w-md leading-relaxed">
+                    Une suggestion d&apos;amélioration, un dépôt de document ou une collaboration ? N&apos;hésitez pas à prendre contact.
+                  </p>
+                </div>
+                <div className="shrink-0">
+                  <CopyEmailButton email="info@esbhub.study" />
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* ── 9. ACCÈS MOBILE & QR CODE ─────────────── */}
         <QRCodeSection />
 
-        {/* ── CTA ────────────────────────────────── */}
-        <section id="contact" className="bg-gradient-to-r from-[#1E3A8A] to-[#0F172A] dark:from-[#0F172A] dark:to-[#020617] py-14 sm:py-20 text-white text-center relative overflow-hidden">
-          {/* Subtle glow */}
-          <div className="gradient-orb gradient-orb-gold w-64 h-64 top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-glow" />
-          <div className="relative max-w-2xl mx-auto px-4 sm:px-6">
-            <GraduationCap className="w-10 h-10 sm:w-12 sm:h-12 text-[#FCD34D] mx-auto mb-4 sm:mb-6" />
-            <h2 className="text-3xl font-bold mb-4">Prêt à rejoindre l&apos;ESB ?</h2>
-            <p className="text-blue-200 mb-8">Accédez à votre espace étudiant et consultez vos cours, ressources et documents pédagogiques.</p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/register">
-                <button className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-[#A16207] hover:bg-[#854d0e] text-white font-semibold transition-all duration-200 hover:-translate-y-0.5 shadow-lg cursor-pointer">
-                  Créer un compte <ArrowRight className="w-4 h-4" />
-                </button>
+        {/* ── 10. CLIMAX CTA ACADÉMIQUE ─────────────── */}
+        <section id="contact" className="relative py-20 sm:py-28 bg-[#030712] border-t border-white/10 text-white text-center overflow-hidden">
+          <div className="absolute inset-0 cyber-grid-pattern opacity-20 pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-cyan-500/15 via-blue-600/15 to-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="relative max-w-3xl mx-auto px-4 sm:px-6 space-y-6 z-10">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/30 border border-cyan-400/40 text-cyan-300 mx-auto flex items-center justify-center shadow-[0_0_25px_rgba(56,189,248,0.3)] backdrop-blur-md">
+              <GraduationCap className="w-9 h-9 text-cyan-300" />
+            </div>
+
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono font-bold tracking-widest uppercase">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              Promotion &amp; Accréditation ESB
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">
+              Rejoignez l&apos;Excellence Bancaire
+            </h2>
+
+            <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
+              Consultez les cours, téléchargez les annales, échangez avec les promotions et intégrez la communauté d&apos;élite de l&apos;École Supérieure de Banque.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+              <Link 
+                href="/register"
+                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm shadow-[0_0_25px_rgba(245,158,11,0.3)] hover:shadow-[0_0_35px_rgba(245,158,11,0.5)] hover:-translate-y-0.5 transition-all cursor-pointer"
+              >
+                <span>Créer mon Compte Étudiant</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="/login">
-                <button className="inline-flex items-center gap-2 h-12 px-8 rounded-xl border border-white/30 hover:bg-white/10 text-white font-medium transition-all duration-200 cursor-pointer backdrop-blur-sm">
-                  Se connecter
-                </button>
+              <Link 
+                href="/login"
+                className="inline-flex items-center gap-2 h-12 px-8 rounded-xl bg-white/5 border border-cyan-500/30 hover:border-cyan-400 hover:bg-cyan-500/10 text-white font-bold text-xs sm:text-sm shadow-[0_0_15px_rgba(56,189,248,0.1)] transition-all cursor-pointer backdrop-blur-md"
+              >
+                <span>Connexion au Portail</span>
               </Link>
             </div>
           </div>
         </section>
+
       </main>
       <PublicFooter />
     </>

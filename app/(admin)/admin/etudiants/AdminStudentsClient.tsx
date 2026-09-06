@@ -28,53 +28,57 @@ export default function AdminStudentsClient({ initialStudents }: { initialStuden
   })
 
   return (
-    <div className="animate-fade-in max-w-6xl mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-            <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+    <div className="animate-fade-in max-w-6xl mx-auto py-8 space-y-8">
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="text-[11px] font-mono text-cyan-500 dark:text-cyan-400 uppercase tracking-wider font-bold">STUDENT_REGISTRY // ANNUAIRE ACADÉMIQUE</span>
+        </div>
+        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
+          <div className="p-2.5 bg-cyan-500/10 dark:bg-cyan-500/10 border border-cyan-500/30 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+            <Users className="w-7 h-7 text-cyan-500 dark:text-cyan-400" />
           </div>
           Annuaire des Étudiants
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-2">
-          Consultez la liste des <span className="font-semibold text-slate-900 dark:text-white">{students.length}</span> étudiants inscrits sur la plateforme.
+        <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-2">
+          Consultez la liste des <span className="font-bold text-cyan-600 dark:text-cyan-400">{students.length}</span> étudiants inscrits sur la plateforme.
         </p>
       </div>
 
-      <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-white/10 p-5 rounded-3xl mb-8 shadow-sm flex flex-col md:flex-row gap-5 justify-between items-center">
+      <div className="bg-white/70 dark:bg-[#070D19]/80 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 p-5 rounded-3xl shadow-sm flex flex-col md:flex-row gap-5 justify-between items-center">
         <div className="relative w-full md:max-w-md">
-          <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Rechercher par nom ou établissement..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
+            className="w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-2xl text-xs focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
           />
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
-          <Filter className="w-4 h-4 text-slate-400 shrink-0 mr-2" />
+          <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0 mr-1" />
           {['all', 'dseb', 'master', 'licence', 'ancien'].map((type) => (
             <button
               key={type}
               onClick={() => setFilterType(type)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold whitespace-nowrap transition-all cursor-pointer ${
                 filterType === type 
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' 
-                  : 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  ? 'bg-cyan-500 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.3)]' 
+                  : 'bg-white/40 dark:bg-white/5 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
             >
-              {type === 'all' ? 'Tous' : type === 'ancien' ? 'Anciens' : type.toUpperCase()}
+              {type === 'all' ? 'TOUS' : type === 'ancien' ? 'ANCIENS' : type.toUpperCase()}
             </button>
           ))}
         </div>
       </div>
 
       {filteredStudents.length === 0 ? (
-        <div className="text-center py-20 rounded-3xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-sm">
+        <div className="text-center py-20 rounded-3xl border border-dashed border-slate-200 dark:border-white/10 bg-white/40 dark:bg-[#070D19]/60 backdrop-blur-sm">
           <Users className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Aucun étudiant ne correspond à votre recherche.</p>
+          <p className="text-slate-700 dark:text-slate-300 font-bold text-sm font-mono">AUCUN ÉTUDIANT NE CORRESPOND À VOTRE RECHERCHE // NO_MATCH</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -82,58 +86,58 @@ export default function AdminStudentsClient({ initialStudents }: { initialStuden
             const cycleBadge = student.cycle ? CYCLES[student.cycle as keyof typeof CYCLES] : null
             
             return (
-              <div key={student.id} className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-lg border border-slate-200 dark:border-white/10 rounded-3xl p-6 hover:shadow-xl hover:border-blue-500/30 transition-all duration-300 flex flex-col justify-between group">
+              <div key={student.id} className="bg-white/70 dark:bg-[#070D19]/80 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 hover:shadow-[0_0_20px_rgba(6,182,212,0.12)] hover:border-cyan-500/40 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between group shadow-sm">
                 <div>
                   <div className="flex items-start gap-4 mb-5">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 shrink-0 border border-slate-200 dark:border-white/5 shadow-inner group-hover:scale-105 transition-transform duration-300">
-                      <UserIcon className="w-7 h-7" />
+                    <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-500 dark:text-cyan-400 shrink-0 shadow-[0_0_12px_rgba(6,182,212,0.15)] group-hover:scale-105 transition-transform duration-300">
+                      <UserIcon className="w-6 h-6" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-lg text-slate-900 dark:text-white truncate" title={student.full_name || ''}>{student.full_name || 'Utilisateur Anonyme'}</h3>
+                      <h3 className="font-bold text-base text-slate-900 dark:text-white truncate" title={student.full_name || ''}>{student.full_name || 'Utilisateur Anonyme'}</h3>
                       {cycleBadge ? (
-                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold mt-1.5 ${cycleBadge?.color} dark:bg-opacity-20`}>
+                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-mono font-bold mt-1.5 ${cycleBadge?.color} dark:bg-opacity-20`}>
                           {cycleBadge?.label}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2.5 py-0.5 text-xs font-bold mt-1.5">
+                        <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-400 px-2.5 py-0.5 text-[10px] font-mono font-bold mt-1.5">
                           Non spécifié
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="space-y-3 pt-5 border-t border-slate-100 dark:border-white/10">
-                    <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-                      <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                        <Building2 className="w-4 h-4 shrink-0 text-slate-400" />
+                  <div className="space-y-2.5 pt-4 border-t border-slate-100 dark:border-white/5 font-sans">
+                    <div className="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400">
+                      <div className="p-1.5 bg-slate-100 dark:bg-white/5 rounded-lg">
+                        <Building2 className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
                       </div>
                       <span className="truncate">{student.institution_name || 'Établissement non renseigné'}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-                      <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                        <GraduationCap className="w-4 h-4 shrink-0 text-slate-400" />
+                    <div className="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400">
+                      <div className="p-1.5 bg-slate-100 dark:bg-white/5 rounded-lg">
+                        <GraduationCap className="w-3.5 h-3.5 shrink-0 text-amber-400" />
                       </div>
                       <span className="truncate capitalize">{student.user_type ? student.user_type.replace('_', ' ') : 'Type non renseigné'}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
-                      <div className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                        <Calendar className="w-4 h-4 shrink-0 text-slate-400" />
+                    <div className="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400 font-mono text-[11px]">
+                      <div className="p-1.5 bg-slate-100 dark:bg-white/5 rounded-lg">
+                        <Calendar className="w-3.5 h-3.5 shrink-0 text-slate-400" />
                       </div>
-                      <span>Inscrit(e) le {formatDate(student.created_at)}</span>
+                      <span>Inscrit le {formatDate(student.created_at)}</span>
                     </div>
                   </div>
                 </div>
                 
                 {student.linkedin_url && (
-                  <div className="mt-5 pt-5 border-t border-slate-100 dark:border-white/10">
+                  <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5">
                     <a 
                       href={student.linkedin_url} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 dark:bg-[#0A66C2]/20 dark:hover:bg-[#0A66C2]/30 text-[#0A66C2] dark:text-blue-400 rounded-xl text-sm font-bold transition-colors border border-[#0A66C2]/20 hover:border-[#0A66C2]/40"
+                      className="flex items-center justify-center gap-2 w-full py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-mono font-bold transition-all border border-blue-500/20 hover:border-blue-500/40"
                     >
-                      <LinkedinIcon className="w-4 h-4" />
-                      Voir le profil LinkedIn
+                      <LinkedinIcon className="w-3.5 h-3.5" />
+                      VOIR LE PROFIL LINKEDIN
                     </a>
                   </div>
                 )}

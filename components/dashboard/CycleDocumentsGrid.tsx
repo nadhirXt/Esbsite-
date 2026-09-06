@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Loader2, Sparkles } from 'lucide-react'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
-import { getPresignedDownloadUrl } from '@/app/actions/storage'
 import type { Document } from '@/lib/types'
 import FavoriteButton from '@/components/ui/FavoriteButton'
 import ShareButtons from '@/components/ui/ShareButtons'
@@ -183,14 +182,14 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
       {/* Search Bar */}
       <div className="relative mb-8">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-slate-400" />
+          <Search className="h-4 w-4 text-cyan-400" />
         </div>
         <input
           type="text"
           placeholder="Rechercher un document par nom..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="block w-full pl-11 pr-4 py-3.5 border border-slate-200 dark:border-slate-800 rounded-xl leading-5 bg-white/70 dark:bg-[#0B1120]/70 backdrop-blur-md placeholder-slate-400 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all sm:text-sm shadow-sm"
+          className="block w-full pl-11 pr-4 py-3.5 border border-slate-200 dark:border-white/10 rounded-2xl leading-5 bg-white dark:bg-[#070D19]/90 backdrop-blur-xl placeholder-slate-400 text-slate-900 dark:text-white focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all text-sm shadow-sm"
         />
       </div>
 
@@ -201,10 +200,12 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
           animate={{ opacity: 1 }}
           className="space-y-6"
         >
-          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            Sélectionnez votre année
-          </h2>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            <h2 className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-widest">
+              Sélectionnez votre niveau d&apos;études
+            </h2>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {availableYears.map((year, index) => {
               const yearDocs = documents.filter(d => d.year === year)
@@ -219,39 +220,31 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
                   whileHover={{ scale: 1.02, y: -4 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setSelectedYear(year)}
-                  className="group relative overflow-hidden rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white hover:shadow-2xl hover:shadow-blue-900/30 hover:border-blue-400/50 transition-all duration-300"
+                  className="group relative overflow-hidden rounded-3xl border border-slate-200 dark:border-white/10 bg-[#070D19]/90 backdrop-blur-2xl p-6 sm:p-7 text-white hover:border-cyan-400/50 hover:shadow-[0_0_30px_rgba(56,189,248,0.2)] transition-all duration-300 text-left cursor-pointer"
                 >
-                  {/* Background pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <svg width="100%" height="100%">
-                      <defs>
-                        <pattern id={`year-${year}`} x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                          <circle cx="20" cy="20" r="2" fill="white" />
-                        </pattern>
-                      </defs>
-                      <rect width="100%" height="100%" fill={`url(#year-${year})`} />
-                    </svg>
-                  </div>
+                  {/* Cyber Grid Background */}
+                  <div className="absolute inset-0 cyber-grid-pattern opacity-15 pointer-events-none" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
 
                   <div className="relative z-10">
                     <motion.div
                       animate={{ y: [0, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                      className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 shadow-xl"
+                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                      className="w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/30 border border-cyan-400/40 backdrop-blur-md flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.25)] text-cyan-300"
                     >
-                      <span className="text-3xl font-bold">{year}</span>
+                      <span className="text-3xl font-mono font-black">{year}</span>
                     </motion.div>
 
-                    <h3 className="text-lg font-bold mb-1">
+                    <h3 className="text-lg font-black text-white mb-1">
                       {year}{year === 1 ? 'ère' : 'ème'} Année
                     </h3>
-                    <p className="text-sm text-white/80 mb-3">
-                      {coursesCount} cours disponibles
+                    <p className="text-xs font-mono text-slate-400 mb-4">
+                      {coursesCount} modules de cours
                     </p>
 
-                    <div className="flex items-center justify-center gap-2 text-sm font-semibold bg-white/20 backdrop-blur-sm rounded-lg py-2 px-3">
-                      <Folder className="w-4 h-4" />
-                      Explorer
+                    <div className="inline-flex items-center gap-1 text-xs font-mono font-bold text-cyan-400 group-hover:text-cyan-300 transition-colors">
+                      <span>Accéder au programme</span>
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </motion.button>
@@ -305,7 +298,7 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
                       whileHover={{ scale: 1.02, y: -4 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => navigateTo(folderName)}
-                      className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] hover:shadow-xl hover:shadow-blue-900/10 hover:border-blue-400/50 transition-all duration-300 text-left"
+                      className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#070D19]/90 backdrop-blur-xl hover:shadow-xl hover:shadow-cyan-500/10 hover:border-cyan-400/50 transition-all duration-300 text-left cursor-pointer"
                     >
                       {/* Thumbnail gradient header */}
                       <div className={`h-24 bg-gradient-to-br ${thumbnail.gradient} dark:bg-gradient-to-br dark:${thumbnail.gradientDark} relative overflow-hidden`}>
@@ -313,23 +306,23 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
                           <motion.div
                             animate={{ y: [0, -3, 0] }}
                             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                            className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30"
+                            className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-lg"
                           >
                             <Icon className="w-7 h-7 text-white" />
                           </motion.div>
                         </div>
 
                         {/* File count badge */}
-                        <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-[10px] font-semibold">
+                        <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full bg-black/40 backdrop-blur-md text-white text-[10px] font-mono font-bold border border-white/20">
                           {filesCount} fichiers
                         </div>
                       </div>
 
                       <div className="p-4">
-                        <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                        <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-cyan-400 transition-colors truncate">
                           {folderName}
                         </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{thumbnail.description}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">{thumbnail.description}</p>
                       </div>
                     </motion.button>
                   )
@@ -342,9 +335,9 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
           {filesHere.length > 0 && (
             <div>
               {(currentPath.length > 0 || foldersList.length > 0) && (
-                <h2 className="text-sm font-bold text-slate-900 dark:text-white mb-4 mt-6 pt-6 border-t border-slate-200 dark:border-slate-800/50 tracking-tight uppercase opacity-80 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-blue-500" />
-                  Fichiers
+                <h2 className="text-xs font-mono font-bold text-cyan-400 mb-4 mt-6 pt-6 border-t border-slate-200 dark:border-white/10 tracking-widest uppercase flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-cyan-400" />
+                  Fichiers &amp; Documents
                 </h2>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -372,47 +365,25 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
 }
 
 function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document; supabase: any; isMemoire?: boolean; isFavorite?: boolean }) {
-  const [isLoadingView, setIsLoadingView] = useState(false)
-  const [isLoadingDownload, setIsLoadingDownload] = useState(false)
   const { trackView, trackDownload } = useTrackReading(doc.id)
 
-  const handleView = async () => {
-    if (isLoadingView) return
-    setIsLoadingView(true)
+  const handleView = () => {
     trackView()  // ← Analytics
-    try {
-      const pData = await getPresignedDownloadUrl(doc.file_path, false)
-      if (pData?.url) {
-        const ext = doc.file_path.split('.').pop()?.toLowerCase()
-        const officeExts = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx']
-        if (officeExts.includes(ext || '')) {
-          window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(pData.url)}`, '_blank')
-        } else {
-          window.open(pData.url, '_blank')
-        }
-      }
-    } finally {
-      setIsLoadingView(false)
-    }
+    const ext = doc.file_path.split('.').pop()?.toLowerCase() || 'pdf'
+    const safeTitle = (doc.title || 'document').replace(/[/\\?%*:|"<>]/g, '_')
+    window.open(`/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}`, '_blank')
   }
 
-  const handleDownload = async () => {
-    if (isLoadingDownload) return
-    setIsLoadingDownload(true)
+  const handleDownload = () => {
     trackDownload() // ← Analytics
-    try {
-      const dData = await getPresignedDownloadUrl(doc.file_path, true)
-      if (dData?.url) {
-        const a = document.createElement('a')
-        a.href = dData.url
-        a.style.display = 'none'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-      }
-    } finally {
-      setIsLoadingDownload(false)
-    }
+    const ext = doc.file_path.split('.').pop()?.toLowerCase() || 'pdf'
+    const safeTitle = (doc.title || 'document').replace(/[/\\?%*:|"<>]/g, '_')
+    const a = document.createElement('a')
+    a.href = `/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}?download=1`
+    a.style.display = 'none'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
   }
 
   const thumbnail = getCourseThumbnail(doc.category)
@@ -420,37 +391,35 @@ function DocumentCard({ doc, supabase, isMemoire, isFavorite }: { doc: Document;
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -4 }}
-      className="relative group flex flex-col justify-between gap-3 h-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg overflow-hidden hover:shadow-xl hover:shadow-blue-900/10 hover:border-blue-400/50 transition-all duration-300"
+      className="relative group flex flex-col justify-between gap-3 h-full rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#070D19]/90 backdrop-blur-xl overflow-hidden hover:shadow-xl hover:shadow-cyan-500/10 hover:border-cyan-400/50 transition-all duration-300"
     >
       {/* Thumbnail header */}
       <div className={`h-20 bg-gradient-to-br ${thumbnail.gradient} dark:bg-gradient-to-br dark:${thumbnail.gradientDark} relative flex items-center justify-center`}>
-        <FileText className="w-8 h-8 text-white/80" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        <FileText className="w-8 h-8 text-white/90" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
       </div>
 
       <div className="p-4 pt-2">
-        <p className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" title={doc.title}>
+        <p className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-cyan-400 transition-colors" title={doc.title}>
           {doc.title}
         </p>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatDate(doc.created_at)}</p>
+        <p className="text-xs font-mono text-slate-500 dark:text-slate-400 mt-1">{formatDate(doc.created_at)}</p>
 
         <div className="flex items-center gap-2 mt-3">
           <button
             onClick={handleView}
-            disabled={isLoadingView}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-xs font-bold disabled:opacity-50"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-cyan-500/10 text-cyan-500 dark:text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/20 transition-colors text-xs font-mono font-bold cursor-pointer"
           >
-            {isLoadingView ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+            <Eye className="w-3.5 h-3.5" />
             Voir
           </button>
 
           {!isMemoire && (
             <button
               onClick={handleDownload}
-              disabled={isLoadingDownload}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs font-bold disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-xs font-mono font-bold cursor-pointer"
             >
-              {isLoadingDownload ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+              <Download className="w-3.5 h-3.5" />
               Télécharger
             </button>
           )}

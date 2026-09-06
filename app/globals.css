@@ -4,15 +4,15 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* ── ESB Design Tokens (Light) ─────────────────── */
-  --color-primary: #0F172A;
-  --color-secondary: #1E3A8A;
-  --color-accent: #A16207;
+  /* ── ESB Design Tokens (Light - High-Tech Quantum Ivory) ─── */
+  --color-primary: #0A1128;
+  --color-secondary: #1D4ED8;
+  --color-accent: #D97706;
   --color-accent-light: #FEF3C7;
   --color-background: #F8FAFC;
   --color-foreground: #020617;
-  --color-muted: #E8ECF1;
-  --color-muted-foreground: #64748B;
+  --color-muted: #F1F5F9;
+  --color-muted-foreground: #475569;
   --color-border: #E2E8F0;
   --color-card: #FFFFFF;
   --color-card-hover: #F8FAFC;
@@ -20,54 +20,66 @@
   --color-success: #16A34A;
   --color-surface: #FFFFFF;
   --color-surface-elevated: #FFFFFF;
-  --color-hero-from: #0F172A;
-  --color-hero-via: #1E3A8A;
-  --color-hero-to: #0F172A;
+  --color-hero-from: #070D19;
+  --color-hero-via: #0F172A;
+  --color-hero-to: #1E3A8A;
   --color-sidebar: #0F172A;
   --color-sidebar-text: #FFFFFF;
   --color-sidebar-muted: #94A3B8;
-  --color-sidebar-border: rgba(255,255,255,0.1);
-  --color-scrollbar-track: #E8ECF1;
+  --color-sidebar-border: rgba(255,255,255,0.08);
+  --color-scrollbar-track: #F1F5F9;
   --color-scrollbar-thumb: #CBD5E1;
   --color-scrollbar-thumb-hover: #94A3B8;
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  --shadow-card-hover: 0 12px 32px -4px rgba(37, 99, 235, 0.12);
+
+  /* Cyber Glow Tokens */
+  --glow-cyan: rgba(56, 189, 248, 0.35);
+  --glow-amber: rgba(245, 158, 11, 0.35);
+  --glow-emerald: rgba(16, 185, 129, 0.35);
+  --glow-blue: rgba(37, 99, 235, 0.3);
 
   --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
-  --radius: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --radius: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
 }
 
 html.dark {
-  /* ── ESB Design Tokens (Dark) ──────────────────── */
-  --color-primary: #E2E8F0;
-  --color-secondary: #60A5FA;
+  /* ── ESB Design Tokens (Dark - Deep Cosmos / Neo-Futurism) ─── */
+  --color-primary: #F8FAFC;
+  --color-secondary: #38BDF8;
   --color-accent: #F59E0B;
   --color-accent-light: #78350F;
-  --color-background: #0B1120;
-  --color-foreground: #E2E8F0;
-  --color-muted: #1E293B;
+  --color-background: #030712;
+  --color-foreground: #F8FAFC;
+  --color-muted: #0F172A;
   --color-muted-foreground: #94A3B8;
-  --color-border: #1E293B;
-  --color-card: #111827;
-  --color-card-hover: #1E293B;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-card: #070D19;
+  --color-card-hover: #0D1629;
   --color-destructive: #EF4444;
-  --color-success: #22C55E;
-  --color-surface: #111827;
-  --color-surface-elevated: #1E293B;
-  --color-hero-from: #020617;
-  --color-hero-via: #0F172A;
-  --color-hero-to: #020617;
-  --color-sidebar: #020617;
-  --color-sidebar-text: #E2E8F0;
+  --color-success: #10B981;
+  --color-surface: #070D19;
+  --color-surface-elevated: #0B1326;
+  --color-hero-from: #030712;
+  --color-hero-via: #070D19;
+  --color-hero-to: #0F172A;
+  --color-sidebar: #040814;
+  --color-sidebar-text: #F8FAFC;
   --color-sidebar-muted: #64748B;
   --color-sidebar-border: rgba(255,255,255,0.06);
-  --color-scrollbar-track: #1E293B;
-  --color-scrollbar-thumb: #334155;
-  --color-scrollbar-thumb-hover: #475569;
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.4);
+  --color-scrollbar-track: #070D19;
+  --color-scrollbar-thumb: #1E293B;
+  --color-scrollbar-thumb-hover: #334155;
+  --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 12px 36px -4px rgba(56, 189, 248, 0.15);
+
+  /* Cyber Glow Tokens Dark */
+  --glow-cyan: rgba(56, 189, 248, 0.45);
+  --glow-amber: rgba(245, 158, 11, 0.45);
+  --glow-emerald: rgba(16, 185, 129, 0.45);
+  --glow-blue: rgba(59, 130, 246, 0.4);
 }
 
 /* ── Base ──────────────────────────────────────────── */
@@ -86,15 +98,13 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Smooth transitions for theme-aware elements */
-*, *::before, *::after {
-  transition-property: background-color, border-color, box-shadow;
-  transition-duration: 0.2s;
-  transition-timing-function: ease;
-}
-/* Exclude elements where transition interferes */
-input, textarea, select, button, a, [class*="animate-"], [class*="transition-"] {
-  transition-property: none;
+/* Smooth transitions for theme-aware elements (targeted to avoid layout thrashing) */
+.theme-transition,
+header,
+aside,
+main,
+nav {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Focus ring */
@@ -123,6 +133,10 @@ input, textarea, select, button, a, [class*="animate-"], [class*="transition-"] 
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
 
 .animate-fade-in-up { animation: fadeInUp 0.6s ease both; }
 .animate-fade-in    { animation: fadeIn 0.4s ease both; }
@@ -130,6 +144,8 @@ input, textarea, select, button, a, [class*="animate-"], [class*="transition-"] 
 .animate-delay-200  { animation-delay: 200ms; }
 .animate-delay-300  { animation-delay: 300ms; }
 .animate-delay-400  { animation-delay: 400ms; }
+.animate-marquee    { animation: marquee 28s linear infinite; }
+
 
 /* ── Premium Animations ────────────────────────────── */
 @keyframes float {
@@ -171,40 +187,115 @@ input, textarea, select, button, a, [class*="animate-"], [class*="transition-"] 
   border-radius: var(--radius);
 }
 
-/* ── Glassmorphism Utilities ───────────────────────── */
+/* ── Glassmorphism & Cyber Surfaces ───────────────── */
 .glass {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: var(--radius-xl);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
 }
 
 html.dark .glass {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(7, 13, 25, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 html.dark .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: rgba(7, 13, 25, 0.7);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.5);
 }
 
 /* Light surface glass (for hero stats card) */
 .glass-light {
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ── Cybernetic Card & HUD Utilities ──────────────── */
+.cyber-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-card);
+}
+
+html.dark .cyber-card {
+  background: rgba(11, 19, 38, 0.65);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.cyber-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 12px 30px -5px rgba(56, 189, 248, 0.15);
+}
+
+/* Cyber HUD Container with subtle technical grid */
+.cyber-hud {
+  position: relative;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+html.dark .cyber-hud {
+  background: radial-gradient(circle at 50% 0%, rgba(30, 58, 138, 0.15) 0%, rgba(7, 13, 25, 0.9) 70%);
+  border-color: rgba(56, 189, 248, 0.15);
+  box-shadow: 0 0 30px -10px rgba(56, 189, 248, 0.1);
+}
+
+/* Cyber Neon Glows */
+.neon-glow-cyan {
+  box-shadow: 0 0 25px -4px var(--glow-cyan);
+}
+
+.neon-glow-amber {
+  box-shadow: 0 0 25px -4px var(--glow-amber);
+}
+
+.neon-glow-emerald {
+  box-shadow: 0 0 25px -4px var(--glow-emerald);
+}
+
+.neon-glow-blue {
+  box-shadow: 0 0 25px -4px var(--glow-blue);
+}
+
+/* Laser Divider Line */
+.laser-line-cyan {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #38BDF8, transparent);
+}
+
+.laser-line-amber {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #F59E0B, transparent);
+}
+
+/* Subtle Technical Grid Background */
+.cyber-grid-pattern {
+  background-image: radial-gradient(rgba(56, 189, 248, 0.12) 1px, transparent 0);
+  background-size: 24px 24px;
 }
 
 /* ── Premium Card Hover Effects ────────────────────── */
