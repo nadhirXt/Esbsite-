@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { transporter, FROM_ADDRESS } from '@/lib/email'
+import { verifyTurnstileToken } from '@/lib/turnstile'
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
@@ -10,10 +11,17 @@ function escapeHtml(str: string): string {
 export async function POST(req: NextRequest) {
 
   try {
-    const { email, password, fullName, userType, institutionName, cycle } = await req.json()
+    const { email, password, fullName, userType, institutionName, cycle, turnstileToken } = await req.json()
 
     if (!email || !password || !fullName || !userType) {
       return NextResponse.json({ error: 'Champs obligatoires manquants.' }, { status: 400 })
+    }
+
+    // Validation Turnstile Anti-Bot
+    const clientIp = req.headers.get('cf-connecting-ip') || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    const turnstileCheck = await verifyTurnstileToken(turnstileToken, clientIp)
+    if (!turnstileCheck.success) {
+      return NextResponse.json({ error: turnstileCheck.error || 'Échec de la validation du CAPTCHA.' }, { status: 400 })
     }
 
     // 1. Créer l'utilisateur via l'API Admin de Supabase (email_confirm: false)

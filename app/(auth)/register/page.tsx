@@ -10,6 +10,7 @@ import Input from '@/components/ui/Input'
 import { Card, CardBody } from '@/components/ui/Card'
 import { cn } from '@/lib/utils'
 import { motion, Variants } from 'framer-motion'
+import TurnstileWidget from '@/components/ui/TurnstileWidget'
 
 const CYCLES = [
   { value: 'licence', label: 'Licence en Management et Banque', desc: '3 ans (6 semestres) — 2 340h' },
@@ -37,6 +38,7 @@ export default function RegisterPage() {
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState('')
   const [isRegistered, setIsRegistered] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
@@ -54,6 +56,11 @@ export default function RegisterPage() {
       return
     }
 
+    if (!turnstileToken) {
+      setError('Veuillez valider le contrôle de sécurité (CAPTCHA).')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -65,6 +72,7 @@ export default function RegisterPage() {
           password,
           fullName,
           userType,
+          turnstileToken,
           institutionName: userType === 'etudiant_esb' || userType === 'ancien'
              ? 'École Supérieure de Banque'
              : userType === 'autre_etudiant' ? institutionName : null,
@@ -341,13 +349,21 @@ export default function RegisterPage() {
               </motion.div>
             )}
 
+            {/* Turnstile CAPTCHA */}
+            <TurnstileWidget
+              onSuccess={(t) => setTurnstileToken(t)}
+              onExpire={() => setTurnstileToken('')}
+              onError={() => setError('Erreur de validation CAPTCHA. Rechargez la page.')}
+            />
+
             <div className="pt-2">
               <Button
                 type="submit"
                 variant="cyber-amber"
                 size="lg"
                 loading={loading}
-                className="w-full py-3.5 text-sm font-black font-mono tracking-wider cursor-pointer"
+                disabled={!turnstileToken}
+                className="w-full py-3.5 text-sm font-black font-mono tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Création du compte...' : 'CRÉER MON COMPTE ÉTUDIANT'}
               </Button>

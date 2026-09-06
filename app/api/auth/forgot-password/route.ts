@@ -2,13 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { transporter, FROM_ADDRESS } from '@/lib/email'
+import { verifyTurnstileToken } from '@/lib/turnstile'
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json()
+    const { email, turnstileToken } = await req.json()
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: 'Email invalide.' }, { status: 400 })
+    }
+
+    // Validation Turnstile Anti-Bot
+    const clientIp = req.headers.get('cf-connecting-ip') || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    const turnstileCheck = await verifyTurnstileToken(turnstileToken, clientIp)
+    if (!turnstileCheck.success) {
+      return NextResponse.json({ error: turnstileCheck.error || 'Échec de la validation du CAPTCHA.' }, { status: 400 })
     }
 
     // 1. Chercher l'utilisateur par email

@@ -46,12 +46,12 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
     'Content-Security-Policy',
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-eval needed for Next.js dev
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://*.backblazeb2.com https://*.supabase.co",
-      "connect-src 'self' https://*.supabase.co https://*.backblazeb2.com wss://*.supabase.co",
-      "frame-src 'none'",
+      "connect-src 'self' https://*.supabase.co https://*.backblazeb2.com wss://*.supabase.co https://challenges.cloudflare.com",
+      "frame-src 'self' https://challenges.cloudflare.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Card, CardBody } from '@/components/ui/Card'
 import { motion, Variants } from 'framer-motion'
+import TurnstileWidget from '@/components/ui/TurnstileWidget'
 
 function ResetPasswordContent() {
   const router = useRouter()
@@ -23,6 +24,7 @@ function ResetPasswordContent() {
   const [emailSent, setEmailSent]       = useState(false)
   const [success, setSuccess]           = useState(false)
   const [token, setToken]               = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState('')
 
   // Lire le token depuis ?token=xxx dans l'URL
   useEffect(() => {
@@ -34,13 +36,22 @@ function ResetPasswordContent() {
   async function handleRequestReset(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+
+    if (!turnstileToken) {
+      setError('Veuillez valider le contrôle de sécurité (CAPTCHA).')
+      return
+    }
+
     setLoading(true)
 
     try {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(),
+          turnstileToken,
+        }),
       })
       const data = await res.json()
 
@@ -364,13 +375,21 @@ function ResetPasswordContent() {
               </div>
             </div>
 
+            {/* Turnstile CAPTCHA */}
+            <TurnstileWidget
+              onSuccess={(t) => setTurnstileToken(t)}
+              onExpire={() => setTurnstileToken('')}
+              onError={() => setError('Erreur de validation CAPTCHA. Rechargez la page.')}
+            />
+
             <div className="pt-2">
               <Button 
                 type="submit" 
                 variant="cyber-glow"
                 size="lg" 
                 loading={loading} 
-                className="w-full py-3.5 text-sm font-black font-mono tracking-wider cursor-pointer"
+                disabled={!turnstileToken}
+                className="w-full py-3.5 text-sm font-black font-mono tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Envoi en cours...' : 'ENVOYER LE LIEN'}
               </Button>
