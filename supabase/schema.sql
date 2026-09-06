@@ -22,7 +22,7 @@ begin
   values (
     new.id,
     new.raw_user_meta_data->>'full_name',
-    coalesce(new.raw_user_meta_data->>'role', 'student'),
+    'student',  -- SECURITY: Never trust user-supplied role from metadata
     new.raw_user_meta_data->>'cycle',
     new.raw_user_meta_data->>'user_type',
     new.raw_user_meta_data->>'institution_name'
@@ -63,8 +63,16 @@ create table if not exists public.useful_links (
 alter table public.profiles enable row level security;
 create policy "Users can view own profile"
   on public.profiles for select using (auth.uid() = id);
-create policy "Users can update own profile"
-  on public.profiles for update using (auth.uid() = id);
+create policy "Users can update own profile non-sensitive fields"
+  on public.profiles for update
+  using (auth.uid() = id)
+  with check (
+    auth.uid() = id and
+    role = (select p.role from public.profiles p where p.id = auth.uid()) and
+    is_delegate is not distinct from (select p.is_delegate from public.profiles p where p.id = auth.uid()) and
+    delegate_cycle is not distinct from (select p.delegate_cycle from public.profiles p where p.id = auth.uid()) and
+    delegate_year is not distinct from (select p.delegate_year from public.profiles p where p.id = auth.uid())
+  );
 create policy "Users can insert own profile"
   on public.profiles for insert
   with check (auth.uid() = id);

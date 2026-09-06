@@ -28,15 +28,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'ID utilisateur manquant' }, { status: 400 })
     }
 
-    // Supprimer l'utilisateur (ça supprimera aussi son profil en cascade si c'est bien configuré,
-    // mais auth.admin.deleteUser efface l'utilisateur de l'authentification)
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId)
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(targetUserId)) {
+      return NextResponse.json({ error: 'ID utilisateur invalide' }, { status: 400 })
+    }
 
+    // Prevent self-deletion
+    if (targetUserId === user.id) {
+      return NextResponse.json({ error: 'Impossible de supprimer votre propre compte' }, { status: 400 })
+    }
+
+    // Prevent deleting the last admin
+    const { data: targetProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', targetUserId)
+      .single()
+
+    if (targetProfile?.role === 'admin') {
+      const { count } = await supabaseAdmin
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('role', 'admin')
+      
+      if ((count || 0) <= 1) {
+        return NextResponse.json({ error: 'Impossible de supprimer le dernier administrateur' }, { status: 400 })
+      }
+    }
+
+    // Delete the user
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId)
     if (deleteError) throw deleteError
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('Delete User Error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: 'Une erreur est survenue lors de la suppression' }, { status: 500 })
   }
 }

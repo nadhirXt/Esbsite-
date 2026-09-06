@@ -61,7 +61,7 @@ function sanitizeS3Key(key: string): string {
  */
 export async function getPresignedUploadUrl(filePath: string, contentType: string) {
   try {
-    const { user, isAdmin, isDelegate } = await getAuthContext()
+    const { user, profile, isAdmin, isDelegate } = await getAuthContext()
     if (!user || (!isAdmin && !isDelegate)) {
       return { url: null, error: 'Non autorisé à uploader des fichiers' }
     }
@@ -69,6 +69,35 @@ export async function getPresignedUploadUrl(filePath: string, contentType: strin
     const safeKey = sanitizeS3Key(filePath)
     if (!safeKey || safeKey === '.keep') {
       return { url: null, error: 'Chemin de fichier invalide' }
+    }
+
+    // Restrict delegates to their own cycle/year path
+    if (!isAdmin && isDelegate) {
+      const expectedPrefix = `${profile?.delegate_cycle}/A${profile?.delegate_year}/`
+      if (!safeKey.startsWith(expectedPrefix)) {
+        return { url: null, error: 'Vous ne pouvez uploader que dans votre cycle/année' }
+      }
+    }
+
+    // Validate file extension
+    const allowedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.jpg', '.jpeg', '.png', '.webp']
+    const ext = '.' + safeKey.split('.').pop()?.toLowerCase()
+    if (!allowedExtensions.includes(ext)) {
+      return { url: null, error: 'Type de fichier non autorisé' }
+    }
+
+    // Validate content type
+    const allowedMimeTypes = [
+      'application/pdf', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'image/jpeg', 'image/png', 'image/webp'
+    ]
+    if (!allowedMimeTypes.includes(contentType)) {
+      return { url: null, error: 'Type MIME non autorisé' }
     }
 
     const command = new PutObjectCommand({
@@ -99,6 +128,20 @@ export async function getPresignedDownloadUrl(filePath: string, download: boolea
     const safeKey = sanitizeS3Key(filePath)
     if (!safeKey || safeKey === '.keep') {
       return { url: null, error: 'Fichier introuvable' }
+    }
+
+    // Block access to memoires files unless user has unlocked access
+    if (safeKey.startsWith('memoires/')) {
+      const supabase = (await import('@/lib/supabase/admin')).supabaseAdmin
+      const { data: access } = await supabase
+        .from('memoires_access')
+        .select('status')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (!access || access.status !== 'unlocked') {
+        return { url: null, error: 'Accès non autorisé aux mémoires' }
+      }
     }
 
     const command = new GetObjectCommand({
@@ -143,7 +186,7 @@ export async function getPublicConcoursDownloadUrl(filePath: string, download: b
 /**
  * Supprime un fichier individuel directement et définitivement sur Backblaze B2 (incluant toutes ses versions)
  */
-export async function deleteStorageFile(filePath: string) {
+async function deleteStorageFile(filePath: string) {
   return deleteStorageFiles([filePath])
 }
 
@@ -151,7 +194,7 @@ export async function deleteStorageFile(filePath: string) {
  * Supprime définitivement une liste de fichiers sur Backblaze B2
  * Purge toutes les versions et tous les delete markers pour qu'aucun résidu ne reste dans le bucket.
  */
-export async function deleteStorageFiles(filePaths: string[]) {
+async function deleteStorageFiles(filePaths: string[]) {
   try {
     const { user, isAdmin, isDelegate } = await getAuthContext()
     if (!user || (!isAdmin && !isDelegate)) {

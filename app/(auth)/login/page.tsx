@@ -43,19 +43,15 @@ export default function LoginPage() {
         return
       }
 
-      // Check if user has admin privileges
-      const adminEmails = [
-        'benelhadjbenelhadj@gmail.com',
-        'benelhadjbenelhadj@outlook.com',
-        'mohamed-nadhir.benelhadj@etu.enp-oran.dz',
-      ]
-      const user = data?.user
-      const isAdmin = 
-        user?.user_metadata?.role === 'admin' ||
-        adminEmails.includes(cleanEmail.toLowerCase())
+      // Navigate based on server-determined role after login
+      // Admin routing is handled by middleware (proxy.ts) based on email/DB check
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
 
-      // Full navigation to ensure fresh session cookies are loaded cleanly
-      window.location.href = isAdmin ? '/admin' : '/dashboard'
+      window.location.href = profile?.role === 'admin' ? '/admin' : '/dashboard'
     } catch (err: any) {
       console.error('Login error:', err)
       setError(err?.message || 'Une erreur inattendue est survenue.')

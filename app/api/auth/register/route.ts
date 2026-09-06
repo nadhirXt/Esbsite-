@@ -3,6 +3,10 @@ import crypto from 'crypto'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { transporter, FROM_ADDRESS } from '@/lib/email'
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
+}
+
 export async function POST(req: NextRequest) {
 
   try {
@@ -27,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     if (userError) {
       console.error('Erreur création admin:', userError)
-      return NextResponse.json({ error: userError.message }, { status: 400 })
+      return NextResponse.json({ error: 'Vérifiez votre email pour finaliser l\'inscription.' }, { status: 400 })
     }
 
     const userId = userData.user.id
@@ -86,7 +90,7 @@ export async function POST(req: NextRequest) {
           <!-- Body -->
           <tr>
             <td style="padding:40px;">
-              <h2 style="color:#0f172a;font-size:20px;font-weight:700;margin:0 0 12px;">Bonjour ${fullName},</h2>
+              <h2 style="color:#0f172a;font-size:20px;font-weight:700;margin:0 0 12px;">Bonjour ${escapeHtml(fullName)},</h2>
               <p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 24px;">
                 Merci de rejoindre la communauté ESB Hub. Pour activer votre compte, veuillez confirmer votre adresse email en cliquant sur le bouton ci-dessous :
               </p>

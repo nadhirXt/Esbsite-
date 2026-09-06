@@ -12,15 +12,13 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Chercher l'utilisateur par email
-    // Utilise listUsers avec pagination limitée au lieu de charger tous les users
     const normalizedEmail = email.toLowerCase().trim()
-    const { data: usersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers({
+    const { data: allUsersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
-      perPage: 1,
-      filter: normalizedEmail,
-    } as any)
+      perPage: 1000,
+    })
 
-    const user = usersData?.users?.find(u => u.email === normalizedEmail)
+    const user = allUsersData?.users?.find(u => u.email === normalizedEmail)
 
     // Sécurité : on répond toujours "succès" même si l'email n'existe pas
     // (évite l'énumération d'utilisateurs)

@@ -108,6 +108,12 @@ export async function middleware(request: NextRequest) {
   // on conserve les en-têtes spécialisés (Range, Content-Disposition, PDF preview)
   // sans imposer frame-src 'none' ni X-Frame-Options: DENY qui bloquent les mobiles
   if (pathname.startsWith('/assets/documents') || pathname.startsWith('/api/documents')) {
+    // Apply essential security headers but skip X-Frame-Options and frame-src restriction
+    // to allow PDF preview on mobile browsers
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
+    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()')
     return response
   }
 

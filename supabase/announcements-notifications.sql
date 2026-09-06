@@ -55,9 +55,9 @@ CREATE POLICY "Users update own notifications"
   ON public.notifications FOR UPDATE
   USING (auth.uid() = user_id);
 
-CREATE POLICY "System can insert notifications"
+CREATE POLICY "Admins or system can insert notifications"
   ON public.notifications FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (public.is_admin());
 
 -- RPC: marquer toutes les notifications comme lues
 CREATE OR REPLACE FUNCTION public.mark_all_notifications_read()

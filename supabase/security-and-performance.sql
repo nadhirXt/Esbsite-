@@ -158,4 +158,5 @@ LANGUAGE sql AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.search_documents(text, text, int, int) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.cleanup_old_data() TO authenticated;
+-- SECURITY: cleanup_old_data() should only be called by service role / pg_cron
+-- REVOKE EXECUTE ON FUNCTION public.cleanup_old_data() FROM authenticated;

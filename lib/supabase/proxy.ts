@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const isDashboard = pathname.startsWith('/dashboard')
-  const isAdmin = pathname.startsWith('/admin')
+  const isAdmin = pathname.startsWith('/admin') || pathname.startsWith('/api/admin')
   const isAuthPage = pathname === '/login' || pathname === '/register'
 
   // Check if any Supabase auth cookie exists
@@ -47,7 +47,11 @@ export async function updateSession(request: NextRequest) {
 
   // Protect dashboard routes
   if (isDashboard && !user) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    const redirectResponse = NextResponse.redirect(new URL('/login', request.url))
+    supabaseResponse.cookies.getAll().forEach(c =>
+      redirectResponse.cookies.set(c.name, c.value, c)
+    )
+    return redirectResponse
   }
 
   const ADMIN_EMAILS = [
@@ -59,7 +63,11 @@ export async function updateSession(request: NextRequest) {
   // Protect admin routes
   if (isAdmin) {
     if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url))
+      const redirectResponse = NextResponse.redirect(new URL('/login', request.url))
+      supabaseResponse.cookies.getAll().forEach(c =>
+        redirectResponse.cookies.set(c.name, c.value, c)
+      )
+      return redirectResponse
     }
     const userEmail = (user.email || '').toLowerCase()
     const isDesignatedAdmin = ADMIN_EMAILS.includes(userEmail)
@@ -73,7 +81,11 @@ export async function updateSession(request: NextRequest) {
         .single()
       
       if (profile?.role !== 'admin') {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
+        const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url))
+        supabaseResponse.cookies.getAll().forEach(c =>
+          redirectResponse.cookies.set(c.name, c.value, c)
+        )
+        return redirectResponse
       }
     }
   }
@@ -82,7 +94,11 @@ export async function updateSession(request: NextRequest) {
   if (isAuthPage && user) {
     const userEmail = (user.email || '').toLowerCase()
     const isDesignatedAdmin = ADMIN_EMAILS.includes(userEmail)
-    return NextResponse.redirect(new URL(isDesignatedAdmin ? '/admin' : '/dashboard', request.url))
+    const redirectResponse = NextResponse.redirect(new URL(isDesignatedAdmin ? '/admin' : '/dashboard', request.url))
+    supabaseResponse.cookies.getAll().forEach(c =>
+      redirectResponse.cookies.set(c.name, c.value, c)
+    )
+    return redirectResponse
   }
 
   return supabaseResponse

@@ -55,6 +55,22 @@ export async function handleDocumentStream(
           { status: 401 }
         )
       }
+
+      // Vérifier accès mémoires si le document est dans le cycle memoires
+      if (doc.cycle === 'memoires' || doc.file_path.startsWith('memoires/')) {
+        const { data: access } = await supabaseAdmin
+          .from('memoires_access')
+          .select('status')
+          .eq('user_id', user.id)
+          .single()
+        
+        if (!access || access.status !== 'unlocked') {
+          return NextResponse.json(
+            { error: 'Accès non autorisé aux mémoires. Veuillez compléter le processus de déverrouillage.' },
+            { status: 403 }
+          )
+        }
+      }
     }
 
     // 3. Récupération du flux depuis Backblaze B2

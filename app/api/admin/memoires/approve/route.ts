@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { transporter, FROM_ADDRESS } from '@/lib/email'
+import crypto from 'crypto'
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;')
+}
 
 // Generate a random password
 function generatePassword(length = 8) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   let password = ''
   for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length))
+    password += chars.charAt(crypto.randomInt(chars.length))
   }
   return `ESB-${password}`
 }
@@ -64,7 +69,7 @@ export async function POST(req: NextRequest) {
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-w: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
           <h2 style="color: #1e3a8a;">Accès au dossier Mémoires</h2>
-          <p>Bonjour ${request.profiles.full_name},</p>
+          <p>Bonjour ${escapeHtml(request.profiles.full_name)},</p>
           <p>Votre demande d'accès au dossier confidentiel "Mémoires" a été <strong>approuvée</strong> par l'administration.</p>
           <p>Voici votre mot de passe unique. Gardez-le précieusement :</p>
           <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
@@ -100,6 +105,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('Memoires approve error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: 'Une erreur est survenue' }, { status: 500 })
   }
 }

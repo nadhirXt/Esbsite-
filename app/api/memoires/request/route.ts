@@ -11,6 +11,18 @@ export async function POST(req: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
 
+    // Vérifier le type d'utilisateur
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', user.id)
+      .single()
+    
+    const allowedTypes = ['etudiant_esb', 'ancien_etudiant_esb']
+    if (!profile || !allowedTypes.includes(profile.user_type)) {
+      return NextResponse.json({ error: 'Seuls les étudiants ESB peuvent demander l\'accès' }, { status: 403 })
+    }
+
     // Check if a request already exists
     const { data: existing } = await supabase
       .from('memoires_access')
@@ -23,8 +35,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Une demande est déjà en cours' }, { status: 400 })
       }
       
-      // If approved or revoked or unlocked, the user can request a new password
-      // We set status to pending again
+      if (existing.status === 'revoked') {
+        return NextResponse.json({ error: 'Accès révoqué par l\'administration' }, { status: 403 })
+      }
+
       const { error: updateError } = await supabase
         .from('memoires_access')
         .update({ status: 'pending', requested_at: new Date().toISOString() })
@@ -43,6 +57,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('Memoires request error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: 'Une erreur est survenue' }, { status: 500 })
   }
 }
