@@ -1,7 +1,28 @@
 -- ============================================================
--- ESB Hub — Security Hotfix Migration
--- Execute this in Supabase SQL Editor IMMEDIATELY
+-- ESB Hub — Security Hotfix Migration (Robuste / Sans Erreur)
+-- Execute this in Supabase SQL Editor
 -- ============================================================
+
+-- ── 0. Pré-requis : Helper is_admin() ────────────────────────
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+
+-- Assurer la présence des colonnes délégué
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_delegate BOOLEAN DEFAULT false;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS delegate_cycle TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS delegate_year INTEGER;
 
 -- ── C1: Fix handle_new_user trigger (CRITICAL) ──────────────
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -22,6 +43,7 @@ $$;
 
 -- ── C2: Restrict profile UPDATE policy (CRITICAL) ───────────
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile non-sensitive fields" ON public.profiles;
 
 CREATE POLICY "Users can update own profile non-sensitive fields"
   ON public.profiles FOR UPDATE
@@ -35,15 +57,27 @@ CREATE POLICY "Users can update own profile non-sensitive fields"
   );
 
 -- ── H6: Restrict notifications INSERT (HIGH) ────────────────
-DROP POLICY IF EXISTS "System can insert notifications" ON public.notifications;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notifications' AND table_schema = 'public') THEN
+    EXECUTE 'DROP POLICY IF EXISTS "System can insert notifications" ON public.notifications';
+    EXECUTE 'DROP POLICY IF EXISTS "Admins or system can insert notifications" ON public.notifications';
+    EXECUTE 'CREATE POLICY "Admins or system can insert notifications" ON public.notifications FOR INSERT WITH CHECK (public.is_admin())';
+  END IF;
+END $$;
 
-CREATE POLICY "Admins or system can insert notifications"
-  ON public.notifications FOR INSERT
-  WITH CHECK (public.is_admin());
-
--- ── H7: Revoke cleanup_old_data from authenticated (HIGH) ───
-REVOKE EXECUTE ON FUNCTION public.cleanup_old_data() FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.cleanup_old_data() FROM anon;
+-- ── H7: Revoke cleanup_old_data (si la fonction existe) ──────
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public' AND p.proname = 'cleanup_old_data'
+  ) THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.cleanup_old_data() FROM authenticated';
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.cleanup_old_data() FROM anon';
+  END IF;
+END $$;
 
 -- ── M8: Fix admin_upcoming_events view (MEDIUM) ─────────────
 DO $$
