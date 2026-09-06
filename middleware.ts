@@ -104,7 +104,14 @@ export async function middleware(request: NextRequest) {
   // ── Session refresh (Supabase auth) ──────────────────────
   const response = await updateSession(request)
 
-  // ── Add security headers to every response ───────────────
+  // Pour le streaming documentaire (/assets/documents et /api/documents),
+  // on conserve les en-têtes spécialisés (Range, Content-Disposition, PDF preview)
+  // sans imposer frame-src 'none' ni X-Frame-Options: DENY qui bloquent les mobiles
+  if (pathname.startsWith('/assets/documents') || pathname.startsWith('/api/documents')) {
+    return response
+  }
+
+  // ── Add security headers to standard application responses ──
   return addSecurityHeaders(response)
 }
 

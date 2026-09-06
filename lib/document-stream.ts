@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { supabaseAdmin } from '@/lib/supabase/admin'
 import { b2 } from '@/lib/b2'
 import { GetObjectCommand } from '@aws-sdk/client-s3'
 import { Readable } from 'stream'
@@ -17,17 +18,15 @@ export async function handleDocumentStream(
       return NextResponse.json({ error: 'Identifiant de document manquant' }, { status: 400 })
     }
 
-    const supabase = await createClient()
-
-    // 1. Recherche du document en base par ID ou chemin
-    let { data: doc } = await supabase
+    // 1. Recherche du document en base via supabaseAdmin (contourne RLS côté serveur de confiance)
+    let { data: doc } = await supabaseAdmin
       .from('documents')
       .select('id, title, file_path, cycle, category, year')
       .eq('id', id)
       .maybeSingle()
 
     if (!doc) {
-      const { data: docByPath } = await supabase
+      const { data: docByPath } = await supabaseAdmin
         .from('documents')
         .select('id, title, file_path, cycle, category, year')
         .eq('file_path', id)
@@ -42,6 +41,7 @@ export async function handleDocumentStream(
     // 2. Contrôle de sécurité et permissions
     const isPublicCycle = doc.cycle === 'concours'
     if (!isPublicCycle) {
+      const supabase = await createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         const accept = req.headers.get('accept') || ''
@@ -108,9 +108,11 @@ export async function handleDocumentStream(
       `${isDownload ? 'attachment' : 'inline'}; filename="${fullFilename.replace(/"/g, '')}"; filename*=UTF-8''${encodedFilename}`
     )
 
-    // En-têtes de sécurité
+    // En-têtes de sécurité et compatibilité mobile
     headers.set('Cache-Control', 'private, max-age=3600, stale-while-revalidate=86400')
     headers.set('X-Content-Type-Options', 'nosniff')
+    headers.set('X-Frame-Options', 'SAMEORIGIN')
+    headers.set('Content-Security-Policy', "default-src 'self'; object-src 'self' blob: data:; frame-src 'self' blob: data:; style-src 'self' 'unsafe-inline';")
 
     return new Response(webStream, {
       status,

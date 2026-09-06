@@ -56,7 +56,11 @@ function PopularDocCard({ doc }: { doc: Document }) {
     trackView() // ← Analytics
     const ext = doc.file_path.split('.').pop()?.toLowerCase() || 'pdf'
     const safeTitle = (doc.title || 'document').replace(/[/\\?%*:|"<>]/g, '_')
-    window.open(`/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}`, '_blank')
+    const viewUrl = `/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}`
+    const win = window.open(viewUrl, '_blank')
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      window.location.href = viewUrl
+    }
   }
 
   return (

@@ -88,11 +88,6 @@ export default function DashboardSidebar({ user }: SidebarProps) {
     created_at: user.created_at,
   })
 
-  const sidebarVariants = {
-    hidden: { opacity: 0, x: -30 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.3 } }
-  }
-
   return (
     <>
       {/* Mobile Top Bar */}
@@ -122,10 +117,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
       )}
 
       {/* Sidebar */}
-      <motion.aside 
-        initial="hidden"
-        animate="visible"
-        variants={sidebarVariants}
+      <aside 
         className={cn(
         "fixed md:static inset-y-0 left-0 z-50 flex flex-col w-72 md:w-64 h-full bg-white dark:bg-[#040814] text-slate-900 dark:text-white shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none border-r border-slate-200 dark:border-white/10 relative",
         isOpen ? "translate-x-0" : "-translate-x-full"
@@ -293,7 +285,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
             <span>Déconnexion</span>
           </button>
         </div>
-      </motion.aside>
+      </aside>
     </>
   )
 }

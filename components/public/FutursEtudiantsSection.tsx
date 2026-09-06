@@ -72,11 +72,17 @@ export default function FutursEtudiantsSection({ initialDocs = [] }: FutursEtudi
     if (download) {
       const link = window.document.createElement('a')
       link.href = fileUrl
+      link.download = `${safeTitle}.${ext}`
       window.document.body.appendChild(link)
       link.click()
-      window.document.body.removeChild(link)
+      setTimeout(() => {
+        window.document.body.removeChild(link)
+      }, 100)
     } else {
-      window.open(fileUrl, '_blank')
+      const win = window.open(fileUrl, '_blank')
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = fileUrl
+      }
     }
   }
 

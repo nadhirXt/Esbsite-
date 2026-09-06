@@ -1,5 +1,5 @@
 // ESB Hub — Service Worker (PWA & Real-time Web Push)
-const CACHE_NAME = 'esb-hub-v2';
+const CACHE_NAME = 'esb-hub-v3';
 const STATIC_ASSETS = [
   '/',
   '/login',
@@ -40,9 +40,10 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Skip dynamic API requests, auth endpoints, and storage queries
+  // Skip dynamic API requests, auth endpoints, document streaming and storage queries
   if (
     url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/assets/') ||
     url.pathname.startsWith('/auth/') ||
     url.hostname.includes('supabase.co') ||
     url.hostname.includes('backblazeb2.com')

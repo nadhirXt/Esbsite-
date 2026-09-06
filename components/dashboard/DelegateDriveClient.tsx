@@ -1465,19 +1465,27 @@ function DelegateDocumentCard({
     e.preventDefault()
     const ext = doc.file_path.split('.').pop()?.toLowerCase() || 'pdf'
     const safeTitle = (doc.title || 'document').replace(/[/\\?%*:|"<>]/g, '_')
-    window.open(`/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}`, '_blank')
+    const viewUrl = `/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}`
+    const win = window.open(viewUrl, '_blank')
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      window.location.href = viewUrl
+    }
   }
 
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault()
     const ext = doc.file_path.split('.').pop()?.toLowerCase() || 'pdf'
     const safeTitle = (doc.title || 'document').replace(/[/\\?%*:|"<>]/g, '_')
+    const downloadUrl = `/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}?download=1`
     const a = document.createElement('a')
-    a.href = `/assets/documents/${doc.id}/${encodeURIComponent(safeTitle)}.${ext}?download=1`
+    a.href = downloadUrl
+    a.download = `${safeTitle}.${ext}`
     a.style.display = 'none'
     document.body.appendChild(a)
     a.click()
-    document.body.removeChild(a)
+    setTimeout(() => {
+      document.body.removeChild(a)
+    }, 100)
   }
 
   return (
