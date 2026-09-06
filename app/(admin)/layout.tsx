@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (profile?.role !== 'admin') redirect('/dashboard')
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-slate-100 flex flex-col md:flex-row relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-slate-100 flex flex-col md:flex-row relative">
       {/* Cyber Grid & Ambient Orbs */}
       <div className="fixed inset-0 cyber-grid-pattern opacity-15 pointer-events-none z-0" />
       <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none z-0" />
@@ -25,7 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       <AdminSidebar user={{ fullName: profile?.full_name || 'Administrateur' }} />
 
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 md:h-full md:overflow-hidden relative z-10">
         {/* Mission Control Cockpit Topbar (Desktop) */}
         <div className="hidden md:flex items-center justify-between px-8 py-3 bg-white/80 dark:bg-[#070D19]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 text-xs shrink-0">
           <div className="flex items-center gap-3 font-mono">

@@ -54,8 +54,8 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed md:static inset-y-0 left-0 z-50 flex flex-col w-72 md:w-64 min-h-screen bg-white dark:bg-[#040814] text-slate-900 dark:text-white shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none border-r border-slate-200 dark:border-white/10 relative",
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        "fixed md:static inset-y-0 left-0 z-50 flex flex-col w-72 md:w-64 min-h-screen bg-white dark:bg-[#040814] text-slate-900 dark:text-white shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none border-r border-slate-200 dark:border-white/10",
+        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
         {/* Laser line edge */}
         <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-amber-500/40 via-transparent to-cyan-500/30 hidden md:block" />

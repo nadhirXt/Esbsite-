@@ -91,7 +91,7 @@ export default function DashboardSidebar({ user }: SidebarProps) {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between px-5 py-3.5 bg-white/95 dark:bg-[#070D19]/95 backdrop-blur-xl text-slate-900 dark:text-white shrink-0 shadow-sm border-b border-slate-200 dark:border-white/10 relative z-50">
+      <div className="md:hidden sticky top-0 flex items-center justify-between px-5 py-3.5 bg-white/95 dark:bg-[#070D19]/95 backdrop-blur-xl text-slate-900 dark:text-white shrink-0 shadow-sm border-b border-slate-200 dark:border-white/10 z-30">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsOpen(!isOpen)} 
@@ -119,8 +119,8 @@ export default function DashboardSidebar({ user }: SidebarProps) {
       {/* Sidebar */}
       <aside 
         className={cn(
-        "fixed md:static inset-y-0 left-0 z-50 flex flex-col w-72 md:w-64 h-full bg-white dark:bg-[#040814] text-slate-900 dark:text-white shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none border-r border-slate-200 dark:border-white/10 relative",
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        "fixed md:static inset-y-0 left-0 z-50 flex flex-col w-72 md:w-64 h-full bg-white dark:bg-[#040814] text-slate-900 dark:text-white shrink-0 transition-transform duration-300 ease-in-out md:translate-x-0 shadow-2xl md:shadow-none border-r border-slate-200 dark:border-white/10",
+        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}>
         {/* Subtle laser line right edge */}
         <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-cyan-500/40 via-transparent to-amber-500/30 hidden md:block" />
