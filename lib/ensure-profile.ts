@@ -8,9 +8,9 @@ import { SupabaseClient, User } from '@supabase/supabase-js'
  * Returns the profile data or null on hard failure.
  */
 const ADMIN_EMAILS = [
+  'benn4dir@gmail.com',
   'benelhadjbenelhadj@gmail.com',
   'benelhadjbenelhadj@outlook.com',
-  'mohamed-nadhir.benelhadj@etu.enp-oran.dz',
 ]
 
 export async function ensureProfile(
@@ -42,7 +42,7 @@ export async function ensureProfile(
     const fallbackProfile = {
       id: user.id,
       full_name: meta.full_name || user.email?.split('@')[0] || 'Utilisateur',
-      role: isDesignatedAdmin ? 'admin' : (meta.role || 'student'),
+      role: isDesignatedAdmin ? 'admin' : 'student',
       user_type: meta.user_type || null,
       cycle: meta.cycle || null,
       institution_name: meta.institution_name

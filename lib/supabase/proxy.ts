@@ -51,9 +51,9 @@ export async function updateSession(request: NextRequest) {
   }
 
   const ADMIN_EMAILS = [
+    'benn4dir@gmail.com',
     'benelhadjbenelhadj@gmail.com',
     'benelhadjbenelhadj@outlook.com',
-    'mohamed-nadhir.benelhadj@etu.enp-oran.dz',
   ]
 
   // Protect admin routes
@@ -62,7 +62,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
     const userEmail = (user.email || '').toLowerCase()
-    const isDesignatedAdmin = ADMIN_EMAILS.includes(userEmail) || user.user_metadata?.role === 'admin'
+    const isDesignatedAdmin = ADMIN_EMAILS.includes(userEmail)
 
     if (!isDesignatedAdmin) {
       // Check admin role in database
@@ -81,7 +81,7 @@ export async function updateSession(request: NextRequest) {
   // Redirect authenticated users away from auth pages
   if (isAuthPage && user) {
     const userEmail = (user.email || '').toLowerCase()
-    const isDesignatedAdmin = ADMIN_EMAILS.includes(userEmail) || user.user_metadata?.role === 'admin'
+    const isDesignatedAdmin = ADMIN_EMAILS.includes(userEmail)
     return NextResponse.redirect(new URL(isDesignatedAdmin ? '/admin' : '/dashboard', request.url))
   }
 
