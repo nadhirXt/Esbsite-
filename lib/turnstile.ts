@@ -2,9 +2,8 @@
  * Cloudflare Turnstile Server-side Token Verification Helper
  */
 
-// Official Cloudflare Turnstile test keys (dummy always-pass)
-export const CLOUDFLARE_DUMMY_SITE_KEY = '1x00000000000000000000AA'
-export const CLOUDFLARE_DUMMY_SECRET_KEY = '1x0000000000000000000000000000000AA'
+// Clés Turnstile Cloudflare pour esbhub.study
+const PRODUCTION_SECRET_KEY = 'your-turnstile-secret-key-placeholder'
 
 interface TurnstileVerifyResponse {
   success: boolean
@@ -13,13 +12,15 @@ interface TurnstileVerifyResponse {
   hostname?: string
 }
 
-export async function verifyTurnstileToken(token: string | undefined | null, remoteIp?: string): Promise<{ success: boolean; error?: string }> {
+export async function verifyTurnstileToken(
+  token: string | undefined | null,
+  remoteIp?: string
+): Promise<{ success: boolean; error?: string }> {
   if (!token) {
-    return { success: false, error: 'Token CAPTCHA manquant.' }
+    return { success: false, error: 'Token CAPTCHA manquant. Veuillez valider le contrôle de sécurité.' }
   }
 
-  // Use configured secret or fallback to Cloudflare test key for local/preview
-  const secretKey = process.env.TURNSTILE_SECRET_KEY || CLOUDFLARE_DUMMY_SECRET_KEY
+  const secretKey = process.env.TURNSTILE_SECRET_KEY || PRODUCTION_SECRET_KEY
 
   try {
     const formData = new URLSearchParams()
