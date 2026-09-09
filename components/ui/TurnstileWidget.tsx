@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Turnstile } from '@marsidev/react-turnstile'
-import { ShieldCheck, Loader2 } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 
 interface TurnstileWidgetProps {
   onSuccess: (token: string) => void
@@ -26,11 +26,12 @@ export default function TurnstileWidget({
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
 
   return (
-    <div className={`flex flex-col items-center justify-center my-3 w-full ${className}`}>
-      {/* Conteneur Turnstile avec apparence forcée visible */}
-      <div className="min-h-[65px] flex items-center justify-center">
+    <div className={`flex flex-col items-center justify-center my-4 w-full ${className}`}>
+      {/* Box conteneur avec dimensions garanties 300x65px */}
+      <div className="w-[300px] min-h-[65px] flex items-center justify-center rounded-xl bg-slate-900/60 border border-slate-700/60 overflow-hidden shadow-inner">
         <Turnstile
           siteKey={siteKey}
+          injectScript={false}
           options={{
             theme: theme,
             size: 'normal',
@@ -52,17 +53,16 @@ export default function TurnstileWidget({
         />
       </div>
 
-      {/* Badge de statut rassurant pour l'utilisateur */}
       {status === 'success' && (
-        <div className="flex items-center gap-1.5 text-xs text-emerald-400 mt-1 font-mono">
+        <div className="flex items-center gap-1.5 text-xs text-emerald-400 mt-2 font-mono">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
           <span>Vérification de sécurité réussie</span>
         </div>
       )}
 
       {status === 'error' && (
-        <p className="text-[11px] text-amber-400/90 text-center mt-1 font-mono">
-          Si la vérification ne s&apos;affiche pas, désactivez votre bloqueur de pub (Adblock).
+        <p className="text-[11px] text-amber-400/90 text-center mt-2 font-mono">
+          Si la boîte ne s&apos;affiche pas, désactivez votre bloqueur de pub (Adblock).
         </p>
       )}
     </div>

@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { Toaster } from 'sonner';
 import Script from 'next/script';
+import { SCRIPT_URL, DEFAULT_SCRIPT_ID } from '@marsidev/react-turnstile';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -84,6 +85,12 @@ export default function RootLayout({
           {children}
         </ThemeProvider>
         <Toaster richColors position="bottom-right" />
+        {/* Cloudflare Turnstile Script */}
+        <Script
+          id={DEFAULT_SCRIPT_ID}
+          src={SCRIPT_URL}
+          strategy="afterInteractive"
+        />
         {/* Register Service Worker */}
         <Script
           id="sw-register"
