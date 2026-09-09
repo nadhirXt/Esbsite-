@@ -23,16 +23,22 @@ export default function TurnstileWidget({
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
+  const isMountedRef = useRef(true)
   const [verified, setVerified] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // Mémoriser les callbacks dans une ref pour ÉVITER TOUT RE-RENDER / CLIGNOTEMENT
+  const callbacksRef = useRef({ onSuccess, onError, onExpire })
+  callbacksRef.current = { onSuccess, onError, onExpire }
 
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || PRODUCTION_SITE_KEY
 
   useEffect(() => {
+    isMountedRef.current = true
     let intervalId: NodeJS.Timeout | null = null
 
     const tryRender = () => {
-      if (!containerRef.current || widgetIdRef.current) return
+      if (!containerRef.current || widgetIdRef.current || !isMountedRef.current) return
 
       const turnstile = (window as any).turnstile
       if (!turnstile || typeof turnstile.render !== 'function') return
@@ -43,20 +49,27 @@ export default function TurnstileWidget({
           theme: theme,
           size: 'normal',
           appearance: 'always',
+          execution: 'render',
           callback: (token: string) => {
-            setVerified(true)
-            setErrorMessage(null)
-            onSuccess(token)
+            if (isMountedRef.current) {
+              setVerified(true)
+              setErrorMessage(null)
+            }
+            callbacksRef.current.onSuccess(token)
           },
           'error-callback': (code: string) => {
             console.error('Cloudflare Turnstile error code:', code)
-            setVerified(false)
-            setErrorMessage(`Erreur de sécurité (${code || 'inconnue'}). Vérifiez vos bloqueurs de pub.`)
-            onError?.(code)
+            if (isMountedRef.current) {
+              setVerified(false)
+              setErrorMessage(`Contrôle de sécurité (${code || 'bloqué'}). Rechargez la page.`)
+            }
+            callbacksRef.current.onError?.(code)
           },
           'expired-callback': () => {
-            setVerified(false)
-            onExpire?.()
+            if (isMountedRef.current) {
+              setVerified(false)
+            }
+            callbacksRef.current.onExpire?.()
           },
         })
 
@@ -69,25 +82,24 @@ export default function TurnstileWidget({
       }
     }
 
-    // Tenter immédiatement
+    // 1. Essayer immédiatement
     tryRender()
 
-    // Si le script api.js charge encore, vérifier toutes les 150ms pendant 10s
+    // 2. Si le script charge encore, surveiller sans détruire
     if (!widgetIdRef.current) {
       let attempts = 0
       intervalId = setInterval(() => {
         attempts++
         tryRender()
-        if (widgetIdRef.current || attempts > 60) {
+        if (widgetIdRef.current || attempts > 50) {
           if (intervalId) clearInterval(intervalId)
-          if (!widgetIdRef.current && attempts > 60) {
-            setErrorMessage('Le captcha met du temps à charger. Désactivez Adblock si actif.')
-          }
         }
       }, 150)
     }
 
+    // Nettoyage UNIQUEMENT au démontage du composant
     return () => {
+      isMountedRef.current = false
       if (intervalId) clearInterval(intervalId)
       if (widgetIdRef.current && (window as any).turnstile?.remove) {
         try {
@@ -96,25 +108,25 @@ export default function TurnstileWidget({
         } catch {}
       }
     }
-  }, [siteKey, theme, onSuccess, onError, onExpire])
+  }, [siteKey, theme]) // Dépendance STRICTE : ne se re-rend jamais sur changement de callback !
 
   return (
     <div className={`flex flex-col items-center justify-center my-3 w-full ${className}`}>
-      {/* Conteneur Turnstile officiel */}
+      {/* Conteneur stable et fixe (300px x 65px) pour la case à cocher */}
       <div 
         ref={containerRef} 
-        className="w-[300px] min-h-[65px] flex items-center justify-center"
+        className="w-[300px] h-[65px] min-h-[65px] flex items-center justify-center overflow-hidden"
       />
 
-      {/* Confirmation visuelle de validation */}
+      {/* Confirmation une fois la case cochée */}
       {verified && (
         <div className="flex items-center gap-1.5 text-xs text-emerald-400 mt-1 font-mono">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Vérification de sécurité réussie</span>
+          <span>Vérification humaine confirmée</span>
         </div>
       )}
 
-      {/* Message d'aide en cas d'erreur de chargement */}
+      {/* Alerte si problème de chargement */}
       {errorMessage && !verified && (
         <div className="flex items-center gap-1.5 text-[11px] text-amber-400/90 mt-1.5 font-mono text-center">
           <AlertCircle className="w-3 h-3 text-amber-400 shrink-0" />
