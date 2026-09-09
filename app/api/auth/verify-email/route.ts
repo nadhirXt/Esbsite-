@@ -5,8 +5,14 @@ export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token')
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://esbhub.study'
 
+  const makeRedirect = (params: Record<string, string>) => {
+    const url = new URL('/login', siteUrl)
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v))
+    return NextResponse.redirect(url)
+  }
+
   if (!token) {
-    return NextResponse.redirect(`${siteUrl}/login?error=Lien de vérification invalide.`)
+    return makeRedirect({ error: 'Lien de vérification manquant ou invalide.' })
   }
 
   try {
@@ -18,13 +24,13 @@ export async function GET(req: NextRequest) {
       .single()
 
     if (tokenError || !tokenData) {
-      return NextResponse.redirect(`${siteUrl}/login?error=Le lien de vérification est invalide ou a expiré.`)
+      return makeRedirect({ error: 'Le lien de vérification est invalide ou a déjà été utilisé.' })
     }
 
     // 2. Vérifier l'expiration
     if (new Date(tokenData.expires_at) < new Date()) {
       await supabaseAdmin.from('email_verification_tokens').delete().eq('id', tokenData.id)
-      return NextResponse.redirect(`${siteUrl}/login?error=Le lien de vérification a expiré. Veuillez vous réinscrire.`)
+      return makeRedirect({ error: 'Le lien de vérification a expiré. Veuillez vous réinscrire.' })
     }
 
     // 3. Valider l'utilisateur
@@ -35,17 +41,17 @@ export async function GET(req: NextRequest) {
 
     if (updateError) {
       console.error('Erreur validation utilisateur:', updateError)
-      return NextResponse.redirect(`${siteUrl}/login?error=Impossible de valider le compte.`)
+      return makeRedirect({ error: 'Impossible de valider le compte.' })
     }
 
     // 4. Supprimer le token utilisé
     await supabaseAdmin.from('email_verification_tokens').delete().eq('id', tokenData.id)
 
     // 5. Rediriger vers le login avec succès
-    return NextResponse.redirect(`${siteUrl}/login?verified=true`)
+    return makeRedirect({ verified: 'true' })
 
   } catch (error) {
     console.error('Verify email error:', error)
-    return NextResponse.redirect(`${siteUrl}/login?error=Une erreur est survenue.`)
+    return makeRedirect({ error: 'Une erreur est survenue lors de la vérification.' })
   }
 }

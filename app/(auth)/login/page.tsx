@@ -1,17 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Card, CardBody } from '@/components/ui/Card'
 import { motion, Variants } from 'framer-motion'
 
-export default function LoginPage() {
+function LoginFormContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const verified = searchParams.get('verified') === 'true'
+  const urlError = searchParams.get('error')
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -104,6 +108,36 @@ export default function LoginPage() {
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
           
           <form onSubmit={handleLogin} className="space-y-5 relative z-10" noValidate>
+            {/* Email verified banner */}
+            {verified && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className="flex items-start gap-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 backdrop-blur-md p-3.5 text-xs text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
+              >
+                <CheckCircle className="w-4 h-4 mt-0.5 shrink-0 text-emerald-400" />
+                <div>
+                  <p className="font-bold text-emerald-300">Adresse email confirmée avec succès !</p>
+                  <p className="mt-0.5 text-emerald-200/80">Votre compte ESB Hub est actif. Vous pouvez maintenant vous connecter.</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* URL error banner (e.g. invalid or expired verification token) */}
+            {!error && urlError && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className="flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 backdrop-blur-md p-3.5 text-xs text-amber-200"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 text-amber-400" />
+                <div>
+                  <p className="font-bold text-amber-300">Information de vérification</p>
+                  <p className="mt-0.5 text-amber-200/80">{urlError}</p>
+                </div>
+              </motion.div>
+            )}
+
             {/* Error banner */}
             {error && (
               <motion.div 
@@ -203,3 +237,12 @@ export default function LoginPage() {
     </motion.div>
   )
 }
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="w-full max-w-md mx-auto py-12 text-center text-slate-500 font-mono text-xs">Initialisation du terminal...</div>}>
+      <LoginFormContent />
+    </Suspense>
+  )
+}
+
