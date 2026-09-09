@@ -1,9 +1,23 @@
+import crypto from 'crypto'
+
 /**
- * Cloudflare Turnstile Server-side Token Verification Helper
+ * Cloudflare Turnstile & Native Security Verification Helper
  */
 
 // Clés Turnstile Cloudflare pour esbhub.study
 const PRODUCTION_SECRET_KEY = 'your-turnstile-secret-key-placeholder'
+const HMAC_SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || 'esb-hub-secure-fallback-secret-2026'
+
+// Cache mémoire pour éviter les attaques par rejeu
+const usedTokensCache = new Set<string>()
+
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    if (usedTokensCache.size > 5000) {
+      usedTokensCache.clear()
+    }
+  }, 15 * 60 * 1000)
+}
 
 interface TurnstileVerifyResponse {
   success: boolean
@@ -17,9 +31,45 @@ export async function verifyTurnstileToken(
   remoteIp?: string
 ): Promise<{ success: boolean; error?: string }> {
   if (!token) {
-    return { success: false, error: 'Token CAPTCHA manquant. Veuillez valider le contrôle de sécurité.' }
+    return { success: false, error: 'Veuillez valider le contrôle de sécurité (CAPTCHA).' }
   }
 
+  // ── 1. Validation du jeton natif de secours (Brave / Adblock) ──
+  if (token.startsWith('esb_sec_')) {
+    try {
+      const parts = token.slice('esb_sec_'.length).split('.')
+      if (parts.length !== 2) {
+        return { success: false, error: 'Format de validation de sécurité invalide.' }
+      }
+
+      const [encodedPayload, receivedSig] = parts
+      const payload = Buffer.from(encodedPayload, 'base64url').toString('utf8')
+      const expectedSig = crypto.createHmac('sha256', HMAC_SECRET).update(payload).digest('hex')
+
+      if (receivedSig !== expectedSig) {
+        return { success: false, error: 'Signature de sécurité invalide.' }
+      }
+
+      const [tsStr] = payload.split(':')
+      const ts = parseInt(tsStr, 10)
+
+      if (isNaN(ts) || Date.now() - ts > 10 * 60 * 1000) {
+        return { success: false, error: 'La validation de sécurité a expiré. Veuillez revérifier.' }
+      }
+
+      if (usedTokensCache.has(token)) {
+        return { success: false, error: 'Ce contrôle de sécurité a déjà été utilisé.' }
+      }
+      usedTokensCache.add(token)
+
+      return { success: true }
+    } catch (err) {
+      console.error('Error verifying native token:', err)
+      return { success: false, error: 'Échec de la validation de sécurité.' }
+    }
+  }
+
+  // ── 2. Validation officielle Cloudflare Turnstile ──
   const secretKey = process.env.TURNSTILE_SECRET_KEY || PRODUCTION_SECRET_KEY
 
   try {
