@@ -379,7 +379,7 @@ function ResetPasswordContent() {
             <TurnstileWidget
               onSuccess={(t) => setTurnstileToken(t)}
               onExpire={() => setTurnstileToken('')}
-              onError={() => setError('Erreur de validation CAPTCHA. Rechargez la page.')}
+              onError={(code) => setError(`Contrôle de sécurité Cloudflare : ${code || 'bloqué par le navigateur'}. Désactivez Adblock si actif.`)}
             />
 
             <div className="pt-2">
@@ -388,8 +388,7 @@ function ResetPasswordContent() {
                 variant="cyber-glow"
                 size="lg" 
                 loading={loading} 
-                disabled={!turnstileToken}
-                className="w-full py-3.5 text-sm font-black font-mono tracking-wider cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 text-sm font-black font-mono tracking-wider cursor-pointer"
               >
                 {loading ? 'Envoi en cours...' : 'ENVOYER LE LIEN'}
               </Button>
