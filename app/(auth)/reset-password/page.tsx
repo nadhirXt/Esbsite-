@@ -379,7 +379,6 @@ function ResetPasswordContent() {
             <TurnstileWidget
               onSuccess={(t) => setTurnstileToken(t)}
               onExpire={() => setTurnstileToken('')}
-              onError={(code) => setError(`Contrôle de sécurité Cloudflare : ${code || 'bloqué par le navigateur'}. Désactivez Adblock si actif.`)}
             />
 
             <div className="pt-2">

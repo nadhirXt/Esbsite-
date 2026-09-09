@@ -88,7 +88,7 @@ export default function RootLayout({
         <Script
           id="cf-turnstile-script"
           src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
         />
         {/* Register Service Worker */}
         <Script
