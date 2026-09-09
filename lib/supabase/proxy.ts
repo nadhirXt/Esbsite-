@@ -54,12 +54,6 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse
   }
 
-  const ADMIN_EMAILS = [
-    'benn4dir@gmail.com',
-    'benelhadjbenelhadj@gmail.com',
-    'benelhadjbenelhadj@outlook.com',
-  ]
-
   // Protect admin routes
   if (isAdmin) {
     if (!user) {
@@ -69,32 +63,32 @@ export async function updateSession(request: NextRequest) {
       )
       return redirectResponse
     }
-    const userEmail = (user.email || '').toLowerCase()
-    const isDesignatedAdmin = ADMIN_EMAILS.includes(userEmail)
 
-    if (!isDesignatedAdmin) {
-      // Check admin role in database
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-      
-      if (profile?.role !== 'admin') {
-        const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url))
-        supabaseResponse.cookies.getAll().forEach(c =>
-          redirectResponse.cookies.set(c.name, c.value, c)
-        )
-        return redirectResponse
-      }
+    // Check admin role strictly in database
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    
+    if (profile?.role !== 'admin') {
+      const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url))
+      supabaseResponse.cookies.getAll().forEach(c =>
+        redirectResponse.cookies.set(c.name, c.value, c)
+      )
+      return redirectResponse
     }
   }
 
   // Redirect authenticated users away from auth pages
   if (isAuthPage && user) {
-    const userEmail = (user.email || '').toLowerCase()
-    const isDesignatedAdmin = ADMIN_EMAILS.includes(userEmail)
-    const redirectResponse = NextResponse.redirect(new URL(isDesignatedAdmin ? '/admin' : '/dashboard', request.url))
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const redirectResponse = NextResponse.redirect(new URL(profile?.role === 'admin' ? '/admin' : '/dashboard', request.url))
     supabaseResponse.cookies.getAll().forEach(c =>
       redirectResponse.cookies.set(c.name, c.value, c)
     )

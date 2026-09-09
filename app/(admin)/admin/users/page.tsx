@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Trash2, UserCog, ShieldCheck, Mail, Clock, Search, ShieldAlert, GraduationCap, X } from 'lucide-react'
+import { Trash2, UserCog, ShieldCheck, ShieldAlert, GraduationCap, X, Mail, Clock, Search, Shield, ShieldOff } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 // Utiliser des classes Tailwind natives car on ne sait pas si Card/Button sont exactement compatibles ici
 export default function AdminUsersPage() {
   const router = useRouter()
   const supabase = createClient()
   const [users, setUsers] = useState<any[]>([])
+  const [currentUserId, setCurrentUserId] = useState('')
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
@@ -34,6 +36,7 @@ export default function AdminUsersPage() {
         return
       }
       setSessionToken(session.access_token)
+      setCurrentUserId(session.user.id)
 
       // Vérifier si admin côté client (pour affichage, l'API bloquera quand même)
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single()
@@ -53,6 +56,41 @@ export default function AdminUsersPage() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleToggleAdmin(targetUser: any) {
+    const isPromoting = targetUser.role !== 'admin'
+    const confirmMsg = isPromoting
+      ? `Promouvoir ${targetUser.full_name || targetUser.email} comme Administrateur ?`
+      : `Rétrograder ${targetUser.full_name || targetUser.email} au rôle Étudiant ?`
+    if (!confirm(confirmMsg)) return
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error("Session expirée")
+
+      const newRole = isPromoting ? 'admin' : 'student'
+      const res = await fetch('/api/admin/users/toggle-role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          targetUserId: targetUser.id,
+          newRole
+        })
+      })
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Erreur lors de la modification du rôle')
+      }
+
+      setUsers(users.map(u => u.id === targetUser.id ? { ...u, role: newRole } : u))
+    } catch (err: any) {
+      alert(err.message)
     }
   }
 
@@ -228,15 +266,34 @@ export default function AdminUsersPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {u.role !== 'admin' && (
+                    {u.id !== currentUserId ? (
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => setSelectedUser(u)}
-                          className="p-2 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-500/10 rounded-xl transition-all cursor-pointer"
-                          title={u.is_delegate ? "Modifier/Retirer le rôle Délégué" : "Nommer Délégué"}
+                        {/* Toggle Admin role */}
+                        <button
+                          onClick={() => handleToggleAdmin(u)}
+                          className={cn(
+                            "p-2 rounded-xl transition-all cursor-pointer",
+                            u.role === 'admin'
+                              ? "text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+                              : "text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10"
+                          )}
+                          title={u.role === 'admin' ? "Rétrograder en rôle Étudiant" : "Promouvoir au rôle Administrateur"}
                         >
-                          <UserCog className="w-4 h-4" />
+                          {u.role === 'admin' ? <ShieldOff className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
                         </button>
+
+                        {/* Toggle Delegate (for students) */}
+                        {u.role !== 'admin' && (
+                          <button 
+                            onClick={() => setSelectedUser(u)}
+                            className="p-2 text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-500/10 rounded-xl transition-all cursor-pointer"
+                            title={u.is_delegate ? "Modifier/Retirer le rôle Délégué" : "Nommer Délégué"}
+                          >
+                            <UserCog className="w-4 h-4" />
+                          </button>
+                        )}
+
+                        {/* Delete User */}
                         <button 
                           onClick={() => handleDelete(u.id)}
                           className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all cursor-pointer"
@@ -245,6 +302,10 @@ export default function AdminUsersPage() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
+                    ) : (
+                      <span className="text-[10px] font-mono text-slate-400 dark:text-slate-600 px-2 py-1 bg-slate-100 dark:bg-white/5 rounded-lg">
+                        Vous
+                      </span>
                     )}
                   </td>
                 </tr>

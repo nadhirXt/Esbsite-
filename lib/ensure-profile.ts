@@ -7,20 +7,11 @@ import { SupabaseClient, User } from '@supabase/supabase-js'
  *
  * Returns the profile data or null on hard failure.
  */
-const ADMIN_EMAILS = [
-  'benn4dir@gmail.com',
-  'benelhadjbenelhadj@gmail.com',
-  'benelhadjbenelhadj@outlook.com',
-]
-
 export async function ensureProfile(
   supabase: SupabaseClient,
   user: User
 ) {
   try {
-    const userEmail = (user.email || '').toLowerCase()
-    const isDesignatedAdmin = ADMIN_EMAILS.includes(userEmail)
-
     // 1. Try to fetch existing profile
     const { data: profile, error } = await supabase
       .from('profiles')
@@ -28,21 +19,17 @@ export async function ensureProfile(
       .eq('id', user.id)
       .single()
 
-    // If profile exists, ensure designated admin status if applicable
+    // If profile exists, return it directly (never auto-promote)
     if (profile) {
-      if (isDesignatedAdmin && profile.role !== 'admin') {
-        await supabase.from('profiles').update({ role: 'admin' }).eq('id', user.id)
-        return { ...profile, role: 'admin' }
-      }
       return profile
     }
 
-    // 2. Profile doesn't exist → create it from user metadata
+    // 2. Profile doesn't exist → create it from user metadata (strictly student by default)
     const meta = user.user_metadata || {}
     const fallbackProfile = {
       id: user.id,
       full_name: meta.full_name || user.email?.split('@')[0] || 'Utilisateur',
-      role: isDesignatedAdmin ? 'admin' : 'student',
+      role: 'student',
       user_type: meta.user_type || null,
       cycle: meta.cycle || null,
       institution_name: meta.institution_name

@@ -57,7 +57,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Delete the user
+    // 1. Explicitly clean up all user tokens and profile to avoid orphaned records
+    await supabaseAdmin.from('email_verification_tokens').delete().eq('user_id', targetUserId)
+    await supabaseAdmin.from('password_reset_tokens').delete().eq('user_id', targetUserId)
+    await supabaseAdmin.from('profiles').delete().eq('id', targetUserId)
+
+    // 2. Delete the user in auth.users
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId)
     if (deleteError) throw deleteError
 
