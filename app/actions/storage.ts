@@ -115,6 +115,87 @@ export async function getPresignedUploadUrl(filePath: string, contentType: strin
   }
 }
 
+export interface BatchUploadRequestItem {
+  id: string
+  filePath: string
+  contentType: string
+}
+
+export interface BatchUploadResultItem {
+  id: string
+  url: string | null
+  error: string | null
+}
+
+/**
+ * Génère un lot d'URLs présignées en parallèle pour accélérer drastiquement l'upload
+ */
+export async function getPresignedUploadUrlsBatch(
+  items: BatchUploadRequestItem[]
+): Promise<{ results: BatchUploadResultItem[]; error: string | null }> {
+  try {
+    const { user, profile, isAdmin, isDelegate } = await getAuthContext()
+    if (!user || (!isAdmin && !isDelegate)) {
+      return { results: [], error: 'Non autorisé à uploader des fichiers' }
+    }
+
+    const allowedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.jpg', '.jpeg', '.png', '.webp']
+    const allowedMimeTypes = [
+      'application/pdf', 'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'image/jpeg', 'image/png', 'image/webp'
+    ]
+
+    const expectedDelegatePrefix = (!isAdmin && isDelegate)
+      ? `${profile?.delegate_cycle}/A${profile?.delegate_year}/`
+      : null
+
+    const results = await Promise.all(
+      items.map(async (item): Promise<BatchUploadResultItem> => {
+        try {
+          const safeKey = sanitizeS3Key(item.filePath)
+          if (!safeKey || safeKey === '.keep') {
+            return { id: item.id, url: null, error: 'Chemin de fichier invalide' }
+          }
+
+          if (expectedDelegatePrefix && !safeKey.startsWith(expectedDelegatePrefix)) {
+            return { id: item.id, url: null, error: 'Vous ne pouvez uploader que dans votre cycle/année' }
+          }
+
+          const ext = '.' + safeKey.split('.').pop()?.toLowerCase()
+          if (!allowedExtensions.includes(ext)) {
+            return { id: item.id, url: null, error: 'Type de fichier non autorisé' }
+          }
+
+          if (!allowedMimeTypes.includes(item.contentType)) {
+            return { id: item.id, url: null, error: 'Type MIME non autorisé' }
+          }
+
+          const command = new PutObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: safeKey,
+            ContentType: item.contentType || 'application/octet-stream',
+          })
+
+          const signedUrl = await getSignedUrl(b2, command, { expiresIn: 3600 })
+          return { id: item.id, url: signedUrl, error: null }
+        } catch (itemErr: any) {
+          return { id: item.id, url: null, error: itemErr.message || 'Erreur lors de la génération du lien' }
+        }
+      })
+    )
+
+    return { results, error: null }
+  } catch (error: any) {
+    console.error('Error in getPresignedUploadUrlsBatch:', error)
+    return { results: [], error: "Erreur lors de la génération du lot d'URLs" }
+  }
+}
+
 /**
  * Génère une URL présignée pour le téléchargement / la visualisation
  */

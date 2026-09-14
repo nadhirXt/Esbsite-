@@ -19,6 +19,10 @@ import {
 } from '@/app/actions/storage'
 import MoveDocumentModal from '@/components/admin/MoveDocumentModal'
 import FileConflictModal, { ConflictResolution } from '@/components/admin/FileConflictModal'
+import SmartUploadModal from '@/components/drive/SmartUploadModal'
+import UploadProgressDrawer, { ActiveUploadItem } from '@/components/drive/UploadProgressDrawer'
+import { prepareSmartFiles, SmartFileItem } from '@/lib/upload/smart-upload'
+import { executeParallelUpload } from '@/lib/upload/upload-runner'
 
 interface ClipboardItem {
   type: 'file' | 'folder' | 'batch'
@@ -94,13 +98,16 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+  const [stagingFiles, setStagingFiles] = useState<SmartFileItem[]>([])
+  const [isSmartModalOpen, setIsSmartModalOpen] = useState(false)
+  const [activeUploads, setActiveUploads] = useState<ActiveUploadItem[]>([])
+  const [isProgressDrawerOpen, setIsProgressDrawerOpen] = useState(false)
 
   const supabase = createClient()
 
   // Prevent navigation when uploading
   useEffect(() => {
-    const isUploading = Object.keys(uploadProgress).length > 0
+    const isUploading = activeUploads.some(i => i.status === 'uploading' || i.status === 'queued')
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isUploading) {
         e.preventDefault()
@@ -109,7 +116,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
     }
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [uploadProgress])
+  }, [activeUploads])
 
   // Click outside to close context menu
   useEffect(() => {
@@ -693,93 +700,83 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
   }
 
 
-  async function handleFilesUpload(files: FileList | File[] | any[]) {
+  function handleFilesUpload(files: FileList | File[] | any[]) {
+    const rawList = Array.from(files)
+    if (rawList.length === 0) return
 
-    if (files.length === 0) return
+    const prepared = prepareSmartFiles(rawList, documents, {
+      cycle,
+      year,
+      baseCategory: currentPathString || 'Général'
+    })
+
+    setStagingFiles(prepared)
+    setIsSmartModalOpen(true)
+  }
+
+  const handleUpdateStagingItem = (id: string, updates: Partial<SmartFileItem>) => {
+    setStagingFiles(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item))
+  }
+
+  const handleRemoveStagingItem = (id: string) => {
+    setStagingFiles(prev => prev.filter(item => item.id !== id))
+  }
+
+  const startSmartUpload = async (itemsToUpload: SmartFileItem[]) => {
+    setIsSmartModalOpen(false)
+
+    const newActiveItems: ActiveUploadItem[] = itemsToUpload.map(item => ({
+      id: item.id,
+      title: item.conflictAction === 'rename' && item.isConflict ? item.suggestedNewTitle : item.cleanTitle,
+      originalName: item.originalName,
+      sizeFormatted: item.sizeFormatted,
+      progress: 0,
+      status: 'queued'
+    }))
+
+    setActiveUploads(prev => [...newActiveItems, ...prev])
+    setIsProgressDrawerOpen(true)
     setUploading(true)
-    const baseCategory = currentPathString || 'Général'
 
-    const newDocs: Document[] = []
-    
-    for (const file of Array.from(files) as any[]) {
-      const fileId = `${file.name}-${Date.now()}`
-      setUploadProgress(prev => ({ ...prev, [fileId]: 0 }))
-
-      let relativeCat = ''
-      const pathStr = file.customPath || file.webkitRelativePath || ''
-      if (pathStr) {
-        const parts = pathStr.split('/')
-        parts.pop() // remove filename
-        if (parts.length > 0) {
-          relativeCat = parts.join('/')
-        }
-      }
-      
-      const category = relativeCat 
-        ? (baseCategory === 'Général' ? relativeCat : `${baseCategory}/${relativeCat}`)
-        : baseCategory
-
-      const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_')
-      const path = isNoYearCycle ? `${cycle}/${Date.now()}_${safeFileName}` : `${cycle}/A${year}/${Date.now()}_${safeFileName}`
-      const fileTitle = file.name.replace(/\.[^.]+$/, '')
-      
-      const { url, error: urlError } = await getPresignedUploadUrl(path, file.type || 'application/octet-stream')
-
-      // Upload main file
-      if (!urlError && url) {
-        try {
-          const success = await new Promise<boolean>((resolve) => {
-            const xhr = new XMLHttpRequest()
-            xhr.open('PUT', url, true)
-            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
-            
-            xhr.upload.onprogress = (e) => {
-              if (e.lengthComputable) {
-                const percent = Math.round((e.loaded / e.total) * 100)
-                setUploadProgress(prev => ({ ...prev, [fileId]: percent }))
-              }
+    await executeParallelUpload(
+      itemsToUpload,
+      {
+        cycle,
+        year,
+        isNoYearCycle
+      },
+      {
+        onItemProgress: (id, percent) => {
+          setActiveUploads(prev => prev.map(item =>
+            item.id === id ? { ...item, progress: percent } : item
+          ))
+        },
+        onItemStatus: (id, status, errorMsg) => {
+          setActiveUploads(prev => prev.map(item =>
+            item.id === id ? { ...item, status, errorMsg } : item
+          ))
+        },
+        onItemSuccess: (savedDoc) => {
+          setDocuments(prev => {
+            const exists = prev.some(d => d.id === savedDoc.id)
+            if (exists) {
+              return prev.map(d => d.id === savedDoc.id ? savedDoc : d)
             }
-
-            xhr.onload = () => {
-              if (xhr.status >= 200 && xhr.status < 300) {
-                resolve(true)
-              } else {
-                console.error("Upload error text:", xhr.responseText)
-                resolve(false)
-              }
-            }
-
-            xhr.onerror = () => {
-              console.error("Upload xhr error")
-              resolve(false)
-            }
-
-            xhr.send(file)
+            return [savedDoc, ...prev]
           })
-
-          if (success) {
-            const insertData: any = { title: fileTitle, file_path: path, cycle, category }
-            if (!isNoYearCycle) insertData.year = year
-            const { data, error: dbError } = await supabase.from('documents').insert(insertData).select().single()
-            
-            if (data) newDocs.push(data)
-          } else {
-            console.error("Upload error text:", "Upload failed")
-            alert(`Erreur d'upload. Vérifiez vos CORS.`)
-          }
-        } catch (err: any) {
-          console.error("Upload fetch error", err)
+        },
+        onComplete: () => {
+          setUploading(false)
         }
       }
-      
-      setUploadProgress(prev => {
-        const next = { ...prev }
-        delete next[fileId]
-        return next
-      })
+    )
+  }
+
+  const handleRetryUpload = (id: string) => {
+    const originalItem = stagingFiles.find(i => i.id === id)
+    if (originalItem) {
+      startSmartUpload([originalItem])
     }
-    setDocuments(prev => [...newDocs, ...prev])
-    setUploading(false)
   }
 
   // Drag and drop handlers
@@ -1462,28 +1459,28 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
         </div>
       )}
 
-      {/* Global Upload Progress Toast */}
-      {Object.keys(uploadProgress).length > 0 && (
-        <div className="fixed bottom-6 right-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-2xl z-50 w-80 animate-slide-up">
-          <h3 className="font-bold text-sm mb-4 text-slate-900 dark:text-white flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-            Uploads en cours...
-          </h3>
-          <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
-            {Object.entries(uploadProgress).map(([id, progress]) => (
-              <div key={id}>
-                <div className="flex justify-between text-xs mb-1.5 font-medium text-slate-600 dark:text-slate-300">
-                  <span className="truncate w-56" title={id.split('-').slice(0, -1).join('-')}>{id.split('-').slice(0, -1).join('-')}</span>
-                  <span>{progress}%</span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-blue-600 h-1.5 rounded-full transition-all duration-300 ease-out" style={{ width: `${progress}%` }}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Smart Upload Staging Modal */}
+      <SmartUploadModal
+        isOpen={isSmartModalOpen}
+        onClose={() => setIsSmartModalOpen(false)}
+        items={stagingFiles}
+        onUpdateItem={handleUpdateStagingItem}
+        onRemoveItem={handleRemoveStagingItem}
+        onStartUpload={startSmartUpload}
+        targetLocation={{
+          cycle,
+          year,
+          category: currentPathString || 'Général'
+        }}
+      />
+
+      {/* Floating Upload Progress Drawer */}
+      <UploadProgressDrawer
+        isOpen={isProgressDrawerOpen}
+        items={activeUploads}
+        onRetryItem={handleRetryUpload}
+        onClose={() => setIsProgressDrawerOpen(false)}
+      />
 
     </div>
   )
