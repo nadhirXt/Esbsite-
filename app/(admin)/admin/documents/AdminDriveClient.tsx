@@ -878,8 +878,8 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
             </div>
             Explorateur Documentaire <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 font-mono text-xl uppercase tracking-wider">(Drive)</span>
           </h1>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap gap-2.5 p-1.5 bg-white/40 dark:bg-[#070D19]/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-2xl w-fit">
+          <div className="flex flex-col gap-3 w-full">
+            <div className="flex items-center gap-2 p-1.5 bg-white/40 dark:bg-[#070D19]/60 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 rounded-2xl max-w-full overflow-x-auto no-scrollbar scroll-smooth">
               {Object.entries(CYCLES).map(([cValue, cData]) => (
                 <button
                   key={cValue}
@@ -891,7 +891,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
                     setSearchQuery(''); 
                   }}
                   className={cn(
-                    "px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer",
+                    "whitespace-nowrap shrink-0 px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer flex items-center justify-center",
                     cycle === cValue 
                       ? "bg-amber-500 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.35)]" 
                       : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
@@ -902,13 +902,13 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
               ))}
             </div>
             {!isNoYearCycle && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar scroll-smooth">
                 {availableYears.map((y) => (
                   <button
                     key={y}
                     onClick={() => { setYear(y); setCurrentPath([]); setSearchQuery('') }}
                     className={cn(
-                      "px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all duration-300 cursor-pointer",
+                      "whitespace-nowrap shrink-0 px-3.5 py-2 min-h-[38px] rounded-xl border text-xs font-mono font-bold transition-all duration-300 cursor-pointer flex items-center justify-center",
                       year === y 
                         ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.2)]" 
                         : "bg-white/40 dark:bg-[#070D19]/40 border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5"

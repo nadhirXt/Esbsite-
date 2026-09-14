@@ -26,10 +26,10 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#030712] relative flex flex-col md:flex-row text-slate-900 dark:text-slate-100">
-      {/* Ambient background cyber grid & glow orbs */}
+      {/* Ambient background cyber grid & glow orbs (optimisé: désactivé sur mobile pour un scroll 60/120 FPS fluide) */}
       <div className="fixed inset-0 cyber-grid-pattern opacity-15 pointer-events-none z-0" />
-      <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-cyan-500/10 dark:bg-cyan-500/10 rounded-full blur-[140px] -translate-x-1/2 -translate-y-1/4 pointer-events-none z-0" />
-      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[140px] translate-x-1/3 translate-y-1/3 pointer-events-none z-0" />
+      <div className="hidden md:block fixed top-0 left-0 w-[500px] h-[500px] bg-cyan-500/10 dark:bg-cyan-500/10 rounded-full blur-[140px] -translate-x-1/2 -translate-y-1/4 pointer-events-none z-0" />
+      <div className="hidden md:block fixed bottom-0 right-0 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[140px] translate-x-1/3 translate-y-1/3 pointer-events-none z-0" />
       
       <div className="relative z-10 flex flex-col md:flex-row w-full min-h-screen md:h-screen md:overflow-hidden">
         <RealtimeNotifications userCycle={profile?.cycle} userRole={profile?.role} />
@@ -73,7 +73,7 @@ export default async function DashboardLayout({
           </div>
 
           {/* Main content scroll area with cyber scrollbar */}
-          <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 lg:p-10 pb-28 md:pb-10 overflow-y-auto cyber-scrollbar">
+          <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 lg:p-10 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-10 overflow-y-auto cyber-scrollbar">
             {children}
           </main>
         </div>

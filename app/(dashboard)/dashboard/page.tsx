@@ -18,36 +18,38 @@ export default async function DashboardPage() {
 
   const profile = await ensureProfile(supabase, user!)
 
-  // Fetch recent documents for "Popular" section
-  const { data: recentDocs } = await supabase
-    .from('documents')
-    .select('*')
-    .neq('title', '.keep')
-    .order('created_at', { ascending: false })
-    .limit(6)
-
-  // Fetch stats for the dashboard
+  // Fetch stats & documents en parallèle (élimination du waterfall réseau)
   const userCycle = profile?.cycle || 'licence'
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  const { count: totalDocs } = await supabase
-    .from('documents')
-    .select('*', { count: 'exact', head: true })
-    .eq('cycle', userCycle)
-    .neq('title', '.keep')
+  const [recentDocsRes, totalDocsRes, coursesRes, recentCountRes] = await Promise.all([
+    supabase
+      .from('documents')
+      .select('*')
+      .neq('title', '.keep')
+      .order('created_at', { ascending: false })
+      .limit(6),
+    supabase
+      .from('documents')
+      .select('*', { count: 'exact', head: true })
+      .eq('cycle', userCycle)
+      .neq('title', '.keep'),
+    supabase
+      .from('documents')
+      .select('category')
+      .eq('cycle', userCycle)
+      .neq('title', '.keep'),
+    supabase
+      .from('documents')
+      .select('*', { count: 'exact', head: true })
+      .neq('title', '.keep')
+      .gte('created_at', weekAgo)
+  ])
 
-  const { data: coursesData } = await supabase
-    .from('documents')
-    .select('category')
-    .eq('cycle', userCycle)
-    .neq('title', '.keep')
-
-  const uniqueCourses = new Set(coursesData?.map(d => d.category) || []).size
-
-  const { count: recentCount } = await supabase
-    .from('documents')
-    .select('*', { count: 'exact', head: true })
-    .neq('title', '.keep')
-    .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+  const recentDocs = recentDocsRes.data || []
+  const totalDocs = totalDocsRes.count || 0
+  const uniqueCourses = new Set(coursesRes.data?.map(d => d.category) || []).size
+  const recentCount = recentCountRes.count || 0
 
 
 

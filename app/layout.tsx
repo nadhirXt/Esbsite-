@@ -84,11 +84,11 @@ export default function RootLayout({
           {children}
         </ThemeProvider>
         <Toaster richColors position="bottom-right" />
-        {/* Cloudflare Turnstile Script */}
+        {/* Cloudflare Turnstile Script (chargé en lazyOnload pour débloquer le rendu FCP) */}
         <Script
           id="cf-turnstile-script"
           src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-          strategy="beforeInteractive"
+          strategy="lazyOnload"
         />
         {/* Register Service Worker */}
         <Script

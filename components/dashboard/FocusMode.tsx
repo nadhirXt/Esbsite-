@@ -295,7 +295,7 @@ export function FocusLauncher() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-20 right-6 z-[99] px-4 py-3 rounded-2xl bg-emerald-600 text-white shadow-xl flex items-center gap-2"
+            className="fixed bottom-36 md:bottom-24 right-4 md:right-6 z-[99] px-4 py-3 rounded-2xl bg-emerald-600 text-white shadow-xl flex items-center gap-2"
           >
             <Sparkles className="w-4 h-4 text-amber-300" />
             <span className="text-sm font-medium">{justCompleted}</span>
@@ -303,17 +303,17 @@ export function FocusLauncher() {
         )}
       </AnimatePresence>
 
-      {/* Launcher button */}
+      {/* Launcher button (déplacé au-dessus de la BottomNav sur mobile) */}
       <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
         onClick={() => setOpen(o => !o)}
-        className="fixed bottom-5 right-5 z-[60] w-14 h-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-2xl shadow-blue-600/30 flex items-center justify-center"
+        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-[60] w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-600/30 flex items-center justify-center border border-white/20"
         title="Mode Focus (Ctrl+Shift+F)"
       >
-        {open ? <X className="w-6 h-6" /> : <Timer className="w-6 h-6" />}
+        {open ? <X className="w-5 h-5 md:w-6 md:h-6" /> : <Timer className="w-5 h-5 md:w-6 md:h-6" />}
       </motion.button>
     </>
   )

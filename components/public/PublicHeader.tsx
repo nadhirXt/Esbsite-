@@ -65,6 +65,18 @@ export default function PublicHeader() {
     }
   }, [])
 
+  // Verrouillage du scroll en arrière-plan quand le menu mobile est ouvert
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [menuOpen])
+
   const isScrolledOrDark = scrolled || resolvedTheme === 'dark'
 
 
@@ -73,7 +85,7 @@ export default function PublicHeader() {
       {/* ── TOP INSTITUTIONAL BAR (TELEMETRY) ─────────── */}
       <div 
         className={cn(
-          "w-full text-[11px] font-medium transition-all duration-300 border-b overflow-hidden",
+          "hidden sm:block w-full text-[11px] font-medium transition-all duration-300 border-b overflow-hidden",
           scrolled 
             ? "max-h-0 opacity-0 py-0 border-transparent pointer-events-none" 
             : "max-h-10 opacity-100 py-1.5 bg-[#030712]/95 text-slate-300 border-white/10 backdrop-blur-xl"

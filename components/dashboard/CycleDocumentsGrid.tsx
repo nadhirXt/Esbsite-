@@ -102,22 +102,22 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
         </Link>
 
         {selectedYear !== null ? (
-          <div className="mb-4 flex items-center flex-wrap gap-2 text-sm">
+          <div className="mb-4 flex items-center gap-2 text-xs sm:text-sm max-w-full overflow-x-auto no-scrollbar py-1 scroll-smooth">
             {!isNoYearCycle && (
               <>
                 <button
                   onClick={() => { setSelectedYear(null); setCurrentPath([]) }}
-                  className="text-[#64748B] hover:text-[#1E3A8A] transition-colors flex items-center gap-1 font-medium"
+                  className="whitespace-nowrap shrink-0 text-[#64748B] hover:text-[#1E3A8A] transition-colors flex items-center gap-1 font-medium min-h-[36px]"
                 >
                   <ArrowLeft className="w-4 h-4 mr-1" />
                   Racine du Cycle
                 </button>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <ChevronRight className="w-4 h-4 text-[#CBD5E1]" />
                   <button
                     onClick={() => setCurrentPath([])}
                     className={cn(
-                      "transition-colors font-medium",
+                      "whitespace-nowrap transition-colors font-medium min-h-[36px]",
                       currentPath.length === 0 ? "text-[#0F172A] dark:text-white" : "text-[#64748B] hover:text-[#1E3A8A] dark:hover:text-blue-400"
                     )}
                   >
@@ -129,19 +129,19 @@ export default function CycleDocumentsClient({ cycle, cycleLabel, documents, fav
             {isNoYearCycle && currentPath.length > 0 && (
               <button
                 onClick={() => setCurrentPath([])}
-                className="text-[#64748B] dark:text-slate-400 hover:text-[#1E3A8A] dark:hover:text-blue-400 transition-colors flex items-center gap-1 font-medium"
+                className="whitespace-nowrap shrink-0 text-[#64748B] dark:text-slate-400 hover:text-[#1E3A8A] dark:hover:text-blue-400 transition-colors flex items-center gap-1 font-medium min-h-[36px]"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Dossier Principal
               </button>
             )}
             {currentPath.map((crumb, index) => (
-              <div key={index} className="flex items-center gap-2">
+              <div key={index} className="flex items-center gap-2 shrink-0">
                 <ChevronRight className="w-4 h-4 text-[#CBD5E1] dark:text-slate-600" />
                 <button
                   onClick={() => navigateToCrumb(index)}
                   className={cn(
-                    "transition-colors font-medium",
+                    "whitespace-nowrap transition-colors font-medium min-h-[36px]",
                     index === currentPath.length - 1 ? "text-[#0F172A] dark:text-white" : "text-[#64748B] dark:text-slate-400 hover:text-[#1E3A8A] dark:hover:text-blue-400"
                   )}
                 >
