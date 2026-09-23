@@ -259,4 +259,6 @@ export default function AdminActualitesPage() {
       </div>
     )}
   </>
+  )
 }
+
