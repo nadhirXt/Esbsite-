@@ -59,10 +59,10 @@ export default function GlobalSearch() {
         const { data: ftsData } = await supabase.rpc('search_documents', { p_query: query, p_cycle: null, p_year: null, p_limit: 8 })
         let docs: Result[] = []
         if (ftsData && ftsData.length > 0) {
-          docs = ftsData.map((d: any) => ({ type: 'doc' as const, id: d.id, title: d.title, subtitle: `${CYCLES[d.cycle as keyof typeof CYCLES]?.label || d.cycle}${d.year ? ` · Année ${d.year}` : ''}${d.category && d.category !== 'Général' ? ` · ${d.category}` : ''}`, url: `/dashboard/${d.cycle}`, icon: File }))
+          docs = ftsData.map((d: any) => ({ type: 'doc' as const, id: d.id, title: d.title, subtitle: `${CYCLES[d.cycle as keyof typeof CYCLES]?.label || d.cycle}${d.year ? ` · Année ${d.year}` : ''}${d.category && d.category !== 'Général' ? ` · ${d.category}` : ''}`, url: `/assets/documents/${d.id}`, icon: File }))
         } else {
           const { data } = await supabase.from('documents').select('id,title,cycle,year,category').ilike('title', `%${q}%`).neq('title', '.keep').limit(8)
-          docs = (data || []).map((d: any) => ({ type: 'doc' as const, id: d.id, title: d.title, subtitle: `${CYCLES[d.cycle as keyof typeof CYCLES]?.label || d.cycle}${d.year ? ` · Année ${d.year}` : ''}`, url: `/dashboard/${d.cycle}`, icon: File }))
+          docs = (data || []).map((d: any) => ({ type: 'doc' as const, id: d.id, title: d.title, subtitle: `${CYCLES[d.cycle as keyof typeof CYCLES]?.label || d.cycle}${d.year ? ` · Année ${d.year}` : ''}`, url: `/assets/documents/${d.id}`, icon: File }))
         }
         setResults([...matchedPages, ...docs]); setActiveIndex(0)
       } catch { setResults(matchedPages) } finally { setLoading(false) }

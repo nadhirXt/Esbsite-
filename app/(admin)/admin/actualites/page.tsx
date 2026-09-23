@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Megaphone, Plus, Pin, Trash2, Loader2, Info, AlertTriangle, CheckCircle, Zap } from 'lucide-react'
+import { Megaphone, Plus, Pin, Trash2, Loader2, Info, AlertTriangle, CheckCircle, Zap, X } from 'lucide-react'
 
 const TYPES = [
   { value: 'info',    label: 'Information', icon: Info,          color: 'text-blue-600' },
@@ -22,6 +22,8 @@ export default function AdminActualitesPage() {
 
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [loadingList, setLoadingList] = useState(true)
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchAnnouncements()
@@ -36,9 +38,12 @@ export default function AdminActualitesPage() {
   }
 
   async function deleteAnnouncement(id: string) {
-    if (!confirm('Voulez-vous vraiment supprimer cette annonce ?')) return
+    if (!confirmDelete) return
+    setDeleting(true)
     const supabase = createClient()
     await supabase.from('announcements').delete().eq('id', id)
+    setConfirmDelete(null)
+    setDeleting(false)
     fetchAnnouncements()
   }
 
@@ -63,6 +68,7 @@ export default function AdminActualitesPage() {
   }
 
   return (
+    <>
     <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
       <div className="lg:col-span-6 space-y-6">
         <div>
@@ -202,9 +208,9 @@ export default function AdminActualitesPage() {
                     </div>
                   </div>
                   <button 
-                    onClick={() => deleteAnnouncement(ann.id)}
-                    className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer"
-                    title="Supprimer"
+                    onClick={() => setConfirmDelete({ id: ann.id, title: ann.title })}
+                    className="absolute top-4 right-4 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer"
+                    title="Supprimer cette annonce"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -215,5 +221,42 @@ export default function AdminActualitesPage() {
         </div>
       </div>
     </div>
-  )
+
+    {/* Confirmation Modal */}
+    {confirmDelete && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="w-full max-w-sm bg-white dark:bg-[#0F172A] rounded-2xl border border-red-500/30 shadow-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-red-500">
+              <Trash2 className="w-5 h-5" />
+              <h3 className="font-bold text-sm">Supprimer l&apos;annonce ?</h3>
+            </div>
+            <button onClick={() => setConfirmDelete(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/5 rounded-xl px-3 py-2 font-medium border border-slate-200 dark:border-white/10">
+            &ldquo;{confirmDelete.title}&rdquo;
+          </p>
+          <p className="text-xs text-slate-400">Cette action est irréversible. L&apos;annonce sera définitivement supprimée.</p>
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => setConfirmDelete(null)}
+              className="flex-1 py-2 text-xs font-mono font-bold rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              ANNULER
+            </button>
+            <button
+              onClick={() => deleteAnnouncement(confirmDelete.id)}
+              disabled={deleting}
+              className="flex-1 py-2 text-xs font-mono font-bold rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+              SUPPRIMER
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
 }

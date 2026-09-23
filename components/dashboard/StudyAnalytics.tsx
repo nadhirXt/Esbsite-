@@ -100,7 +100,8 @@ export default function StudyAnalytics() {
               className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-mono font-bold text-xs sm:text-sm shadow-[0_0_20px_rgba(56,189,248,0.3)] hover:shadow-[0_0_30px_rgba(56,189,248,0.5)] transition-all transform hover:-translate-y-0.5 shrink-0 cursor-pointer"
             >
               <Play className="w-4 h-4 fill-current text-white" />
-              <span>DÉMARRER UN POMODORO</span>
+              <span className="hidden sm:inline">DÉMARRER UN POMODORO</span>
+              <span className="sm:hidden">POMODORO</span>
             </button>
           </div>
         </div>

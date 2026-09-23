@@ -69,6 +69,18 @@ export default function FocusMode({
     setModule('')
   }, [])
 
+  // Save partial session if ≥1 min elapsed, then close
+  const handleClose = useCallback(() => {
+    const totalSec = mode === 'focus' ? FOCUS_DURATION : BREAK_DURATION
+    const elapsedSec = totalSec - seconds
+    const elapsedMin = Math.floor(elapsedSec / 60)
+    if (isRunning && elapsedMin >= 1) {
+      addLocalFocusSession(elapsedMin, mode === 'focus' ? module || 'Général' : 'Pause')
+      onComplete?.(elapsedMin, mode === 'focus' ? module || 'Général' : 'Pause')
+    }
+    onClose?.()
+  }, [isRunning, mode, seconds, module, onComplete, onClose])
+
   const stats = getLocalFocusStats()
 
   const formatTime = (s: number) => {
@@ -87,13 +99,13 @@ export default function FocusMode({
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       className="fixed inset-0 z-[100] backdrop-blur-md bg-slate-900/60 dark:bg-black/70 flex items-center justify-center p-4"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <motion.div
         initial={{ y: 20 }}
         animate={{ y: 0 }}
         onClick={e => e.stopPropagation()}
-        className="w-full max-w-md rounded-3xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-2xl p-6 relative overflow-hidden"
+        className="w-full max-w-md rounded-3xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-2xl p-4 sm:p-6 relative overflow-hidden"
       >
         {/* Decorative gradient */}
         <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-blue-500/20 dark:bg-blue-600/20 blur-3xl pointer-events-none" />
@@ -113,7 +125,7 @@ export default function FocusMode({
               </h2>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
             >
               <X className="w-4 h-4" />
@@ -121,7 +133,7 @@ export default function FocusMode({
           </div>
 
           {/* Timer Circle */}
-          <div className="relative mx-auto mb-6 w-44 h-44">
+          <div className="relative mx-auto mb-4 sm:mb-6 w-36 h-36 sm:w-44 sm:h-44">
             {/* Progress ring */}
             <svg className="w-full h-full rotate-90" viewBox="0 0 176 176">
               <circle
