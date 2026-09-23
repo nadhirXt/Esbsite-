@@ -56,12 +56,7 @@ export default async function DashboardLayout({
               <span className="text-slate-300 dark:text-slate-700">•</span>
               <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">Direction Générale de la Banque d&apos;Algérie</span>
             </div>
-
             <div className="flex items-center gap-4 font-mono">
-              <div className="hidden lg:flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold tracking-wider">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                COCKPIT ENCLAVE V2.4
-              </div>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[10px] border border-emerald-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Session 2026–2027
