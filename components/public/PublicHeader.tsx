@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils'
 import Button from '@/components/ui/Button'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import { Logo } from '@/components/ui/Logo'
 import { useTheme } from '@/components/ui/ThemeProvider'
 import { createClient } from '@/lib/supabase/client'
 
@@ -126,23 +127,12 @@ export default function PublicHeader() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 group transition-transform duration-200 hover:scale-[1.02]"
-          >
-            <GraduationCap className="w-6 h-6 text-amber-500 shrink-0 transition-transform group-hover:-rotate-6" />
-            <div className="flex items-center">
-              <span className={cn(
-                'font-black text-xl tracking-tight transition-colors',
-                isScrolledOrDark ? 'text-slate-950 dark:text-white' : 'text-white'
-              )}>
-                ESB
-              </span>
-              <span className="font-bold text-xl text-sky-400 ml-1">
-                Hub
-              </span>
-            </div>
-          </Link>
+          <Logo 
+            esbTextClassName={cn(
+              'transition-colors',
+              isScrolledOrDark ? 'text-slate-950 dark:text-white' : 'text-white'
+            )}
+          />
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1 p-1 rounded-2xl bg-slate-100/60 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 backdrop-blur-md">

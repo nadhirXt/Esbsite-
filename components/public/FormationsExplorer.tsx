@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+import Tilt from 'react-parallax-tilt'
 import { 
   GraduationCap, Clock, Award, BookOpen, CheckCircle2, 
   ArrowRight, Briefcase, Sparkles, ChevronRight, Layers
@@ -186,12 +187,15 @@ export default function FormationsExplorer() {
       <AnimatePresence mode="wait">
         <motion.div
           key={current.id}
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.3 }}
-          className="bg-white/90 dark:bg-[#070D19]/90 rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl backdrop-blur-2xl overflow-hidden relative"
+          initial={{ opacity: 0, y: 40, rotateX: -20, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -40, rotateX: 20, scale: 0.9 }}
+          transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
+          style={{ transformPerspective: 1500 }}
+          className="preserve-3d w-full z-10"
         >
+          <Tilt tiltMaxAngleX={12} tiltMaxAngleY={12} perspective={1500} transitionSpeed={1000} scale={1.03} glareEnable={true} glareMaxOpacity={0.2} glareColor={current.accentColor} glarePosition="all" className="preserve-3d w-full" suppressHydrationWarning>
+            <div className="bg-white/90 dark:bg-[#070D19]/90 rounded-3xl border border-slate-200 dark:border-white/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] backdrop-blur-2xl relative preserve-3d [transform:translateZ(40px)]">
           {/* Top laser strip */}
           <div 
             className="h-1.5 w-full bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
@@ -307,7 +311,9 @@ export default function FormationsExplorer() {
               </div>
 
             </div>
-          </div>
+            </div>
+            </div>
+          </Tilt>
         </motion.div>
       </AnimatePresence>
     </div>

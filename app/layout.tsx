@@ -62,9 +62,9 @@ export default function RootLayout({
     <html lang="fr" className={inter.variable} suppressHydrationWarning>
       <head>
         {/* Prevent FOUC: apply dark class before React hydrates */}
-        <Script
+        <script
           id="theme-script"
-          strategy="beforeInteractive"
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

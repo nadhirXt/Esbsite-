@@ -117,11 +117,14 @@ export async function handleDocumentStream(
     const safeTitle = (doc.title?.trim() || doc.file_path.split('/').pop() || 'document')
       .replace(/[/\\?%*:|"<>]/g, '_')
     const fullFilename = safeTitle.toLowerCase().endsWith(`.${ext}`) ? safeTitle : `${safeTitle}.${ext}`
+    
+    // Pour éviter TypeError: Invalid character in header content
+    const asciiFilename = fullFilename.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "_")
     const encodedFilename = encodeURIComponent(fullFilename)
 
     headers.set(
       'Content-Disposition',
-      `${isDownload ? 'attachment' : 'inline'}; filename="${fullFilename.replace(/"/g, '')}"; filename*=UTF-8''${encodedFilename}`
+      `${isDownload ? 'attachment' : 'inline'}; filename="${asciiFilename.replace(/"/g, '')}"; filename*=UTF-8''${encodedFilename}`
     )
 
     // En-têtes de sécurité et compatibilité mobile

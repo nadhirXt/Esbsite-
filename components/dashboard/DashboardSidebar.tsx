@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn, CYCLES } from '@/lib/utils'
+import { Logo } from '@/components/ui/Logo'
 import { getUserBadges } from '@/lib/badges'
 import BadgeList from '@/components/ui/BadgeList'
 import ThemeToggle from '@/components/ui/ThemeToggle'
@@ -127,13 +128,10 @@ export default function DashboardSidebar({ user }: SidebarProps) {
 
         {/* Logo (Desktop) */}
         <div className="hidden md:flex items-center justify-between px-5 py-5 border-b border-slate-200 dark:border-white/10">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <GraduationCap className="w-6 h-6 text-amber-500 shrink-0 transition-transform group-hover:-rotate-6" />
-            <div className="flex items-center">
-              <span className="font-black text-lg tracking-tight text-slate-900 dark:text-white">ESB</span>
-              <span className="font-bold text-lg text-sky-400 ml-1">Hub</span>
-            </div>
-          </Link>
+          <Logo 
+            esbTextClassName="text-lg"
+            hubTextClassName="text-lg"
+          />
           <NotificationBell userCycle={user.cycle} userRole={user.role} />
         </div>
 

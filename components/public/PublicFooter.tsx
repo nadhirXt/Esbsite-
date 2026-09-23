@@ -5,6 +5,7 @@ import {
   ArrowRight, ExternalLink, ShieldCheck, BookOpen, 
   Library, FileText
 } from 'lucide-react'
+import { Logo } from '@/components/ui/Logo'
 
 export default function PublicFooter() {
   return (
@@ -18,13 +19,10 @@ export default function PublicFooter() {
           
           {/* ── COL 1 & 2: BRAND & INSTITUTION ──────── */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="inline-flex items-center gap-2.5 group">
-              <GraduationCap className="w-6 h-6 text-amber-500 shrink-0 transition-transform group-hover:-rotate-6" />
-              <div className="flex items-center">
-                <span className="font-black text-xl tracking-tight text-white">ESB</span>
-                <span className="font-bold text-xl text-sky-400 ml-1">Hub</span>
-              </div>
-            </Link>
+            <Logo 
+              className="inline-flex mb-2" 
+              esbTextClassName="text-white dark:text-white"
+            />
 
             <p className="text-slate-400 text-sm leading-relaxed max-w-md">
               Établissement d&apos;enseignement supérieur bancaire rattaché à la Direction Générale de la Banque d&apos;Algérie. Depuis janvier 1995, l&apos;ESB prépare les cadres supérieurs, analystes financiers et dirigeants du secteur monétaire et bancaire national.
