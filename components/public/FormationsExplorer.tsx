@@ -194,7 +194,7 @@ export default function FormationsExplorer() {
           style={{ transformPerspective: 1500 }}
           className="preserve-3d w-full z-10"
         >
-          <Tilt tiltMaxAngleX={12} tiltMaxAngleY={12} perspective={1500} transitionSpeed={1000} scale={1.03} glareEnable={true} glareMaxOpacity={0.2} glareColor={current.accentColor} glarePosition="all" className="preserve-3d w-full" suppressHydrationWarning>
+          <Tilt tiltMaxAngleX={12} tiltMaxAngleY={12} perspective={1500} transitionSpeed={1000} scale={1.03} glareEnable={true} glareMaxOpacity={0.2} glareColor={current.accentColor} glarePosition="all" className="preserve-3d w-full">
             <div className="bg-white/90 dark:bg-[#070D19]/90 rounded-3xl border border-slate-200 dark:border-white/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] backdrop-blur-2xl relative preserve-3d [transform:translateZ(40px)]">
           {/* Top laser strip */}
           <div 

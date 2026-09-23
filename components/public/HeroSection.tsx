@@ -157,7 +157,7 @@ export default function HeroSection({ totalDocs, totalUsers, uniqueCategories }:
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
-          <Tilt tiltMaxAngleX={15} tiltMaxAngleY={15} perspective={1000} transitionSpeed={1000} scale={1.05} glareEnable={true} glareMaxOpacity={0.3} glareColor="#38BDF8" glarePosition="all" className="preserve-3d" suppressHydrationWarning>
+          <Tilt tiltMaxAngleX={15} tiltMaxAngleY={15} perspective={1000} transitionSpeed={1000} scale={1.05} glareEnable={true} glareMaxOpacity={0.3} glareColor="#38BDF8" glarePosition="all" className="preserve-3d">
             <div className="relative rounded-3xl p-6 sm:p-8 bg-[#070D19]/80 backdrop-blur-2xl border border-cyan-500/20 shadow-2xl shadow-cyan-950/40 space-y-6 preserve-3d [transform:translateZ(30px)]">
             {/* Top glowing laser line */}
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
