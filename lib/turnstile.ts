@@ -4,9 +4,8 @@ import crypto from 'crypto'
  * Cloudflare Turnstile & Native Security Verification Helper
  */
 
-// Clés Turnstile Cloudflare pour esbhub.study
-const PRODUCTION_SECRET_KEY = 'your-turnstile-secret-key-placeholder'
-const HMAC_SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || 'esb-hub-secure-fallback-secret-2026'
+// Clé HMAC pour jeton natif de secours
+const HMAC_SECRET = process.env.TURNSTILE_HMAC_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || 'esb-hub-secure-hmac-key'
 
 // Cache mémoire pour éviter les attaques par rejeu
 const usedTokensCache = new Set<string>()
@@ -70,7 +69,15 @@ export async function verifyTurnstileToken(
   }
 
   // ── 2. Validation officielle Cloudflare Turnstile ──
-  const secretKey = process.env.TURNSTILE_SECRET_KEY || PRODUCTION_SECRET_KEY
+  const secretKey = process.env.TURNSTILE_SECRET_KEY
+
+  if (!secretKey) {
+    console.warn('⚠️ TURNSTILE_SECRET_KEY manquant dans l’environnement.')
+    if (process.env.NODE_ENV === 'development') {
+      return { success: true }
+    }
+    return { success: false, error: 'Configuration Turnstile serveur manquante.' }
+  }
 
   try {
     const formData = new URLSearchParams()

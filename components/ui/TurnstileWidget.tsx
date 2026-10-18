@@ -11,8 +11,8 @@ interface TurnstileWidgetProps {
   className?: string
 }
 
-// Clé Turnstile officielle Cloudflare configurée pour esbhub.study
-const PRODUCTION_SITE_KEY = 'your-turnstile-site-key-placeholder'
+// Clé de test Cloudflare officielle (Always Passes) pour le développement local si non configurée
+const DUMMY_TEST_SITE_KEY = '1x00000000000000000000AA'
 
 export default function TurnstileWidget({
   onSuccess,
@@ -34,7 +34,7 @@ export default function TurnstileWidget({
   const callbacksRef = useRef({ onSuccess, onError, onExpire })
   callbacksRef.current = { onSuccess, onError, onExpire }
 
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || PRODUCTION_SITE_KEY
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || DUMMY_TEST_SITE_KEY
 
   // ── Action au clic sur la case native de secours (Brave / Adblock) ──
   const handleNativeClick = async () => {
