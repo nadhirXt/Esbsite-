@@ -23,18 +23,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: turnstileCheck.error || 'Échec de la validation du CAPTCHA.' }, { status: 400 })
     }
 
-    // 1. Chercher l'utilisateur par email
+    // 1. Chercher l'utilisateur par email (pagination complète au-delà de 1000 comptes)
     const normalizedEmail = email.toLowerCase().trim()
-    const { data: allUsersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    })
+    let user: any = null
+    let page = 1
+    const perPage = 1000
 
-    const user = allUsersData?.users?.find(u => u.email === normalizedEmail)
+    while (page <= 20) {
+      const { data: pageData, error: usersError } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage,
+      })
+      if (usersError || !pageData?.users?.length) break
+      const found = pageData.users.find(u => u.email?.toLowerCase() === normalizedEmail)
+      if (found) {
+        user = found
+        break
+      }
+      if (pageData.users.length < perPage) break
+      page++
+    }
 
     // Sécurité : on répond toujours "succès" même si l'email n'existe pas
     // (évite l'énumération d'utilisateurs)
-    if (usersError || !user) {
+    if (!user) {
       return NextResponse.json({ success: true })
     }
 

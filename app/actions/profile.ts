@@ -11,9 +11,17 @@ export async function updateProfile(data: { full_name: string, linkedin_url: str
     return { error: 'Non autorisé' }
   }
 
+  const cleanFullName = (data.full_name || '').trim()
+  if (!cleanFullName || cleanFullName.length < 2 || cleanFullName.length > 100) {
+    return { error: 'Le nom complet doit contenir entre 2 et 100 caractères.' }
+  }
+
   // Validate linkedin_url to prevent XSS via javascript: protocol
   let validatedLinkedinUrl = data.linkedin_url?.trim() || ''
   if (validatedLinkedinUrl) {
+    if (validatedLinkedinUrl.length > 255) {
+      return { error: 'URL LinkedIn trop longue.' }
+    }
     try {
       const url = new URL(validatedLinkedinUrl)
       if (url.protocol !== 'https:' && url.protocol !== 'http:') {
@@ -28,7 +36,7 @@ export async function updateProfile(data: { full_name: string, linkedin_url: str
   const { error } = await supabase
     .from('profiles')
     .update({ 
-      full_name: data.full_name,
+      full_name: cleanFullName,
       linkedin_url: validatedLinkedinUrl
     })
     .eq('id', user.id)
@@ -41,7 +49,7 @@ export async function updateProfile(data: { full_name: string, linkedin_url: str
   // Also update user metadata
   await supabase.auth.updateUser({
     data: {
-      full_name: data.full_name,
+      full_name: cleanFullName,
       linkedin_url: validatedLinkedinUrl
     }
   })

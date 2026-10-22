@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2, FolderInput, Scissors, ClipboardPaste, CheckSquare, Square, Check } from 'lucide-react'
+import { FileText, Download, Folder, FolderOpen, ArrowLeft, ChevronRight, Search, Eye, Plus, Trash2, Edit2, Upload as UploadIcon, MoreVertical, X, Loader2, FolderInput, Scissors, ClipboardPaste, CheckSquare, Square, Check, CloudDownload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate, CYCLES, cn } from '@/lib/utils'
 import type { Document } from '@/lib/types'
@@ -20,6 +20,7 @@ import {
 import MoveDocumentModal from '@/components/admin/MoveDocumentModal'
 import FileConflictModal, { ConflictResolution } from '@/components/admin/FileConflictModal'
 import SmartUploadModal from '@/components/drive/SmartUploadModal'
+import GoogleDriveImportModal from '@/components/drive/GoogleDriveImportModal'
 import UploadProgressDrawer, { ActiveUploadItem } from '@/components/drive/UploadProgressDrawer'
 import { prepareSmartFiles, SmartFileItem } from '@/lib/upload/smart-upload'
 import { executeParallelUpload } from '@/lib/upload/upload-runner'
@@ -98,6 +99,7 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(false)
   const [stagingFiles, setStagingFiles] = useState<SmartFileItem[]>([])
   const [isSmartModalOpen, setIsSmartModalOpen] = useState(false)
   const [activeUploads, setActiveUploads] = useState<ActiveUploadItem[]>([])
@@ -958,6 +960,27 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
         </div>
         
         <div className="flex items-center flex-wrap gap-3 w-full md:w-auto justify-end">
+          {/* Boutons rapides d'import (Google Drive + PC) */}
+          <button
+            type="button"
+            onClick={() => setIsGoogleDriveModalOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold transition-all shrink-0 cursor-pointer shadow-sm"
+            title="Importer des fichiers ou dossiers depuis Google Drive"
+          >
+            <CloudDownload className="w-4 h-4" />
+            <span>Google Drive</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-cyan-500/40 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-600 dark:text-cyan-400 text-xs font-mono font-bold transition-all shrink-0 cursor-pointer shadow-sm"
+            title="Importer des fichiers depuis votre PC"
+          >
+            <UploadIcon className="w-4 h-4" />
+            <span>Importer</span>
+          </button>
+
           {/* Direct Paste button in Toolbar when clipboard active */}
           {clipboard && (
             <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 p-1.5 rounded-2xl shadow-[0_0_15px_rgba(16,185,129,0.15)] animate-pulse">
@@ -1166,6 +1189,9 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
               </button>
               <button className="w-full text-left px-4 py-2.5 hover:bg-white/5 flex items-center gap-3 text-slate-200 transition-colors cursor-pointer" onClick={() => folderInputRef.current?.click()}>
                 <FolderOpen className="w-4 h-4 text-cyan-400" /> Uploader un dossier
+              </button>
+              <button className="w-full text-left px-4 py-2.5 hover:bg-emerald-500/10 flex items-center gap-3 text-emerald-400 font-bold transition-colors cursor-pointer" onClick={() => { setContextMenu(null); setIsGoogleDriveModalOpen(true); }}>
+                <CloudDownload className="w-4 h-4 text-emerald-400" /> Importer depuis Google Drive
               </button>
             </>
           )}
@@ -1458,6 +1484,27 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
           </button>
         </div>
       )}
+
+      {/* Google Drive Direct Import Modal */}
+      <GoogleDriveImportModal
+        isOpen={isGoogleDriveModalOpen}
+        onClose={() => setIsGoogleDriveModalOpen(false)}
+        existingDocs={documents}
+        targetLocation={{
+          cycle,
+          year: isNoYearCycle ? null : year,
+          category: currentPathString || 'Général',
+        }}
+        onDocumentImported={(savedDoc) => {
+          setDocuments(prev => {
+            const exists = prev.some(d => d.id === savedDoc.id)
+            if (exists) {
+              return prev.map(d => (d.id === savedDoc.id ? savedDoc : d))
+            }
+            return [savedDoc, ...prev]
+          })
+        }}
+      />
 
       {/* Smart Upload Staging Modal */}
       <SmartUploadModal

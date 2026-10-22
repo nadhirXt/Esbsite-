@@ -113,7 +113,11 @@ export async function handleDocumentStream(
     headers.set('Accept-Ranges', 'bytes')
 
     // Détermination du nom de fichier propre
-    const isDownload = req.nextUrl.searchParams.get('download') === '1' || req.nextUrl.searchParams.get('download') === 'true'
+    const requestedDownload = req.nextUrl.searchParams.get('download') === '1' || req.nextUrl.searchParams.get('download') === 'true'
+    const safeInlineMimes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'text/plain']
+    const normalizedContentType = contentType.split(';')[0].trim().toLowerCase()
+    const isDownload = requestedDownload || !safeInlineMimes.includes(normalizedContentType)
+
     const safeTitle = (doc.title?.trim() || doc.file_path.split('/').pop() || 'document')
       .replace(/[/\\?%*:|"<>]/g, '_')
     const fullFilename = safeTitle.toLowerCase().endsWith(`.${ext}`) ? safeTitle : `${safeTitle}.${ext}`
@@ -127,11 +131,14 @@ export async function handleDocumentStream(
       `${isDownload ? 'attachment' : 'inline'}; filename="${asciiFilename.replace(/"/g, '')}"; filename*=UTF-8''${encodedFilename}`
     )
 
-    // En-têtes de sécurité et compatibilité mobile
+    // En-têtes de sécurité et compatibilité mobile (script-src 'none' bloque tout XSS sur fichiers streamés)
     headers.set('Cache-Control', 'private, max-age=3600, stale-while-revalidate=86400')
     headers.set('X-Content-Type-Options', 'nosniff')
     headers.set('X-Frame-Options', 'SAMEORIGIN')
-    headers.set('Content-Security-Policy', "default-src 'self'; object-src 'self' blob: data:; frame-src 'self' blob: data:; style-src 'self' 'unsafe-inline';")
+    headers.set(
+      'Content-Security-Policy',
+      "default-src 'none'; script-src 'none'; object-src 'self' blob: data:; frame-src 'self' blob: data:; img-src 'self' blob: data:; style-src 'unsafe-inline';"
+    )
 
     return new Response(webStream, {
       status,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { supabaseAdmin as supabase } from '@/lib/supabase/admin'
 
 export async function POST(req: NextRequest) {
@@ -35,7 +36,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Accès non approuvé' }, { status: 403 })
     }
 
-    if (access.password !== password.trim()) {
+    const storedPwd = Buffer.from(String(access.password || ''), 'utf8')
+    const candidatePwd = Buffer.from(String(password).trim(), 'utf8')
+    if (
+      storedPwd.length === 0 ||
+      storedPwd.length !== candidatePwd.length ||
+      !crypto.timingSafeEqual(storedPwd, candidatePwd)
+    ) {
       return NextResponse.json({ error: 'Mot de passe incorrect' }, { status: 400 })
     }
 
@@ -55,6 +62,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('Memoires unlock error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: 'Une erreur interne est survenue' }, { status: 500 })
   }
 }

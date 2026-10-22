@@ -27,9 +27,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
-    // 2. Récupérer tous les utilisateurs
-    const { data: usersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers()
-    if (usersError) throw usersError
+    // 2. Récupérer tous les utilisateurs (avec pagination complète)
+    const allAuthUsers: any[] = []
+    let page = 1
+    const perPage = 1000
+    while (page <= 20) {
+      const { data: pageData, error: usersError } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage,
+      })
+      if (usersError) throw usersError
+      if (!pageData?.users?.length) break
+      allAuthUsers.push(...pageData.users)
+      if (pageData.users.length < perPage) break
+      page++
+    }
 
     // Récupérer les profils pour joindre les infos (cycle, etc.)
     const { data: profilesData, error: profilesError } = await supabaseAdmin
@@ -38,7 +50,7 @@ export async function GET(req: NextRequest) {
     if (profilesError) throw profilesError
 
     // Combiner les données
-    const combinedUsers = usersData.users.map(u => {
+    const combinedUsers = allAuthUsers.map(u => {
       const p = profilesData.find(p => p.id === u.id) || {}
       return {
         id: u.id,

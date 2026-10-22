@@ -46,15 +46,50 @@ function revalidateDocumentPaths() {
 
 
 /**
- * Nettoie une clé S3 (retire les éventuels ../ ou barres obliques en double)
+ * Nettoie une clé S3 et bloque strictement toute tentative de traversée de chemin (..)
  */
 function sanitizeS3Key(key: string): string {
-  return key
-    .replace(/\\/g, '/')
-    .replace(/\.{2,}\//g, '')
-    .replace(/^\/+/, '')
-    .trim()
+  const normalized = key.replace(/\\/g, '/').trim()
+  if (normalized.includes('..')) {
+    return ''
+  }
+  return normalized
+    .split('/')
+    .filter(seg => seg.length > 0 && seg !== '.' && seg !== '..')
+    .join('/')
 }
+
+function isSameYear(a: unknown, b: unknown): boolean {
+  if (a === null || a === undefined || b === null || b === undefined) {
+    return (a ?? null) === (b ?? null)
+  }
+  return Number(a) === Number(b)
+}
+
+const ALLOWED_UPLOAD_EXTENSIONS = [
+  '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+  '.jpg', '.jpeg', '.png', '.webp', '.zip', '.rar', '.txt', '.csv'
+]
+
+const ALLOWED_UPLOAD_MIMES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/vnd.rar',
+  'application/x-rar-compressed',
+  'text/plain',
+  'text/csv',
+  'application/octet-stream'
+]
 
 /**
  * Génère une URL présignée pour l'upload sur Backblaze B2
@@ -80,23 +115,14 @@ export async function getPresignedUploadUrl(filePath: string, contentType: strin
     }
 
     // Validate file extension
-    const allowedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.jpg', '.jpeg', '.png', '.webp']
     const ext = '.' + safeKey.split('.').pop()?.toLowerCase()
-    if (!allowedExtensions.includes(ext)) {
+    if (!ALLOWED_UPLOAD_EXTENSIONS.includes(ext)) {
       return { url: null, error: 'Type de fichier non autorisé' }
     }
 
     // Validate content type
-    const allowedMimeTypes = [
-      'application/pdf', 'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'image/jpeg', 'image/png', 'image/webp'
-    ]
-    if (!allowedMimeTypes.includes(contentType)) {
+    const normalizedMime = (contentType || 'application/octet-stream').split(';')[0].trim().toLowerCase()
+    if (!ALLOWED_UPLOAD_MIMES.includes(normalizedMime)) {
       return { url: null, error: 'Type MIME non autorisé' }
     }
 
@@ -139,17 +165,6 @@ export async function getPresignedUploadUrlsBatch(
       return { results: [], error: 'Non autorisé à uploader des fichiers' }
     }
 
-    const allowedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.jpg', '.jpeg', '.png', '.webp']
-    const allowedMimeTypes = [
-      'application/pdf', 'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-powerpoint',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'image/jpeg', 'image/png', 'image/webp'
-    ]
-
     const expectedDelegatePrefix = (!isAdmin && isDelegate)
       ? `${profile?.delegate_cycle}/A${profile?.delegate_year}/`
       : null
@@ -167,11 +182,12 @@ export async function getPresignedUploadUrlsBatch(
           }
 
           const ext = '.' + safeKey.split('.').pop()?.toLowerCase()
-          if (!allowedExtensions.includes(ext)) {
+          if (!ALLOWED_UPLOAD_EXTENSIONS.includes(ext)) {
             return { id: item.id, url: null, error: 'Type de fichier non autorisé' }
           }
 
-          if (!allowedMimeTypes.includes(item.contentType)) {
+          const normalizedMime = (item.contentType || 'application/octet-stream').split(';')[0].trim().toLowerCase()
+          if (!ALLOWED_UPLOAD_MIMES.includes(normalizedMime)) {
             return { id: item.id, url: null, error: 'Type MIME non autorisé' }
           }
 
@@ -370,7 +386,7 @@ export async function deleteDocumentAction(documentId: string) {
     // 2. Vérifier les autorisations
     if (!isAdmin) {
       const isOwner = doc.uploader_id === user.id
-      const isCycleDelegate = isDelegate && profile?.delegate_cycle === doc.cycle && profile?.delegate_year === doc.year
+      const isCycleDelegate = isDelegate && profile?.delegate_cycle === doc.cycle && isSameYear(profile?.delegate_year, doc.year)
       if (!isOwner && !isCycleDelegate) {
         return { error: 'Vous n\'avez pas les permissions pour supprimer ce document' }
       }
@@ -426,7 +442,7 @@ export async function deleteFolderAction(params: {
     }
 
     if (!isAdmin) {
-      const isCycleDelegate = isDelegate && profile?.delegate_cycle === cycle && profile?.delegate_year === year
+      const isCycleDelegate = isDelegate && profile?.delegate_cycle === cycle && isSameYear(profile?.delegate_year, year)
       if (!isCycleDelegate) {
         return { error: 'Vous n\'avez pas les permissions pour supprimer ce dossier' }
       }
@@ -536,9 +552,9 @@ export async function moveDocumentAction(params: {
     if (!isAdmin) {
       const isCycleDelegate = isDelegate && 
         profile?.delegate_cycle === doc.cycle && 
-        profile?.delegate_year === doc.year &&
+        isSameYear(profile?.delegate_year, doc.year) &&
         profile?.delegate_cycle === targetCycle &&
-        profile?.delegate_year === targetYear
+        isSameYear(profile?.delegate_year, targetYear)
       
       if (!isCycleDelegate) {
         return { error: 'Permissions insuffisantes pour déplacer ce document' }
@@ -626,9 +642,9 @@ export async function moveFolderAction(params: {
     if (!isAdmin) {
       const isCycleDelegate = isDelegate && 
         profile?.delegate_cycle === sourceCycle && 
-        profile?.delegate_year === sourceYear &&
+        isSameYear(profile?.delegate_year, sourceYear) &&
         profile?.delegate_cycle === targetCycle &&
-        profile?.delegate_year === targetYear
+        isSameYear(profile?.delegate_year, targetYear)
       
       if (!isCycleDelegate) {
         return { error: 'Permissions insuffisantes pour déplacer ce dossier' }
@@ -742,13 +758,14 @@ export async function deleteBatchAction(params: {
     if (documentIds.length > 0) {
       const { data: docs } = await supabase
         .from('documents')
-        .select('id, cycle, year, file_path, thumbnail_path')
+        .select('id, cycle, year, uploader_id, file_path, thumbnail_path')
         .in('id', documentIds)
 
       for (const doc of docs || []) {
         if (!isAdmin) {
-          const isOwnerOrDelegate = isDelegate && profile?.delegate_cycle === doc.cycle && profile?.delegate_year === doc.year
-          if (!isOwnerOrDelegate) continue
+          const isOwner = doc.uploader_id === user.id
+          const isCycleDelegate = isDelegate && profile?.delegate_cycle === doc.cycle && isSameYear(profile?.delegate_year, doc.year)
+          if (!isOwner && !isCycleDelegate) continue
         }
         allIdsToDelete.push(doc.id)
         if (doc.file_path && doc.file_path !== '.keep') allPathsToDelete.push(doc.file_path)
@@ -759,7 +776,7 @@ export async function deleteBatchAction(params: {
     // 2. Dossiers
     for (const f of folders) {
       if (!isAdmin) {
-        const isOwnerOrDelegate = isDelegate && profile?.delegate_cycle === f.cycle && profile?.delegate_year === f.year
+        const isOwnerOrDelegate = isDelegate && profile?.delegate_cycle === f.cycle && isSameYear(profile?.delegate_year, f.year)
         if (!isOwnerOrDelegate) continue
       }
 
@@ -826,7 +843,7 @@ export async function moveBatchAction(params: {
         if (!doc) continue
 
         if (!isAdmin) {
-          const isAllowed = isDelegate && profile?.delegate_cycle === doc.cycle && profile?.delegate_year === doc.year && profile?.delegate_cycle === targetCycle && profile?.delegate_year === targetYear
+          const isAllowed = isDelegate && profile?.delegate_cycle === doc.cycle && isSameYear(profile?.delegate_year, doc.year) && profile?.delegate_cycle === targetCycle && isSameYear(profile?.delegate_year, targetYear)
           if (!isAllowed) continue
         }
 

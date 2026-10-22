@@ -4,8 +4,14 @@ import crypto from 'crypto'
  * Cloudflare Turnstile & Native Security Verification Helper
  */
 
-// Clé HMAC pour jeton natif de secours
-const HMAC_SECRET = process.env.TURNSTILE_HMAC_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || 'esb-hub-secure-hmac-key'
+// Clé HMAC dérivée unique partagée entre émission et vérification
+export function getTurnstileHmacSecret(): string {
+  const baseSecret =
+    process.env.TURNSTILE_HMAC_SECRET ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    'esb-hub-secure-hmac-key-2026'
+  return crypto.createHash('sha256').update(`esb-turnstile-hmac:${baseSecret}`).digest('hex')
+}
 
 // Cache mémoire pour éviter les attaques par rejeu
 const usedTokensCache = new Set<string>()
@@ -43,9 +49,14 @@ export async function verifyTurnstileToken(
 
       const [encodedPayload, receivedSig] = parts
       const payload = Buffer.from(encodedPayload, 'base64url').toString('utf8')
-      const expectedSig = crypto.createHmac('sha256', HMAC_SECRET).update(payload).digest('hex')
+      const expectedSig = crypto
+        .createHmac('sha256', getTurnstileHmacSecret())
+        .update(payload)
+        .digest('hex')
 
-      if (receivedSig !== expectedSig) {
+      const sigBuf = Buffer.from(receivedSig, 'utf8')
+      const expBuf = Buffer.from(expectedSig, 'utf8')
+      if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
         return { success: false, error: 'Signature de sécurité invalide.' }
       }
 

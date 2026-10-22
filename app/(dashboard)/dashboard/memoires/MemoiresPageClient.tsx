@@ -84,6 +84,7 @@ export default function MemoiresPageClient({ documents, favoriteDocsIds = [] }: 
       if (!res.ok) throw new Error(data.error || 'Erreur')
       
       setStatus('unlocked')
+      router.refresh()
     } catch (err: any) {
       setError(err.message)
     } finally {

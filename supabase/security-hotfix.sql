@@ -41,7 +41,16 @@ BEGIN
 END;
 $$;
 
--- ── C2: Restrict profile UPDATE policy (CRITICAL) ───────────
+-- ── C2: Restrict profile INSERT & UPDATE policies (CRITICAL) ──
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+CREATE POLICY "Users can insert own profile"
+  ON public.profiles FOR INSERT
+  WITH CHECK (
+    auth.uid() = id AND
+    role = 'student' AND
+    COALESCE(is_delegate, false) = false
+  );
+
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update own profile non-sensitive fields" ON public.profiles;
 
@@ -55,6 +64,46 @@ CREATE POLICY "Users can update own profile non-sensitive fields"
     delegate_cycle IS NOT DISTINCT FROM (SELECT p.delegate_cycle FROM public.profiles p WHERE p.id = auth.uid()) AND
     delegate_year IS NOT DISTINCT FROM (SELECT p.delegate_year FROM public.profiles p WHERE p.id = auth.uid())
   );
+
+-- ── C3: Protect memoires documents & delegate UPDATE scope ───
+DROP POLICY IF EXISTS "Authenticated users can view documents" ON public.documents;
+CREATE POLICY "Authenticated users can view documents"
+  ON public.documents FOR SELECT
+  USING (
+    auth.role() = 'authenticated' AND (
+      cycle <> 'memoires' OR
+      public.is_admin() OR
+      EXISTS (
+        SELECT 1 FROM public.memoires_access ma
+        WHERE ma.user_id = auth.uid() AND ma.status = 'unlocked'
+      )
+    )
+  );
+
+DROP POLICY IF EXISTS "Delegates can update documents for their scope" ON public.documents;
+CREATE POLICY "Delegates can update documents for their scope"
+  ON public.documents FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+      AND is_delegate = true
+      AND delegate_cycle = documents.cycle
+      AND delegate_year = documents.year
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+      AND is_delegate = true
+      AND delegate_cycle = documents.cycle
+      AND delegate_year = documents.year
+    )
+  );
+
+-- ── C4: Prevent direct client read on memoires_access.password ─
+DROP POLICY IF EXISTS "Users can view their own memoire access" ON public.memoires_access;
 
 -- ── H6: Restrict notifications INSERT (HIGH) ────────────────
 DO $$
