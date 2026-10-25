@@ -107,6 +107,26 @@ export default function AdminDriveClient({ documents: initialDocuments }: { docu
 
   const supabase = createClient()
 
+  // Intercepter le retour OAuth Google Drive (#access_token=...) dans la popup ou l'onglet
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const hash = window.location.hash
+    if (hash && hash.includes('access_token=')) {
+      const params = new URLSearchParams(hash.replace(/^#/, ''))
+      const token = params.get('access_token')
+      if (token) {
+        localStorage.setItem('esb_gdrive_oauth_token', token)
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+        if (window.opener && window.opener !== window) {
+          window.opener.postMessage({ type: 'ESB_GDRIVE_TOKEN', token }, '*')
+          window.close()
+          return
+        }
+        setIsGoogleDriveModalOpen(true)
+      }
+    }
+  }, [])
+
   // Prevent navigation when uploading
   useEffect(() => {
     const isUploading = activeUploads.some(i => i.status === 'uploading' || i.status === 'queued')
