@@ -23,7 +23,11 @@ async function downloadFromGoogleDrive(params: {
   apiKey?: string
 }): Promise<{ buffer: Buffer; contentType: string }> {
   const { driveId, isGoogleWorkspaceDoc, exportMimeType, exportExtension, accessToken, apiKey } = params
-  const effectiveApiKey = apiKey || process.env.GOOGLE_DRIVE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+  const effectiveApiKey =
+    apiKey ||
+    process.env.GOOGLE_DRIVE_API_KEY ||
+    process.env.NEXT_PUBLIC_GOOGLE_API_KEY ||
+    'AIzaSyA9P9BJJJWkCwHGLQHa3EGn0ECm0tRWjRU'
 
   // 1. Si jeton OAuth ou API Key disponible, tenter l'API Drive v3 directe
   if (accessToken || effectiveApiKey) {

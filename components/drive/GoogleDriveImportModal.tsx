@@ -56,9 +56,16 @@ export default function GoogleDriveImportModal({
   const [scanError, setScanError] = useState<string | null>(null)
   const [stagedItems, setStagedItems] = useState<GoogleDriveStagedItem[]>([])
 
-  // Configuration Google Picker (depuis env ou localStorage admin)
-  const [clientId, setClientId] = useState(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '')
-  const [apiKey, setApiKey] = useState(process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '')
+  // Configuration Google Picker pré-configurée par défaut (avec surcharge possible via env ou localStorage)
+  const DEFAULT_CLIENT_ID = '57964261704-r7lmkv3otpol310vrjfpk014afpkgt1u.apps.googleusercontent.com'
+  const DEFAULT_API_KEY = 'AIzaSyA9P9BJJJWkCwHGLQHa3EGn0ECm0tRWjRU'
+
+  const [clientId, setClientId] = useState(
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || DEFAULT_CLIENT_ID
+  )
+  const [apiKey, setApiKey] = useState(
+    process.env.NEXT_PUBLIC_GOOGLE_API_KEY || DEFAULT_API_KEY
+  )
   const [oauthToken, setOauthToken] = useState<string | null>(null)
   const [showConfig, setShowConfig] = useState(false)
 
@@ -66,10 +73,10 @@ export default function GoogleDriveImportModal({
     if (typeof window !== 'undefined') {
       const savedClientId = localStorage.getItem('esb_gdrive_client_id')
       const savedApiKey = localStorage.getItem('esb_gdrive_api_key')
-      if (savedClientId && !clientId) setClientId(savedClientId)
-      if (savedApiKey && !apiKey) setApiKey(savedApiKey)
+      if (savedClientId) setClientId(savedClientId)
+      if (savedApiKey) setApiKey(savedApiKey)
     }
-  }, [clientId, apiKey])
+  }, [])
 
   if (!isOpen) return null
 
@@ -220,11 +227,19 @@ export default function GoogleDriveImportModal({
           .setIncludeFolders(true)
           .setSelectFolderEnabled(true)
 
-        const picker = new googleWin.picker.PickerBuilder()
+        const appId = process.env.NEXT_PUBLIC_GOOGLE_APP_ID || clientId.trim().split('-')[0] || ''
+        const pickerBuilder = new googleWin.picker.PickerBuilder()
           .addView(docsView)
           .enableFeature(googleWin.picker.Feature.MULTISELECT_ENABLED)
           .setOAuthToken(token)
           .setDeveloperKey(apiKey.trim())
+          .setOrigin(window.location.origin)
+
+        if (appId) {
+          pickerBuilder.setAppId(appId)
+        }
+
+        const picker = pickerBuilder
           .setCallback(async (data: any) => {
             if (data.action === googleWin.picker.Action.PICKED) {
               setIsScanning(true)

@@ -246,16 +246,19 @@ async function scanPublicDriveFolder(
 
     const html = await res.text()
     const results: ScannedDriveFile[] = []
-
-    // Extraire chaque entrée <div class="flip-entry" id="entry-ID"> ... <div class="flip-entry-title">TITLE</div>
-    const entryRegex = /id=["']entry-([a-zA-Z0-9_-]+)["'][\s\S]*?<a\s+href=["']([^"']+)["'][\s\S]*?<div\s+class=["']flip-entry-title["']>([^<]+)<\/div>/gi
-    let match: RegExpExecArray | null
     const subFolders: { id: string; name: string }[] = []
 
-    while ((match = entryRegex.exec(html)) !== null) {
-      const entryId = match[1]
-      const href = match[2]
-      const rawTitle = decodeHtmlEntities(match[3].trim())
+    // Découper par bloc flip-entry pour un parsing 100% fiable
+    const blocks = html.split(/id=["']entry-/i).slice(1)
+    for (const block of blocks) {
+      const idMatch = block.match(/^([a-zA-Z0-9_-]+)["']/)
+      const hrefMatch = block.match(/<a\s+href=["']([^"']+)["']/i)
+      const titleMatch = block.match(/<div\s+class=["']flip-entry-title["']>([^<]+)<\/div>/i)
+      if (!idMatch || !hrefMatch || !titleMatch) continue
+
+      const entryId = idMatch[1]
+      const href = hrefMatch[1]
+      const rawTitle = decodeHtmlEntities(titleMatch[1].trim())
 
       if (href.includes('/folders/') || href.includes('embeddedfolderview')) {
         subFolders.push({ id: entryId, name: rawTitle })
@@ -414,7 +417,11 @@ export async function POST(req: NextRequest) {
       apiKey?: string
     }
 
-    const effectiveApiKey = apiKey || process.env.GOOGLE_DRIVE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY
+    const effectiveApiKey =
+      apiKey ||
+      process.env.GOOGLE_DRIVE_API_KEY ||
+      process.env.NEXT_PUBLIC_GOOGLE_API_KEY ||
+      'AIzaSyA9P9BJJJWkCwHGLQHa3EGn0ECm0tRWjRU'
     const scannedFiles: ScannedDriveFile[] = []
 
     // Cas A : Éléments sélectionnés depuis Google Picker
